@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-02-19T18:51:57.987931",
+  "data_yaml": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/artifacts/pose_1class_20260219/data.yaml",
+  "model_source": "yolov8n-pose.yaml",
+  "resolved_device": "cpu",
+  "train_args": {
+    "epochs": 3,
+    "imgsz": 960,
+    "batch": 8,
+    "workers": 2
+  },
+  "run_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/runs/pose/gate_pose_20260219_1844",
+  "checkpoint_copied_from": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/runs/pose/gate_pose_20260219_1844/weights/best.pt",
+  "checkpoint_output": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/artifacts/models/gate_pose_best_20260219.pt",
+  "metrics": {
+    "metrics/precision(B)": 0.00035714285714285714,
+    "metrics/recall(B)": 0.02313624678663239,
+    "metrics/mAP50(B)": 0.0010191714066096807,
+    "metrics/mAP50-95(B)": 0.00016351743260657552,
+    "metrics/precision(P)": 0.002619047619047619,
+    "metrics/recall(P)": 0.16966580976863754,
+    "metrics/mAP50(P)": 0.004884437300752372,
+    "metrics/mAP50-95(P)": 0.0012926062261872746,
+    "fitness": 0.0014561236587938501
+  }
+}

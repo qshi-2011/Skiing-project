@@ -1,0 +1,2048 @@
+{
+  "clip_id": "MS SL R",
+  "frames": [
+    {
+      "frame_idx": 0,
+      "detections": []
+    },
+    {
+      "frame_idx": 2,
+      "detections": []
+    },
+    {
+      "frame_idx": 4,
+      "detections": []
+    },
+    {
+      "frame_idx": 6,
+      "detections": []
+    },
+    {
+      "frame_idx": 8,
+      "detections": []
+    },
+    {
+      "frame_idx": 10,
+      "detections": []
+    },
+    {
+      "frame_idx": 12,
+      "detections": []
+    },
+    {
+      "frame_idx": 14,
+      "detections": []
+    },
+    {
+      "frame_idx": 16,
+      "detections": []
+    },
+    {
+      "frame_idx": 18,
+      "detections": []
+    },
+    {
+      "frame_idx": 20,
+      "detections": []
+    },
+    {
+      "frame_idx": 22,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00022_000",
+          "class_label": "red",
+          "conf_class": 0.25631290674209595,
+          "bbox_xyxy": [
+            200.720947265625,
+            995.0407104492188,
+            291.008544921875,
+            1067.9234619140625
+          ],
+          "keypoint_base_px": {
+            "x_px": 245.86474609375,
+            "y_px": 1067.9234619140625,
+            "conf": 0.05
+          },
+          "keypoint_tip_px": {
+            "x_px": 234.5486066525546,
+            "y_px": 995.0407104492188,
+            "conf": 0.25631290674209595
+          },
+          "base_px": {
+            "x_px": 245.86474609375,
+            "y_px": 1067.9234619140625
+          },
+          "base_fallback_tier": 3,
+          "is_degraded": true,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -1.3613562889319386,
+            "log_prob_blue": -0.2961349048483521,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 24,
+      "detections": []
+    },
+    {
+      "frame_idx": 26,
+      "detections": []
+    },
+    {
+      "frame_idx": 28,
+      "detections": []
+    },
+    {
+      "frame_idx": 30,
+      "detections": []
+    },
+    {
+      "frame_idx": 32,
+      "detections": []
+    },
+    {
+      "frame_idx": 34,
+      "detections": []
+    },
+    {
+      "frame_idx": 36,
+      "detections": []
+    },
+    {
+      "frame_idx": 38,
+      "detections": []
+    },
+    {
+      "frame_idx": 40,
+      "detections": []
+    },
+    {
+      "frame_idx": 42,
+      "detections": []
+    },
+    {
+      "frame_idx": 44,
+      "detections": []
+    },
+    {
+      "frame_idx": 46,
+      "detections": []
+    },
+    {
+      "frame_idx": 48,
+      "detections": []
+    },
+    {
+      "frame_idx": 50,
+      "detections": []
+    },
+    {
+      "frame_idx": 52,
+      "detections": []
+    },
+    {
+      "frame_idx": 54,
+      "detections": []
+    },
+    {
+      "frame_idx": 56,
+      "detections": []
+    },
+    {
+      "frame_idx": 58,
+      "detections": []
+    },
+    {
+      "frame_idx": 60,
+      "detections": []
+    },
+    {
+      "frame_idx": 62,
+      "detections": []
+    },
+    {
+      "frame_idx": 64,
+      "detections": []
+    },
+    {
+      "frame_idx": 66,
+      "detections": []
+    },
+    {
+      "frame_idx": 68,
+      "detections": []
+    },
+    {
+      "frame_idx": 70,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00070_000",
+          "class_label": "unknown",
+          "conf_class": 0.25154608488082886,
+          "bbox_xyxy": [
+            349.29913330078125,
+            834.4703979492188,
+            382.4212341308594,
+            1009.552734375
+          ],
+          "keypoint_base_px": {
+            "x_px": 365.8601837158203,
+            "y_px": 1009.552734375,
+            "conf": 0.05
+          },
+          "keypoint_tip_px": {
+            "x_px": 351.7162420680807,
+            "y_px": 834.4703979492188,
+            "conf": 0.25154608488082886
+          },
+          "base_px": {
+            "x_px": 365.8601837158203,
+            "y_px": 1009.552734375
+          },
+          "base_fallback_tier": 3,
+          "is_degraded": true,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.2897456453289209,
+            "log_prob_blue": -0.2897456453289209,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 72,
+      "detections": []
+    },
+    {
+      "frame_idx": 74,
+      "detections": []
+    },
+    {
+      "frame_idx": 76,
+      "detections": []
+    },
+    {
+      "frame_idx": 78,
+      "detections": []
+    },
+    {
+      "frame_idx": 80,
+      "detections": []
+    },
+    {
+      "frame_idx": 82,
+      "detections": []
+    },
+    {
+      "frame_idx": 84,
+      "detections": []
+    },
+    {
+      "frame_idx": 86,
+      "detections": []
+    },
+    {
+      "frame_idx": 88,
+      "detections": []
+    },
+    {
+      "frame_idx": 90,
+      "detections": []
+    },
+    {
+      "frame_idx": 92,
+      "detections": []
+    },
+    {
+      "frame_idx": 94,
+      "detections": []
+    },
+    {
+      "frame_idx": 96,
+      "detections": []
+    },
+    {
+      "frame_idx": 98,
+      "detections": []
+    },
+    {
+      "frame_idx": 100,
+      "detections": []
+    },
+    {
+      "frame_idx": 102,
+      "detections": []
+    },
+    {
+      "frame_idx": 104,
+      "detections": []
+    },
+    {
+      "frame_idx": 106,
+      "detections": []
+    },
+    {
+      "frame_idx": 108,
+      "detections": []
+    },
+    {
+      "frame_idx": 110,
+      "detections": []
+    },
+    {
+      "frame_idx": 112,
+      "detections": []
+    },
+    {
+      "frame_idx": 114,
+      "detections": []
+    },
+    {
+      "frame_idx": 116,
+      "detections": []
+    },
+    {
+      "frame_idx": 118,
+      "detections": []
+    },
+    {
+      "frame_idx": 120,
+      "detections": []
+    },
+    {
+      "frame_idx": 122,
+      "detections": []
+    },
+    {
+      "frame_idx": 124,
+      "detections": []
+    },
+    {
+      "frame_idx": 126,
+      "detections": []
+    },
+    {
+      "frame_idx": 128,
+      "detections": []
+    },
+    {
+      "frame_idx": 130,
+      "detections": []
+    },
+    {
+      "frame_idx": 132,
+      "detections": []
+    },
+    {
+      "frame_idx": 134,
+      "detections": []
+    },
+    {
+      "frame_idx": 136,
+      "detections": []
+    },
+    {
+      "frame_idx": 138,
+      "detections": []
+    },
+    {
+      "frame_idx": 140,
+      "detections": []
+    },
+    {
+      "frame_idx": 142,
+      "detections": []
+    },
+    {
+      "frame_idx": 144,
+      "detections": []
+    },
+    {
+      "frame_idx": 146,
+      "detections": []
+    },
+    {
+      "frame_idx": 148,
+      "detections": []
+    },
+    {
+      "frame_idx": 150,
+      "detections": []
+    },
+    {
+      "frame_idx": 152,
+      "detections": []
+    },
+    {
+      "frame_idx": 154,
+      "detections": []
+    },
+    {
+      "frame_idx": 156,
+      "detections": []
+    },
+    {
+      "frame_idx": 158,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00158_000",
+          "class_label": "unknown",
+          "conf_class": 0.25274574756622314,
+          "bbox_xyxy": [
+            885.8221435546875,
+            594.3185424804688,
+            1024.404296875,
+            862.1053466796875
+          ],
+          "keypoint_base_px": {
+            "x_px": 955.1132202148438,
+            "y_px": 862.1053466796875,
+            "conf": 0.05
+          },
+          "keypoint_tip_px": {
+            "x_px": 978.6194204324668,
+            "y_px": 594.3185424804688,
+            "conf": 0.25274574756622314
+          },
+          "base_px": {
+            "x_px": 955.1132202148438,
+            "y_px": 862.1053466796875
+          },
+          "base_fallback_tier": 3,
+          "is_degraded": true,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.2913497857181616,
+            "log_prob_blue": -0.2913497857181616,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 160,
+      "detections": []
+    },
+    {
+      "frame_idx": 162,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00162_000",
+          "class_label": "red",
+          "conf_class": 0.28663158416748047,
+          "bbox_xyxy": [
+            900.8286743164062,
+            593.0353393554688,
+            1059.7896728515625,
+            879.5230712890625
+          ],
+          "keypoint_base_px": {
+            "x_px": 980.3091735839844,
+            "y_px": 879.5230712890625,
+            "conf": 0.05
+          },
+          "keypoint_tip_px": {
+            "x_px": 977.0690265501663,
+            "y_px": 593.0353393554688,
+            "conf": 0.28663158416748047
+          },
+          "base_px": {
+            "x_px": 980.3091735839844,
+            "y_px": 879.5230712890625
+          },
+          "base_fallback_tier": 3,
+          "is_degraded": true,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -1.2495575667029504,
+            "log_prob_blue": -0.33775727836827324,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 164,
+      "detections": []
+    },
+    {
+      "frame_idx": 166,
+      "detections": []
+    },
+    {
+      "frame_idx": 168,
+      "detections": []
+    },
+    {
+      "frame_idx": 170,
+      "detections": []
+    },
+    {
+      "frame_idx": 172,
+      "detections": []
+    },
+    {
+      "frame_idx": 174,
+      "detections": []
+    },
+    {
+      "frame_idx": 176,
+      "detections": []
+    },
+    {
+      "frame_idx": 178,
+      "detections": []
+    },
+    {
+      "frame_idx": 180,
+      "detections": []
+    },
+    {
+      "frame_idx": 182,
+      "detections": []
+    },
+    {
+      "frame_idx": 184,
+      "detections": []
+    },
+    {
+      "frame_idx": 186,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00186_000",
+          "class_label": "red",
+          "conf_class": 0.31233111023902893,
+          "bbox_xyxy": [
+            1727.5946044921875,
+            739.0968627929688,
+            1829.1685791015625,
+            850.0069580078125
+          ],
+          "keypoint_base_px": {
+            "x_px": 1778.381591796875,
+            "y_px": 850.0069580078125,
+            "conf": 0.06233111023902893
+          },
+          "keypoint_tip_px": {
+            "x_px": 1781.796990855101,
+            "y_px": 739.0968627929688,
+            "conf": 0.31233111023902893
+          },
+          "base_px": {
+            "x_px": 1781.7058905686206,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -1.1636914031350352,
+            "log_prob_blue": -0.3744478203220278,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 188,
+      "detections": []
+    },
+    {
+      "frame_idx": 190,
+      "detections": []
+    },
+    {
+      "frame_idx": 192,
+      "detections": []
+    },
+    {
+      "frame_idx": 194,
+      "detections": []
+    },
+    {
+      "frame_idx": 196,
+      "detections": []
+    },
+    {
+      "frame_idx": 198,
+      "detections": []
+    },
+    {
+      "frame_idx": 200,
+      "detections": []
+    },
+    {
+      "frame_idx": 202,
+      "detections": []
+    },
+    {
+      "frame_idx": 204,
+      "detections": []
+    },
+    {
+      "frame_idx": 206,
+      "detections": []
+    },
+    {
+      "frame_idx": 208,
+      "detections": []
+    },
+    {
+      "frame_idx": 210,
+      "detections": []
+    },
+    {
+      "frame_idx": 212,
+      "detections": []
+    },
+    {
+      "frame_idx": 214,
+      "detections": []
+    },
+    {
+      "frame_idx": 216,
+      "detections": []
+    },
+    {
+      "frame_idx": 218,
+      "detections": []
+    },
+    {
+      "frame_idx": 220,
+      "detections": []
+    },
+    {
+      "frame_idx": 222,
+      "detections": []
+    },
+    {
+      "frame_idx": 224,
+      "detections": []
+    },
+    {
+      "frame_idx": 226,
+      "detections": []
+    },
+    {
+      "frame_idx": 228,
+      "detections": []
+    },
+    {
+      "frame_idx": 230,
+      "detections": []
+    },
+    {
+      "frame_idx": 232,
+      "detections": []
+    },
+    {
+      "frame_idx": 234,
+      "detections": []
+    },
+    {
+      "frame_idx": 236,
+      "detections": []
+    },
+    {
+      "frame_idx": 238,
+      "detections": []
+    },
+    {
+      "frame_idx": 240,
+      "detections": []
+    },
+    {
+      "frame_idx": 242,
+      "detections": []
+    },
+    {
+      "frame_idx": 244,
+      "detections": []
+    },
+    {
+      "frame_idx": 246,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00246_000",
+          "class_label": "unknown",
+          "conf_class": 0.25687941908836365,
+          "bbox_xyxy": [
+            1047.31103515625,
+            198.49130249023438,
+            1136.322021484375,
+            734.934814453125
+          ],
+          "keypoint_base_px": {
+            "x_px": 1091.8165283203125,
+            "y_px": 734.934814453125,
+            "conf": 0.05
+          },
+          "keypoint_tip_px": {
+            "x_px": 1115.3425915377013,
+            "y_px": 198.49130249023438,
+            "conf": 0.25687941908836365
+          },
+          "base_px": {
+            "x_px": 1091.8165283203125,
+            "y_px": 734.934814453125
+          },
+          "base_fallback_tier": 3,
+          "is_degraded": true,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.29689695683767564,
+            "log_prob_blue": -0.29689695683767564,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 248,
+      "detections": []
+    },
+    {
+      "frame_idx": 250,
+      "detections": []
+    },
+    {
+      "frame_idx": 252,
+      "detections": []
+    },
+    {
+      "frame_idx": 254,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00254_000",
+          "class_label": "red",
+          "conf_class": 0.5615071654319763,
+          "bbox_xyxy": [
+            841.377197265625,
+            353.243408203125,
+            1008.5341186523438,
+            1067.4794921875
+          ],
+          "keypoint_base_px": {
+            "x_px": 924.9556579589844,
+            "y_px": 1067.4794921875,
+            "conf": 0.3115071654319763
+          },
+          "keypoint_tip_px": {
+            "x_px": 953.566659034228,
+            "y_px": 353.243408203125,
+            "conf": 0.5615071654319763
+          },
+          "base_px": {
+            "x_px": 924.9556579589844,
+            "y_px": 1067.4794921875
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": 2.2939384554801214,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.577130743652692,
+            "log_prob_blue": -0.8244118058027499,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 256,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00256_000",
+          "class_label": "red",
+          "conf_class": 0.5306655764579773,
+          "bbox_xyxy": [
+            826.6051635742188,
+            320.7118835449219,
+            988.3936157226562,
+            1038.1749267578125
+          ],
+          "keypoint_base_px": {
+            "x_px": 907.4993896484375,
+            "y_px": 1038.1749267578125,
+            "conf": 0.2806655764579773
+          },
+          "keypoint_tip_px": {
+            "x_px": 871.2011548067276,
+            "y_px": 320.7118835449219,
+            "conf": 0.5306655764579773
+          },
+          "base_px": {
+            "x_px": 891.3399524308281,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.6336232556613881,
+            "log_prob_blue": -0.7564397059164475,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 258,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00258_000",
+          "class_label": "red",
+          "conf_class": 0.5490155816078186,
+          "bbox_xyxy": [
+            841.5691528320312,
+            285.2889709472656,
+            990.5595703125,
+            996.9351196289062
+          ],
+          "keypoint_base_px": {
+            "x_px": 916.0643615722656,
+            "y_px": 996.9351196289062,
+            "conf": 0.2990155816078186
+          },
+          "keypoint_tip_px": {
+            "x_px": 853.4759925634127,
+            "y_px": 285.2889709472656,
+            "conf": 0.5490155816078186
+          },
+          "base_px": {
+            "x_px": 867.1306768922909,
+            "y_px": 0.0
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.5996284560760567,
+            "log_prob_blue": -0.7963224868784717,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 260,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00260_000",
+          "class_label": "red",
+          "conf_class": 0.5307379961013794,
+          "bbox_xyxy": [
+            837.4263916015625,
+            272.5538330078125,
+            988.476318359375,
+            982.24951171875
+          ],
+          "keypoint_base_px": {
+            "x_px": 912.9513549804688,
+            "y_px": 982.24951171875,
+            "conf": 0.2807379961013794
+          },
+          "keypoint_tip_px": {
+            "x_px": 834.063019448353,
+            "y_px": 272.5538330078125,
+            "conf": 0.5307379961013794
+          },
+          "base_px": {
+            "x_px": 861.0517955791847,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.6334867955148675,
+            "log_prob_blue": -0.7565940206810775,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 262,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00262_000",
+          "class_label": "red",
+          "conf_class": 0.5554367303848267,
+          "bbox_xyxy": [
+            822.9125366210938,
+            237.9188690185547,
+            1013.1199951171875,
+            938.8540649414062
+          ],
+          "keypoint_base_px": {
+            "x_px": 918.0162658691406,
+            "y_px": 938.8540649414062,
+            "conf": 0.30543673038482666
+          },
+          "keypoint_tip_px": {
+            "x_px": 789.3990857285005,
+            "y_px": 237.9188690185547,
+            "conf": 0.5554367303848267
+          },
+          "base_px": {
+            "x_px": 918.0162658691406,
+            "y_px": 938.8540649414062
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -10.397746126091144,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.5880005730861554,
+            "log_prob_blue": -0.8106628930662061,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 264,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00264_000",
+          "class_label": "red",
+          "conf_class": 0.565523624420166,
+          "bbox_xyxy": [
+            827.0343017578125,
+            214.21665954589844,
+            977.9403686523438,
+            897.0529174804688
+          ],
+          "keypoint_base_px": {
+            "x_px": 902.4873352050781,
+            "y_px": 897.0529174804688,
+            "conf": 0.315523624420166
+          },
+          "keypoint_tip_px": {
+            "x_px": 783.5328217733767,
+            "y_px": 214.21665954589844,
+            "conf": 0.565523624420166
+          },
+          "base_px": {
+            "x_px": 902.4873352050781,
+            "y_px": 897.0529174804688
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -9.882126245119617,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.57000320813558,
+            "log_prob_blue": -0.8336137049611151,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00264_001",
+          "class_label": "unknown",
+          "conf_class": 0.3859662115573883,
+          "bbox_xyxy": [
+            517.6755981445312,
+            8.293548583984375,
+            662.0040893554688,
+            438.0210266113281
+          ],
+          "keypoint_base_px": {
+            "x_px": 589.83984375,
+            "y_px": 438.0210266113281,
+            "conf": 0.1359662115573883
+          },
+          "keypoint_tip_px": {
+            "x_px": 555.514095493576,
+            "y_px": 8.293548583984375,
+            "conf": 0.3859662115573883
+          },
+          "base_px": {
+            "x_px": 563.6122254603703,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.4877053206836898,
+            "log_prob_blue": -0.4877053206836898,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 266,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00266_000",
+          "class_label": "unknown",
+          "conf_class": 0.5935182571411133,
+          "bbox_xyxy": [
+            808.4974365234375,
+            168.27987670898438,
+            953.3977661132812,
+            853.2697143554688
+          ],
+          "keypoint_base_px": {
+            "x_px": 880.9476013183594,
+            "y_px": 853.2697143554688,
+            "conf": 0.3435182571411133
+          },
+          "keypoint_tip_px": {
+            "x_px": 779.4019233318701,
+            "y_px": 168.27987670898438,
+            "conf": 0.5935182571411133
+          },
+          "base_px": {
+            "x_px": 880.9476013183594,
+            "y_px": 853.2697143554688
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -8.43234654806854,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.9002162615590251,
+            "log_prob_blue": -0.9002162615590251,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00266_001",
+          "class_label": "blue",
+          "conf_class": 0.5745364427566528,
+          "bbox_xyxy": [
+            551.83642578125,
+            9.564510345458984,
+            634.4716796875,
+            409.59539794921875
+          ],
+          "keypoint_base_px": {
+            "x_px": 593.154052734375,
+            "y_px": 409.59539794921875,
+            "conf": 0.32453644275665283
+          },
+          "keypoint_tip_px": {
+            "x_px": 576.4146205863649,
+            "y_px": 9.564510345458984,
+            "conf": 0.5745364427566528
+          },
+          "base_px": {
+            "x_px": 593.154052734375,
+            "y_px": 409.59539794921875
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -2.396163961339555,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.8545759791878877,
+            "log_prob_blue": -0.5541917498380626,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 268,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00268_000",
+          "class_label": "red",
+          "conf_class": 0.5014734864234924,
+          "bbox_xyxy": [
+            753.8477783203125,
+            136.4722900390625,
+            904.099853515625,
+            827.2696533203125
+          ],
+          "keypoint_base_px": {
+            "x_px": 828.9738159179688,
+            "y_px": 827.2696533203125,
+            "conf": 0.25147348642349243
+          },
+          "keypoint_tip_px": {
+            "x_px": 801.6076294353427,
+            "y_px": 136.4722900390625,
+            "conf": 0.5014734864234924
+          },
+          "base_px": {
+            "x_px": 819.7851273561852,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.6902045415251108,
+            "log_prob_blue": -0.696098502275541,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00268_001",
+          "class_label": "unknown",
+          "conf_class": 0.3527956008911133,
+          "bbox_xyxy": [
+            560.9207153320312,
+            8.440404891967773,
+            612.7620239257812,
+            380.6968078613281
+          ],
+          "keypoint_base_px": {
+            "x_px": 586.8413696289062,
+            "y_px": 380.6968078613281,
+            "conf": 0.10279560089111328
+          },
+          "keypoint_tip_px": {
+            "x_px": 573.3878974419879,
+            "y_px": 8.440404891967773,
+            "conf": 0.3527956008911133
+          },
+          "base_px": {
+            "x_px": 599.6012067501168,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.43509311457603606,
+            "log_prob_blue": -0.43509311457603606,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 270,
+      "detections": []
+    },
+    {
+      "frame_idx": 272,
+      "detections": []
+    },
+    {
+      "frame_idx": 274,
+      "detections": []
+    },
+    {
+      "frame_idx": 276,
+      "detections": []
+    },
+    {
+      "frame_idx": 278,
+      "detections": []
+    },
+    {
+      "frame_idx": 280,
+      "detections": []
+    },
+    {
+      "frame_idx": 282,
+      "detections": []
+    },
+    {
+      "frame_idx": 284,
+      "detections": []
+    },
+    {
+      "frame_idx": 286,
+      "detections": []
+    },
+    {
+      "frame_idx": 288,
+      "detections": []
+    },
+    {
+      "frame_idx": 290,
+      "detections": []
+    },
+    {
+      "frame_idx": 292,
+      "detections": []
+    },
+    {
+      "frame_idx": 294,
+      "detections": []
+    },
+    {
+      "frame_idx": 296,
+      "detections": []
+    },
+    {
+      "frame_idx": 298,
+      "detections": []
+    },
+    {
+      "frame_idx": 300,
+      "detections": []
+    },
+    {
+      "frame_idx": 302,
+      "detections": []
+    },
+    {
+      "frame_idx": 304,
+      "detections": []
+    },
+    {
+      "frame_idx": 306,
+      "detections": []
+    },
+    {
+      "frame_idx": 308,
+      "detections": []
+    },
+    {
+      "frame_idx": 310,
+      "detections": []
+    },
+    {
+      "frame_idx": 312,
+      "detections": []
+    },
+    {
+      "frame_idx": 314,
+      "detections": []
+    },
+    {
+      "frame_idx": 316,
+      "detections": []
+    },
+    {
+      "frame_idx": 318,
+      "detections": []
+    },
+    {
+      "frame_idx": 320,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00320_000",
+          "class_label": "unknown",
+          "conf_class": 0.388735830783844,
+          "bbox_xyxy": [
+            842.8524780273438,
+            646.358642578125,
+            1119.0927734375,
+            1153.4716796875
+          ],
+          "keypoint_base_px": {
+            "x_px": 980.9726257324219,
+            "y_px": 1153.4716796875,
+            "conf": 0.138735830783844
+          },
+          "keypoint_tip_px": {
+            "x_px": 862.584676937393,
+            "y_px": 646.358642578125,
+            "conf": 0.388735830783844
+          },
+          "base_px": {
+            "x_px": 921.3843066870081,
+            "y_px": 0.0
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.4922260561040426,
+            "log_prob_blue": -0.4922260561040426,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 322,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00322_000",
+          "class_label": "unknown",
+          "conf_class": 0.5030500292778015,
+          "bbox_xyxy": [
+            814.4466552734375,
+            619.5186767578125,
+            1063.427001953125,
+            1151.4892578125
+          ],
+          "keypoint_base_px": {
+            "x_px": 938.9368286132812,
+            "y_px": 1151.4892578125,
+            "conf": 0.2530500292778015
+          },
+          "keypoint_tip_px": {
+            "x_px": 963.4554590582568,
+            "y_px": 619.5186767578125,
+            "conf": 0.5030500292778015
+          },
+          "base_px": {
+            "x_px": 963.953194210606,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.6992659184708336,
+            "log_prob_blue": -0.6992659184708336,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 324,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00324_000",
+          "class_label": "unknown",
+          "conf_class": 0.508097231388092,
+          "bbox_xyxy": [
+            767.8316040039062,
+            590.5130615234375,
+            994.6996459960938,
+            1152.7406005859375
+          ],
+          "keypoint_base_px": {
+            "x_px": 881.265625,
+            "y_px": 1152.7406005859375,
+            "conf": 0.25809723138809204
+          },
+          "keypoint_tip_px": {
+            "x_px": 1033.017251010201,
+            "y_px": 590.5130615234375,
+            "conf": 0.508097231388092
+          },
+          "base_px": {
+            "x_px": 1037.8492514371376,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.7094742047598002,
+            "log_prob_blue": -0.7094742047598002,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 326,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00326_000",
+          "class_label": "unknown",
+          "conf_class": 0.506584882736206,
+          "bbox_xyxy": [
+            767.7750244140625,
+            590.4400024414062,
+            995.1950073242188,
+            1152.6995849609375
+          ],
+          "keypoint_base_px": {
+            "x_px": 881.4850158691406,
+            "y_px": 1152.6995849609375,
+            "conf": 0.25658488273620605
+          },
+          "keypoint_tip_px": {
+            "x_px": 1033.4596328172875,
+            "y_px": 590.4400024414062,
+            "conf": 0.506584882736206
+          },
+          "base_px": {
+            "x_px": 1426.5304759344785,
+            "y_px": 0.0
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.7064044343676683,
+            "log_prob_blue": -0.7064044343676683,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 328,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00328_000",
+          "class_label": "unknown",
+          "conf_class": 0.5184926390647888,
+          "bbox_xyxy": [
+            744.4005126953125,
+            544.1193237304688,
+            983.3887329101562,
+            1153.44775390625
+          ],
+          "keypoint_base_px": {
+            "x_px": 863.8946228027344,
+            "y_px": 1153.44775390625,
+            "conf": 0.2684926390647888
+          },
+          "keypoint_tip_px": {
+            "x_px": 1054.774394628832,
+            "y_px": 544.1193237304688,
+            "conf": 0.5184926390647888
+          },
+          "base_px": {
+            "x_px": 1055.759840015866,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.7308337582757714,
+            "log_prob_blue": -0.7308337582757714,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 330,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00330_000",
+          "class_label": "unknown",
+          "conf_class": 0.5096216201782227,
+          "bbox_xyxy": [
+            722.6815795898438,
+            515.2928466796875,
+            952.8151245117188,
+            1154.224609375
+          ],
+          "keypoint_base_px": {
+            "x_px": 837.7483520507812,
+            "y_px": 1154.224609375,
+            "conf": 0.25962162017822266
+          },
+          "keypoint_tip_px": {
+            "x_px": 988.9926112447586,
+            "y_px": 515.2928466796875,
+            "conf": 0.5096216201782227
+          },
+          "base_px": {
+            "x_px": 1037.705036463862,
+            "y_px": 0.0
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.712577980116202,
+            "log_prob_blue": -0.712577980116202,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 332,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00332_000",
+          "class_label": "unknown",
+          "conf_class": 0.6303387880325317,
+          "bbox_xyxy": [
+            689.0714111328125,
+            451.5359191894531,
+            924.6853637695312,
+            1157.1578369140625
+          ],
+          "keypoint_base_px": {
+            "x_px": 806.8783874511719,
+            "y_px": 1157.1578369140625,
+            "conf": 0.38033878803253174
+          },
+          "keypoint_tip_px": {
+            "x_px": 810.228161241273,
+            "y_px": 451.5359191894531,
+            "conf": 0.6303387880325317
+          },
+          "base_px": {
+            "x_px": 806.8783874511719,
+            "y_px": 1157.1578369140625
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": 0.2719961694771864,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.9951683334272775,
+            "log_prob_blue": -0.9951683334272775,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 334,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00334_000",
+          "class_label": "red",
+          "conf_class": 0.6863950490951538,
+          "bbox_xyxy": [
+            614.2501831054688,
+            399.4304504394531,
+            923.18701171875,
+            1162.6617431640625
+          ],
+          "keypoint_base_px": {
+            "x_px": 768.7185974121094,
+            "y_px": 1162.6617431640625,
+            "conf": 0.4363950490951538
+          },
+          "keypoint_tip_px": {
+            "x_px": 577.4646861912781,
+            "y_px": 399.4304504394531,
+            "conf": 0.6863950490951538
+          },
+          "base_px": {
+            "x_px": 768.7185974121094,
+            "y_px": 1162.6617431640625
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -14.06775709123832,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.376301943691108,
+            "log_prob_blue": -1.1596212001176507,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 336,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00336_000",
+          "class_label": "red",
+          "conf_class": 0.6816204786300659,
+          "bbox_xyxy": [
+            624.734619140625,
+            360.6161804199219,
+            924.473388671875,
+            1163.33837890625
+          ],
+          "keypoint_base_px": {
+            "x_px": 774.60400390625,
+            "y_px": 1163.33837890625,
+            "conf": 0.4316204786300659
+          },
+          "keypoint_tip_px": {
+            "x_px": 549.9007530034269,
+            "y_px": 360.6161804199219,
+            "conf": 0.6816204786300659
+          },
+          "base_px": {
+            "x_px": 774.60400390625,
+            "y_px": 1163.33837890625
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -15.638343644958315,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.3832822589798942,
+            "log_prob_blue": -1.1445111412449336,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 338,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00338_000",
+          "class_label": "red",
+          "conf_class": 0.6947120428085327,
+          "bbox_xyxy": [
+            650.0202026367188,
+            342.7628173828125,
+            922.5469970703125,
+            1153.8740234375
+          ],
+          "keypoint_base_px": {
+            "x_px": 786.2835998535156,
+            "y_px": 1153.8740234375,
+            "conf": 0.4447120428085327
+          },
+          "keypoint_tip_px": {
+            "x_px": 577.6732445856223,
+            "y_px": 342.7628173828125,
+            "conf": 0.6947120428085327
+          },
+          "base_px": {
+            "x_px": 786.2835998535156,
+            "y_px": 1153.8740234375
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -14.423350666246446,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.36425784616864615,
+            "log_prob_blue": -1.1864998225626895,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 340,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00340_000",
+          "class_label": "red",
+          "conf_class": 0.7143970727920532,
+          "bbox_xyxy": [
+            689.5208129882812,
+            333.2412109375,
+            923.6571044921875,
+            1118.2606201171875
+          ],
+          "keypoint_base_px": {
+            "x_px": 806.5889587402344,
+            "y_px": 1118.2606201171875,
+            "conf": 0.4643970727920532
+          },
+          "keypoint_tip_px": {
+            "x_px": 634.2654973830356,
+            "y_px": 333.2412109375,
+            "conf": 0.7143970727920532
+          },
+          "base_px": {
+            "x_px": 806.5889587402344,
+            "y_px": 1118.2606201171875
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -12.380905078546478,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.3363163468637781,
+            "log_prob_blue": -1.2531527957403221,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 342,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00342_000",
+          "class_label": "red",
+          "conf_class": 0.6564080715179443,
+          "bbox_xyxy": [
+            700.4174194335938,
+            308.13800048828125,
+            917.0758056640625,
+            1067.8065185546875
+          ],
+          "keypoint_base_px": {
+            "x_px": 808.7466125488281,
+            "y_px": 1067.8065185546875,
+            "conf": 0.40640807151794434
+          },
+          "keypoint_tip_px": {
+            "x_px": 638.0153055860255,
+            "y_px": 308.13800048828125,
+            "conf": 0.6564080715179443
+          },
+          "base_px": {
+            "x_px": 808.7466125488281,
+            "y_px": 1067.8065185546875
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -12.666448024104856,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.42097262319655093,
+            "log_prob_blue": -1.0683005772676317,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00342_001",
+          "class_label": "unknown",
+          "conf_class": 0.4079810678958893,
+          "bbox_xyxy": [
+            382.42950439453125,
+            11.66370964050293,
+            433.5185546875,
+            451.469482421875
+          ],
+          "keypoint_base_px": {
+            "x_px": 407.9740295410156,
+            "y_px": 451.469482421875,
+            "conf": 0.15798106789588928
+          },
+          "keypoint_tip_px": {
+            "x_px": 372.42446860378783,
+            "y_px": 11.66370964050293,
+            "conf": 0.4079810678958893
+          },
+          "base_px": {
+            "x_px": 2081.7500000000005,
+            "y_px": 642.0450936798825
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.5242166630147501,
+            "log_prob_blue": -0.5242166630147501,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 344,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00344_000",
+          "class_label": "red",
+          "conf_class": 0.6393779516220093,
+          "bbox_xyxy": [
+            699.27783203125,
+            287.48223876953125,
+            918.9009399414062,
+            1027.239990234375
+          ],
+          "keypoint_base_px": {
+            "x_px": 809.0893859863281,
+            "y_px": 1027.239990234375,
+            "conf": 0.3893779516220093
+          },
+          "keypoint_tip_px": {
+            "x_px": 633.4692116645558,
+            "y_px": 287.48223876953125,
+            "conf": 0.6393779516220093
+          },
+          "base_px": {
+            "x_px": 809.0893859863281,
+            "y_px": 1027.239990234375
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -13.354918152347137,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.4472595258692919,
+            "log_prob_blue": -1.0199248237206888,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00344_001",
+          "class_label": "unknown",
+          "conf_class": 0.29086562991142273,
+          "bbox_xyxy": [
+            402.2873229980469,
+            13.42880630493164,
+            461.16021728515625,
+            348.5255126953125
+          ],
+          "keypoint_base_px": {
+            "x_px": 431.72377014160156,
+            "y_px": 348.5255126953125,
+            "conf": 0.05
+          },
+          "keypoint_tip_px": {
+            "x_px": 386.21889895066585,
+            "y_px": 13.42880630493164,
+            "conf": 0.29086562991142273
+          },
+          "base_px": {
+            "x_px": 431.72377014160156,
+            "y_px": 348.5255126953125
+          },
+          "base_fallback_tier": 3,
+          "is_degraded": true,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.34371024842032266,
+            "log_prob_blue": -0.34371024842032266,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 346,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00346_000",
+          "class_label": "red",
+          "conf_class": 0.6369497776031494,
+          "bbox_xyxy": [
+            695.5238037109375,
+            283.6116943359375,
+            913.6249389648438,
+            965.74951171875
+          ],
+          "keypoint_base_px": {
+            "x_px": 804.5743713378906,
+            "y_px": 965.74951171875,
+            "conf": 0.3869497776031494
+          },
+          "keypoint_tip_px": {
+            "x_px": 631.2203360467021,
+            "y_px": 283.6116943359375,
+            "conf": 0.6369497776031494
+          },
+          "base_px": {
+            "x_px": 804.5743713378906,
+            "y_px": 965.74951171875
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -14.258923752500133,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.45106446858544225,
+            "log_prob_blue": -1.0132140978225062,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00346_001",
+          "class_label": "blue",
+          "conf_class": 0.36555224657058716,
+          "bbox_xyxy": [
+            425.8009338378906,
+            12.045602798461914,
+            511.2718811035156,
+            328.63494873046875
+          ],
+          "keypoint_base_px": {
+            "x_px": 468.5364074707031,
+            "y_px": 328.63494873046875,
+            "conf": 0.11555224657058716
+          },
+          "keypoint_tip_px": {
+            "x_px": 400.4578757864855,
+            "y_px": 12.045602798461914,
+            "conf": 0.36555224657058716
+          },
+          "base_px": {
+            "x_px": 418.07269292686607,
+            "y_px": 0.0
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.4550003365427302,
+            "log_prob_blue": -1.006346064534472,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 348,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00348_000",
+          "class_label": "unknown",
+          "conf_class": 0.6365025639533997,
+          "bbox_xyxy": [
+            682.7421264648438,
+            273.8647766113281,
+            910.06201171875,
+            945.346435546875
+          ],
+          "keypoint_base_px": {
+            "x_px": 796.4020690917969,
+            "y_px": 945.346435546875,
+            "conf": 0.38650256395339966
+          },
+          "keypoint_tip_px": {
+            "x_px": 622.2916036342854,
+            "y_px": 273.8647766113281,
+            "conf": 0.6365025639533997
+          },
+          "base_px": {
+            "x_px": 796.4020690917969,
+            "y_px": 945.346435546875
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -14.536264245524096,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -1.011983032799306,
+            "log_prob_blue": -1.011983032799306,
+            "log_prob_dnf": -2.995732273553991
+          }
+        },
+        {
+          "detection_id": "MS SL R_00348_001",
+          "class_label": "blue",
+          "conf_class": 0.32418742775917053,
+          "bbox_xyxy": [
+            420.2049865722656,
+            11.132737159729004,
+            525.7603149414062,
+            316.7744445800781
+          ],
+          "keypoint_base_px": {
+            "x_px": 472.98265075683594,
+            "y_px": 316.7744445800781,
+            "conf": 0.07418742775917053
+          },
+          "keypoint_tip_px": {
+            "x_px": 389.23748111444183,
+            "y_px": 11.132737159729004,
+            "conf": 0.32418742775917053
+          },
+          "base_px": {
+            "x_px": 441.8005182231348,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.3918394999019053,
+            "log_prob_blue": -1.1264334497071096,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 350,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00350_000",
+          "class_label": "blue",
+          "conf_class": 0.5811510682106018,
+          "bbox_xyxy": [
+            401.5387268066406,
+            10.476944923400879,
+            548.601318359375,
+            293.8598327636719
+          ],
+          "keypoint_base_px": {
+            "x_px": 475.0700225830078,
+            "y_px": 293.8598327636719,
+            "conf": 0.3311510682106018
+          },
+          "keypoint_tip_px": {
+            "x_px": 358.6221674081595,
+            "y_px": 10.476944923400879,
+            "conf": 0.5811510682106018
+          },
+          "base_px": {
+            "x_px": 475.0700225830078,
+            "y_px": 293.8598327636719
+          },
+          "base_fallback_tier": 1,
+          "is_degraded": false,
+          "pole_vector_angle_deg": -22.338768443350524,
+          "geometry_check_passed": false,
+          "emission_log_prob": {
+            "log_prob_red": -0.870244966339729,
+            "log_prob_blue": -0.5427445417961969,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    },
+    {
+      "frame_idx": 352,
+      "detections": []
+    },
+    {
+      "frame_idx": 354,
+      "detections": []
+    },
+    {
+      "frame_idx": 356,
+      "detections": []
+    },
+    {
+      "frame_idx": 358,
+      "detections": [
+        {
+          "detection_id": "MS SL R_00358_000",
+          "class_label": "blue",
+          "conf_class": 0.43122598528862,
+          "bbox_xyxy": [
+            1867.504150390625,
+            314.8103942871094,
+            1925.7568359375,
+            689.2630004882812
+          ],
+          "keypoint_base_px": {
+            "x_px": 1896.6304931640625,
+            "y_px": 689.2630004882812,
+            "conf": 0.18122598528862
+          },
+          "keypoint_tip_px": {
+            "x_px": 1890.9008327059003,
+            "y_px": 314.8103942871094,
+            "conf": 0.43122598528862
+          },
+          "base_px": {
+            "x_px": 1891.610640773706,
+            "y_px": 698.4
+          },
+          "base_fallback_tier": 2,
+          "is_degraded": false,
+          "pole_vector_angle_deg": null,
+          "geometry_check_passed": true,
+          "emission_log_prob": {
+            "log_prob_red": -0.5642720841818429,
+            "log_prob_blue": -0.8411229984743643,
+            "log_prob_dnf": -2.995732273553991
+          }
+        }
+      ]
+    }
+  ]
+}

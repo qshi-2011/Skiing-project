@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-02-19T19:11:31.260246",
+  "fixed_dt": true,
+  "clips": [
+    {
+      "clip_id": "Lucas GS T",
+      "sidecar": "/Users/quan/Documents/personal/Stanford application project/tracks/A_eval_harness/sidecars/Lucas GS T.json",
+      "bev": "/Users/quan/Documents/personal/Stanford application project/tracks/C_bev_egomotion/outputs/Lucas GS T_bev.json",
+      "detections": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections/Lucas GS T_detections.json",
+      "output_tracks": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/outputs_fixed_dt/Lucas GS T_tracks.json",
+      "fixed_dt": true,
+      "delta_t_summary": {
+        "count": 1150,
+        "min": 0.0,
+        "max": 0.03333333333333499,
+        "mean": 0.017630434782608697,
+        "std": 0.004351815802299934,
+        "unique_6dp": 5,
+        "is_non_uniform": true
+      },
+      "tracker_diagnostics": {
+        "frames": 1150,
+        "tracks_created": 42,
+        "tracks_deleted": 42,
+        "pass1_matches": 5055,
+        "pass2_matches": 282,
+        "updates_total": 5337,
+        "coast_steps": 7729,
+        "mean_innovation": 1.1246864606720395,
+        "max_innovation": 13.76613135759085,
+        "dt_min": 0.017644927536231883,
+        "dt_max": 0.017644927536231883,
+        "dt_mean": 0.017644927536231883,
+        "dt_std": 0.0
+      }
+    },
+    {
+      "clip_id": "MO GS R",
+      "sidecar": "/Users/quan/Documents/personal/Stanford application project/tracks/A_eval_harness/sidecars/MO GS R.json",
+      "bev": "/Users/quan/Documents/personal/Stanford application project/tracks/C_bev_egomotion/outputs/MO GS R_bev.json",
+      "detections": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections/MO GS R_detections.json",
+      "output_tracks": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/outputs_fixed_dt/MO GS R_tracks.json",
+      "fixed_dt": true,
+      "delta_t_summary": {
+        "count": 2951,
+        "min": 0.0,
+        "max": 0.033333333333338544,
+        "mean": 0.01754490003388682,
+        "std": 0.0042073422109865245,
+        "unique_6dp": 5,
+        "is_non_uniform": true
+      },
+      "tracker_diagnostics": {
+        "frames": 2951,
+        "tracks_created": 32,
+        "tracks_deleted": 32,
+        "pass1_matches": 775,
+        "pass2_matches": 230,
+        "updates_total": 1005,
+        "coast_steps": 2880,
+        "mean_innovation": 1.9331028238568442,
+        "max_innovation": 13.87267086627358,
+        "dt_min": 0.017550547836891448,
+        "dt_max": 0.017550547836891448,
+        "dt_mean": 0.017550547836891448,
+        "dt_std": 0.0
+      }
+    },
+    {
+      "clip_id": "MO GS T2",
+      "sidecar": "/Users/quan/Documents/personal/Stanford application project/tracks/A_eval_harness/sidecars/MO GS T2.json",
+      "bev": "/Users/quan/Documents/personal/Stanford application project/tracks/C_bev_egomotion/outputs/MO GS T2_bev.json",
+      "detections": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections/MO GS T2_detections.json",
+      "output_tracks": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/outputs_fixed_dt/MO GS T2_tracks.json",
+      "fixed_dt": true,
+      "delta_t_summary": {
+        "count": 891,
+        "min": 0.0,
+        "max": 0.04166666666666785,
+        "mean": 0.027029554807332587,
+        "std": 0.008659670803792803,
+        "unique_6dp": 6,
+        "is_non_uniform": true
+      },
+      "tracker_diagnostics": {
+        "frames": 891,
+        "tracks_created": 11,
+        "tracks_deleted": 11,
+        "pass1_matches": 316,
+        "pass2_matches": 92,
+        "updates_total": 408,
+        "coast_steps": 1218,
+        "mean_innovation": 0.6728993798901026,
+        "max_innovation": 9.933191370763762,
+        "dt_min": 0.027048260381593716,
+        "dt_max": 0.027048260381593716,
+        "dt_mean": 0.02704826038159371,
+        "dt_std": 6.938893903907228e-18
+      }
+    }
+  ]
+}

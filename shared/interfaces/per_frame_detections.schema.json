@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Per-Frame Detections Schema",
+  "description": "Per-frame detection output produced by Wave 2 Worker B (Track B: model_retraining, extended with keypoint fallback hierarchy). Consumed by Track D (Kalman tracker), Track F (Viterbi decoder), and Track G (initialisation). DO NOT modify without coordinating all consumers.",
+  "version": "1.0",
+  "owner": "Track B (B_model_retraining)",
+  "consumers": ["Track D (kalman_tracker)", "Track F (viterbi_decoder)", "Track G (initialisation)"],
+  "fallback_tier_definition": {
+    "tier_1": "Keypoint base used directly. conf_keypoint_base >= tau_kp.",
+    "tier_2": "VP-Projected base. Line through pole tip + vp_t from BEV schema intersected with horizon_y_px. Requires alpha_t > 0 from BEV schema. conf_keypoint_base < tau_kp AND alpha_t > 0.",
+    "tier_3": "Bbox bottom-centre. Last resort. conf_keypoint_base < tau_kp AND alpha_t = 0. Emits is_degraded=true. Consumers should treat this position as LOW CONFIDENCE."
+  },
+  "type": "object",
+  "required": ["clip_id", "frames"],
+  "properties": {
+    "clip_id": {
+      "type": "string",
+      "description": "Must match clip_id in sidecar PTS and BEV files."
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["frame_idx", "detections"],
+        "properties": {
+          "frame_idx": {
+            "type": "integer",
+            "description": "Zero-based frame index."
+          },
+          "detections": {
+            "type": "array",
+            "description": "All gate detections in this frame. May be empty.",
+            "items": {
+              "type": "object",
+              "required": [
+                "detection_id",
+                "class_label",
+                "conf_class",
+                "bbox_xyxy",
+                "base_px",
+                "base_fallback_tier",
+                "is_degraded",
+                "emission_log_prob"
+              ],
+              "properties": {
+                "detection_id": {
+                  "type": "string",
+                  "description": "Unique detection ID for this frame. Format: '{clip_id}_{frame_idx:05d}_{det_idx:03d}'"
+                },
+                "class_label": {
+                  "type": "string",
+                  "enum": ["red", "blue", "unknown"],
+                  "description": "Detected gate colour class."
+                },
+                "conf_class": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0,
+                  "description": "YOLOv8 class confidence score."
+                },
+                "bbox_xyxy": {
+                  "type": "array",
+                  "description": "Bounding box [x1, y1, x2, y2] in image pixels.",
+                  "items": { "type": "number" },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "keypoint_base_px": {
+                  "type": ["object", "null"],
+                  "description": "YOLOv8-Pose keypoint for gate base. Null if not detected.",
+                  "properties": {
+                    "x_px": { "type": "number" },
+                    "y_px": { "type": "number" },
+                    "conf": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+                  }
+                },
+                "keypoint_tip_px": {
+                  "type": ["object", "null"],
+                  "description": "YOLOv8-Pose keypoint for pole tip. Null if not detected. Used for Tier-2 VP projection.",
+                  "properties": {
+                    "x_px": { "type": "number" },
+                    "y_px": { "type": "number" },
+                    "conf": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+                  }
+                },
+                "base_px": {
+                  "type": "object",
+                  "description": "FINAL resolved gate base position in image pixels after applying fallback hierarchy. This is what all consumers must use — do NOT recompute fallback logic downstream.",
+                  "required": ["x_px", "y_px"],
+                  "properties": {
+                    "x_px": { "type": "number" },
+                    "y_px": { "type": "number" }
+                  }
+                },
+                "base_fallback_tier": {
+                  "type": "integer",
+                  "enum": [1, 2, 3],
+                  "description": "Which fallback tier produced base_px. 1=keypoint, 2=VP-projected, 3=bbox. Consumers may use this for confidence weighting."
+                },
+                "is_degraded": {
+                  "type": "boolean",
+                  "description": "True if base_fallback_tier = 3. Consumers should propagate this flag and suppress high-confidence decisions when true."
+                },
+                "pole_vector_angle_deg": {
+                  "type": ["number", "null"],
+                  "description": "Angle of pole vector from vertical in degrees. Null if keypoints not available. Used for rolling shutter geometry validation — must be within ±(theta + 5°)."
+                },
+                "geometry_check_passed": {
+                  "type": "boolean",
+                  "description": "True if pole_vector_angle_deg is within the rolling-shutter-aware bound ±(theta + 5°). False detections should be soft-penalised in tracker cost matrix, not hard-rejected."
+                },
+                "emission_log_prob": {
+                  "type": "object",
+                  "description": "Per-state log emission probabilities for the HMM. Computed at detection time and stored here so the FIFO buffer in Track G can run retroactive Viterbi without re-running the detector.",
+                  "required": ["log_prob_red", "log_prob_blue", "log_prob_dnf"],
+                  "properties": {
+                    "log_prob_red":  { "type": "number", "description": "log B(red | this detection). Must be <= 0." },
+                    "log_prob_blue": { "type": "number", "description": "log B(blue | this detection). Must be <= 0." },
+                    "log_prob_dnf":  { "type": "number", "description": "log B(DNF | this detection). Must be <= 0." }
+                  }
+                },
+                "colour_histogram": {
+                  "type": ["array", "null"],
+                  "description": "Optional. Compact colour histogram for soft appearance prior in tracker cost matrix. Array of floats.",
+                  "items": { "type": "number" }
+                },
+                "aspect_ratio": {
+                  "type": ["number", "null"],
+                  "description": "Optional. Bbox aspect ratio (height/width) for soft appearance prior."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "clip_id": "demo_clip",
+  "events": [
+    {
+      "frame_idx": 14,
+      "event": "INITIALIZED",
+      "buffer_depth_at_trigger": 14,
+      "gates_confirmed": 5,
+      "s_star_at_trigger": -1.12
+    }
+  ]
+}
+

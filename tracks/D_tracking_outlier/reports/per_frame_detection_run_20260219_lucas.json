@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-02-19T19:10:02.253624",
+  "model": "/Users/quan/Documents/personal/Stanford application project/models/gate_detector_best.pt",
+  "videos": [
+    "/Users/quan/Documents/personal/Stanford application project/data/raw_videos/GS/Lucas GS T.mov"
+  ],
+  "output_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections",
+  "schema": "/Users/quan/Documents/personal/Stanford application project/shared/interfaces/per_frame_detections.schema.json",
+  "summaries": [
+    {
+      "clip_id": "Lucas GS T",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/data/raw_videos/GS/Lucas GS T.mov",
+      "frames_written": 600,
+      "detections_total": 8614,
+      "tier_counts": {
+        "1": 122,
+        "2": 223,
+        "3": 8269
+      },
+      "geometry_failures": 84,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": true,
+        "frames_from_bev": 600,
+        "frames_from_stub": 0
+      },
+      "keypoint_source": {
+        "native_pose": 0,
+        "bootstrap_from_bbox": 8614
+      },
+      "jitter_samples": {
+        "tier2": 223,
+        "tier3": 8060,
+        "tier2_counterfactual_tier3": 223
+      },
+      "jitter_std": {
+        "tier2": 295.7478725808414,
+        "tier3": 116.86221377580513,
+        "tier2_counterfactual_tier3": 257.51098319107604
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections/Lucas GS T_detections.json"
+    }
+  ],
+  "ablation_report": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/ablation_fallback_20260219_lucas.md"
+}

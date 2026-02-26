@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-02-19T19:12:35.980223",
+  "ground_truth": {
+    "clip_id": "MO GS T2",
+    "format": "json_frames",
+    "path": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/outputs_fixed_dt/MO GS T2_tracks.json"
+  },
+  "predictions": {
+    "clip_id": "MO GS T2",
+    "format": "json_frames",
+    "path": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/outputs/MO GS T2_tracks.json"
+  },
+  "settings": {
+    "max_distance_px": 0.8,
+    "static_motion_threshold_px": 2.5,
+    "smoke_baseline": false,
+    "dummy_miss_rate": null,
+    "dummy_false_rate": null,
+    "seed": null
+  },
+  "IDF1": 0.40640809443507586,
+  "HOTA": 0.6557567105309774,
+  "id_switches": 8,
+  "track_fragmentation": 12,
+  "topological_ordering_error": 0.08064516129032258,
+  "missed_gate_rate": 0.5747126436781609,
+  "false_gate_rate": 0.5511265164644714,
+  "temporal_jitter": {
+    "per_track": [
+      {
+        "gt_track_id": "2",
+        "pred_track_id": "2",
+        "jitter_std": 5.781820251227626,
+        "track_len": 374
+      },
+      {
+        "gt_track_id": "3",
+        "pred_track_id": "3",
+        "jitter_std": 4.2254751551264635e-13,
+        "track_len": 52
+      },
+      {
+        "gt_track_id": "4",
+        "pred_track_id": "4",
+        "jitter_std": 3.30825905718272e-13,
+        "track_len": 39
+      },
+      {
+        "gt_track_id": "5",
+        "pred_track_id": "5",
+        "jitter_std": 3.4837204432503924e-13,
+        "track_len": 32
+      },
+      {
+        "gt_track_id": "6",
+        "pred_track_id": "6",
+        "jitter_std": 1.0728900516237625,
+        "track_len": 262
+      },
+      {
+        "gt_track_id": "9",
+        "pred_track_id": "8",
+        "jitter_std": 1.3601013657759577,
+        "track_len": 168
+      },
+      {
+        "gt_track_id": "11",
+        "pred_track_id": "10",
+        "jitter_std": 2.518322880176267e-13,
+        "track_len": 31
+      }
+    ],
+    "global_mean": 1.1735445240898144
+  },
+  "counts": {
+    "frames": 515,
+    "gt_total": 1218,
+    "pred_total": 1154,
+    "matched_total": 518,
+    "missed_total": 700,
+    "false_total": 636,
+    "topology_pairs": 62,
+    "topology_inversions": 5
+  },
+  "hota_components": {
+    "DetA": 0.43676222596964587,
+    "AssA": 0.9845559845559846
+  }
+}

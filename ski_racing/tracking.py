@@ -523,17 +523,26 @@ class SkierTracker:
                 )
                 return trajectory
             except ModuleNotFoundError as e:
-                print(f"⚠️  ByteTrack dependency missing ({e}). Falling back to temporal tracking.")
-                trajectory = self._track_with_temporal_consistency(
-                    video_path,
-                    frame_stride=frame_stride,
-                    max_frames=max_frames,
-                    max_jump=max_jump,
-                    conf=conf,
-                )
-                self._last_tracking_stats["selected_method"] = "temporal"
-                self._last_tracking_stats["failure_reason"] = f"ModuleNotFoundError: {e}"
-                return trajectory
+                # HARD FAIL: Do NOT silently fall back to temporal tracking.
+                # The temporal tracker picks the person closest to screen center,
+                # which is frequently a spectator or coach rather than the skier.
+                # This produces plausible-looking but completely wrong trajectories
+                # that are very hard to detect downstream.
+                #
+                # Fix: pip install lap>=0.5.12
+                # If lap fails to build: pip install lapjv
+                raise RuntimeError(
+                    f"\n\n{'='*60}\n"
+                    f"BYTETRACK DEPENDENCY MISSING: {e}\n"
+                    f"{'='*60}\n"
+                    f"ByteTrack requires the 'lap' package for linear assignment.\n"
+                    f"Without it the pipeline cannot track skiers reliably.\n\n"
+                    f"Fix with ONE of the following:\n"
+                    f"  pip install lap>=0.5.12\n"
+                    f"  pip install lapjv          (if lap fails to build)\n\n"
+                    f"Then re-run: python scripts/check_env.py\n"
+                    f"{'='*60}\n"
+                ) from e
             except Exception as e:
                 print(f"⚠️  ByteTrack failed ({e}). Falling back to temporal tracking.")
                 trajectory = self._track_with_temporal_consistency(
@@ -895,3 +904,359 @@ class SkierTracker:
         }
         cap.release()
         return info
+
+
+# ---------------------------------------------------------------------------
+# v2.1 additions — VFR-aware gate tracker ported from Track D (Wave 3)
+# Manager-applied 2026-02-19 from:
+#   tracks/D_tracking_outlier/scripts/vfr_bev_tracker.py
+# ---------------------------------------------------------------------------
+
+import math as _math_t
+from dataclasses import dataclass as _dataclass
+from typing import Dict as _Dict, List as _List, Optional as _Optional
+from typing import Sequence as _Sequence, Tuple as _Tuple
+
+
+def _project_point_h(H: np.ndarray, x: float, y: float) -> _Tuple[float, float]:
+    """Apply a 3x3 homography to a 2D point."""
+    p = np.array([x, y, 1.0], dtype=np.float64)
+    out = H @ p
+    if abs(out[2]) < 1e-12:
+        return float(x), float(y)
+    return float(out[0] / out[2]), float(out[1] / out[2])
+
+
+def _project_bbox_to_bev(H: np.ndarray, bbox_xyxy: _Sequence[float]) -> _Tuple[float, float, float, float]:
+    x1, y1, x2, y2 = [float(v) for v in bbox_xyxy]
+    corners = [
+        _project_point_h(H, x1, y1),
+        _project_point_h(H, x2, y1),
+        _project_point_h(H, x2, y2),
+        _project_point_h(H, x1, y2),
+    ]
+    xs = [p[0] for p in corners]
+    ys = [p[1] for p in corners]
+    return (float(min(xs)), float(min(ys)), float(max(xs)), float(max(ys)))
+
+
+def _iou_xyxy(
+    a: _Tuple[float, float, float, float],
+    b: _Tuple[float, float, float, float],
+) -> float:
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    iw = max(0.0, min(ax2, bx2) - max(ax1, bx1))
+    ih = max(0.0, min(ay2, by2) - max(ay1, by1))
+    inter = iw * ih
+    if inter <= 0.0:
+        return 0.0
+    area_a = max(0.0, ax2 - ax1) * max(0.0, ay2 - ay1)
+    area_b = max(0.0, bx2 - bx1) * max(0.0, by2 - by1)
+    denom = area_a + area_b - inter
+    return 0.0 if denom <= 0.0 else float(inter / denom)
+
+
+@_dataclass
+class GateObservation:
+    """Per-detection input to BEVByteTracker."""
+    frame_idx: int
+    detection_id: str
+    conf_class: float
+    is_degraded: bool
+    class_label: str
+    geom_ok: bool
+    bev_x: float
+    bev_y: float
+    bev_bbox: _Tuple[float, float, float, float]
+    scale_s: float
+    aspect_ratio: _Optional[float]
+    colour_hist: _Optional[np.ndarray]
+    image_base_x: float
+    image_base_y: float
+
+
+@_dataclass
+class GateFrameTrack:
+    """Per-track output from BEVByteTracker for one frame."""
+    track_id: int
+    bev_x: float
+    bev_y: float
+    bev_vx: float
+    bev_vy: float
+    innovation_magnitude: _Optional[float]
+    frames_since_observation: int
+    base_px: _Dict[str, float]
+
+
+class _GateKalmanTrack:
+    """
+    6-state Kalman track for a single gate in BEV space.
+    State: [x, y, vx, vy, s, ds] where s = sqrt(bbox area).
+    Uses PTS-driven delta_t (VFR fix) rather than 1/fps_nominal.
+    """
+
+    def __init__(self, track_id: int, obs: GateObservation, frame_idx: int):
+        self.track_id = int(track_id)
+        self.x = np.array(
+            [obs.bev_x, obs.bev_y, 0.0, 0.0, obs.scale_s, 0.0], dtype=np.float64
+        )
+        self.P = np.diag([1.0, 1.0, 10.0, 10.0, 1.0, 10.0]).astype(np.float64)
+        self.last_frame_idx = int(frame_idx)
+        self.frames_since_observation = 0
+        self.hits = 1
+        self.age = 1
+        self.innovation_magnitude: _Optional[float] = None
+        self.aspect_ratio = obs.aspect_ratio if obs.aspect_ratio is not None else 1.0
+        self.colour_hist = obs.colour_hist
+
+    @staticmethod
+    def _F(dt: float) -> np.ndarray:
+        return np.array(
+            [
+                [1.0, 0.0, dt, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, dt, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 1.0, dt],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            ],
+            dtype=np.float64,
+        )
+
+    @staticmethod
+    def _Q(dt: float, s_pos: float = 0.6, s_scale: float = 0.25) -> np.ndarray:
+        q = np.zeros((6, 6), dtype=np.float64)
+        dt2, dt3, dt4 = dt * dt, dt ** 3, dt ** 4
+        bp = np.array([[dt4 / 4, dt3 / 2], [dt3 / 2, dt2]], dtype=np.float64) * s_pos ** 2
+        bs = np.array([[dt4 / 4, dt3 / 2], [dt3 / 2, dt2]], dtype=np.float64) * s_scale ** 2
+        q[np.ix_([0, 2], [0, 2])] = bp
+        q[np.ix_([1, 3], [1, 3])] = bp
+        q[np.ix_([4, 5], [4, 5])] = bs
+        return q
+
+    @staticmethod
+    def _H_mat() -> np.ndarray:
+        return np.array(
+            [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+             [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0, 0.0, 1.0, 0.0]],
+            dtype=np.float64,
+        )
+
+    def predict(self, dt: float) -> None:
+        dt = max(1e-6, float(dt))
+        F = self._F(dt)
+        self.x = F @ self.x
+        self.P = F @ self.P @ F.T + self._Q(dt)
+        self.frames_since_observation += 1
+        self.age += 1
+
+    def _innovation(
+        self, obs: GateObservation, degraded_boost: float = 4.0
+    ) -> _Tuple[np.ndarray, np.ndarray, float]:
+        H = self._H_mat()
+        z = np.array([obs.bev_x, obs.bev_y, obs.scale_s], dtype=np.float64)
+        y = z - H @ self.x
+        r_xy = 0.2 * (degraded_boost if obs.is_degraded else 1.0)
+        r_s = 0.2 * (degraded_boost * 0.75 if obs.is_degraded else 1.0)
+        R = np.diag([r_xy ** 2, r_xy ** 2, r_s ** 2]).astype(np.float64)
+        S = H @ self.P @ H.T + R
+        try:
+            mahal = float(_math_t.sqrt(max(0.0, float(y.T @ np.linalg.inv(S) @ y))))
+        except np.linalg.LinAlgError:
+            mahal = float("inf")
+        return y, S, mahal
+
+    def mahalanobis(self, obs: GateObservation, degraded_boost: float = 4.0) -> float:
+        return self._innovation(obs, degraded_boost)[2]
+
+    def update(self, obs: GateObservation, degraded_boost: float = 4.0) -> float:
+        H = self._H_mat()
+        y, S, mahal = self._innovation(obs, degraded_boost)
+        try:
+            K = self.P @ H.T @ np.linalg.inv(S)
+        except np.linalg.LinAlgError:
+            K = np.zeros((6, 3), dtype=np.float64)
+        self.x = self.x + K @ y
+        self.P = (np.eye(6, dtype=np.float64) - K @ H) @ self.P
+        self.frames_since_observation = 0
+        self.hits += 1
+        self.innovation_magnitude = float(mahal)
+        if obs.aspect_ratio is not None:
+            self.aspect_ratio = float(obs.aspect_ratio)
+        if obs.colour_hist is not None:
+            self.colour_hist = obs.colour_hist
+        self.last_frame_idx = obs.frame_idx
+        return float(mahal)
+
+    def predicted_bbox(self) -> _Tuple[float, float, float, float]:
+        s = max(1e-4, float(self.x[4]))
+        ar = max(1e-3, float(self.aspect_ratio or 1.0))
+        w = s / _math_t.sqrt(ar)
+        h = s * _math_t.sqrt(ar)
+        cx, cy = float(self.x[0]), float(self.x[1])
+        return (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+
+
+class BEVByteTracker:
+    """
+    ByteTrack-style gate tracker operating in Topological BEV space (v2.1).
+
+    Key differences from the legacy SkierTracker:
+      - Operates on gate detections (not skier bounding boxes)
+      - Uses PTS-derived delta_t_s (VFR fix) for Kalman prediction
+      - Inflates measurement noise when is_degraded=True (Tier-3 fallback)
+      - Two-pass association: Pass 1 = Mahalanobis + appearance on high-conf
+        detections; Pass 2 = IoU rescue on low-conf + unmatched high-conf
+      - Down-weights appearance cost in flat-light conditions
+
+    Usage::
+
+        tracker = BEVByteTracker()
+        for frame in frames:
+            obs = build_observations(frame)       # list of GateObservation
+            tracks = tracker.step(
+                frame_idx=frame["frame_idx"],
+                delta_t_s=frame["delta_t_s"],     # from PTS sidecar
+                fps_nominal=frame["fps_nominal"],
+                observations=obs,
+                condition_light=frame.get("light", "normal"),
+                H_inv_for_output=H_inv,           # optional: back-project BEV→image
+            )
+    """
+
+    def __init__(
+        self,
+        high_thresh: float = 0.5,
+        low_thresh: float = 0.1,
+        max_lost: int = 30,
+        maha_gate: float = 14.0,
+        degraded_boost: float = 4.0,
+    ):
+        self.high_thresh = float(high_thresh)
+        self.low_thresh = float(low_thresh)
+        self.max_lost = int(max_lost)
+        self.maha_gate = float(maha_gate)
+        self.degraded_boost = float(degraded_boost)
+        self._tracks: _List[_GateKalmanTrack] = []
+        self._next_id = 1
+
+    @staticmethod
+    def _appearance_cost(track: _GateKalmanTrack, obs: GateObservation) -> float:
+        costs: _List[float] = []
+        if track.colour_hist is not None and obs.colour_hist is not None:
+            a = track.colour_hist.astype(np.float64)
+            b = obs.colour_hist.astype(np.float64)
+            if a.size == b.size > 0:
+                costs.append(float(0.5 * np.sum(np.abs(a / (np.sum(a) + 1e-9) - b / (np.sum(b) + 1e-9)))))
+        if track.aspect_ratio is not None and obs.aspect_ratio is not None:
+            costs.append(float(min(2.0, abs(float(obs.aspect_ratio) - float(track.aspect_ratio)) / (abs(float(track.aspect_ratio)) + 1e-6))))
+        return float(sum(costs) / len(costs)) if costs else 0.0
+
+    @staticmethod
+    def _greedy_assign(
+        cost_pairs: _List[_Tuple[float, int, int]],
+    ) -> _List[_Tuple[int, int]]:
+        seen_t, seen_d, matches = set(), set(), []
+        for _, ti, di in sorted(cost_pairs):
+            if ti not in seen_t and di not in seen_d:
+                seen_t.add(ti)
+                seen_d.add(di)
+                matches.append((ti, di))
+        return matches
+
+    def step(
+        self,
+        frame_idx: int,
+        delta_t_s: float,
+        fps_nominal: float,
+        observations: _Sequence[GateObservation],
+        condition_light: str = "normal",
+        H_inv_for_output: _Optional[np.ndarray] = None,
+    ) -> _List[GateFrameTrack]:
+        """
+        Process one frame.
+
+        Args:
+            delta_t_s:        Per-frame PTS delta from Track A sidecar (VFR fix).
+            fps_nominal:      Fallback if delta_t_s <= 0.
+            H_inv_for_output: Inverse homography to back-project BEV positions
+                              to image coordinates for base_px output.
+        """
+        dt = float(delta_t_s)
+        if dt <= 0.0:
+            dt = 1.0 / max(1e-6, float(fps_nominal))
+
+        for tr in self._tracks:
+            tr.predict(dt)
+
+        high = [o for o in observations if o.conf_class >= self.high_thresh]
+        low  = [o for o in observations if self.low_thresh <= o.conf_class < self.high_thresh]
+        app_w = 0.05 if str(condition_light).lower() == "flat" else 0.2
+
+        # Pass 1: Mahalanobis + appearance on high-conf detections
+        p1_costs: _List[_Tuple[float, int, int]] = []
+        for ti, tr in enumerate(self._tracks):
+            for di, obs in enumerate(high):
+                mahal = tr.mahalanobis(obs, self.degraded_boost)
+                if not _math_t.isfinite(mahal) or mahal > self.maha_gate:
+                    continue
+                penalty = 0.15 if not obs.geom_ok else 0.0
+                p1_costs.append((0.8 * mahal + app_w * self._appearance_cost(tr, obs) + penalty, ti, di))
+
+        p1 = self._greedy_assign(p1_costs)
+        matched_t = {ti for ti, _ in p1}
+        matched_h = {di for _, di in p1}
+
+        for ti, di in p1:
+            self._tracks[ti].update(high[di], self.degraded_boost)
+
+        # Pass 2: IoU rescue on low-conf + unmatched high-conf
+        p2_pool = low + [o for di, o in enumerate(high) if di not in matched_h]
+        unmatched_t = [ti for ti in range(len(self._tracks)) if ti not in matched_t]
+        p2_costs: _List[_Tuple[float, int, int]] = []
+        for ui, ti in enumerate(unmatched_t):
+            pred = self._tracks[ti].predicted_bbox()
+            for di, obs in enumerate(p2_pool):
+                ov = _iou_xyxy(pred, obs.bev_bbox)
+                if ov > 0.0:
+                    p2_costs.append((1.0 - ov, ui, di))
+
+        p2_matched_pool: set = set()
+        for ui, di in self._greedy_assign(p2_costs):
+            self._tracks[unmatched_t[ui]].update(p2_pool[di], self.degraded_boost)
+            p2_matched_pool.add(di)
+
+        # Spawn new tracks from unmatched high-conf detections
+        n_low = len(low)
+        for di, obs in enumerate(high):
+            if di not in matched_h:
+                pool_idx = n_low + sum(1 for j in range(di) if j not in matched_h)
+                if pool_idx not in p2_matched_pool:
+                    tr = _GateKalmanTrack(self._next_id, obs, frame_idx)
+                    self._tracks.append(tr)
+                    self._next_id += 1
+
+        # Prune lost tracks
+        self._tracks = [tr for tr in self._tracks if tr.frames_since_observation <= self.max_lost]
+
+        # Build output
+        result: _List[GateFrameTrack] = []
+        for tr in sorted(self._tracks, key=lambda t: t.track_id):
+            bev_x, bev_y = float(tr.x[0]), float(tr.x[1])
+            if H_inv_for_output is not None:
+                img_x, img_y = _project_point_h(H_inv_for_output, bev_x, bev_y)
+            else:
+                img_x, img_y = bev_x, bev_y
+            result.append(GateFrameTrack(
+                track_id=int(tr.track_id),
+                bev_x=bev_x,
+                bev_y=bev_y,
+                bev_vx=float(tr.x[2]),
+                bev_vy=float(tr.x[3]),
+                innovation_magnitude=float(tr.innovation_magnitude) if tr.innovation_magnitude is not None else None,
+                frames_since_observation=int(tr.frames_since_observation),
+                base_px={"x_px": float(img_x), "y_px": float(img_y)},
+            ))
+        return result

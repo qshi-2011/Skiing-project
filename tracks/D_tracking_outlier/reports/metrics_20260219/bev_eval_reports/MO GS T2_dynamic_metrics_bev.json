@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-02-19T19:12:20.628019",
+  "ground_truth": {
+    "clip_id": "MO GS T2",
+    "format": "json_frames",
+    "path": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/metrics_20260219/bev_eval_inputs/MO GS T2_gt_bev.json"
+  },
+  "predictions": {
+    "clip_id": "MO GS T2",
+    "format": "json_frames",
+    "path": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/metrics_20260219/bev_eval_inputs/MO GS T2_dynamic_pred_bev.json"
+  },
+  "settings": {
+    "max_distance_px": 0.6,
+    "static_motion_threshold_px": 2.5,
+    "smoke_baseline": false,
+    "dummy_miss_rate": null,
+    "dummy_false_rate": null,
+    "seed": null
+  },
+  "IDF1": 0.009182736455463728,
+  "HOTA": 0.5875975584747065,
+  "id_switches": 0,
+  "track_fragmentation": 0,
+  "topological_ordering_error": 0.07462686567164178,
+  "missed_gate_rate": 0.6328125,
+  "false_gate_rate": 0.6741767764298093,
+  "temporal_jitter": {
+    "per_track": [],
+    "global_mean": 0.0
+  },
+  "counts": {
+    "frames": 531,
+    "gt_total": 1024,
+    "pred_total": 1154,
+    "matched_total": 376,
+    "missed_total": 648,
+    "false_total": 778,
+    "topology_pairs": 67,
+    "topology_inversions": 5
+  },
+  "hota_components": {
+    "DetA": 0.34527089072543615,
+    "AssA": 1.0
+  }
+}

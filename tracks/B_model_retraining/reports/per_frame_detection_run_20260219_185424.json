@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-02-19T18:54:24.171931",
+  "model": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/artifacts/models/gate_detector_best_20260215_1043.pt",
+  "videos": [
+    "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2907_1765738705(Video in Original Quality).mp4",
+    "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2909_1765738725(Video in Original Quality).mp4",
+    "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2911_1765738746(Video in Original Quality).mp4"
+  ],
+  "output_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs",
+  "schema": "/Users/quan/Documents/personal/Stanford application project/shared/interfaces/per_frame_detections.schema.json",
+  "summaries": [
+    {
+      "clip_id": "2907_1765738705(Video in Original Quality)",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2907_1765738705(Video in Original Quality).mp4",
+      "frames_written": 180,
+      "detections_total": 3453,
+      "tier_counts": {
+        "1": 650,
+        "2": 1572,
+        "3": 1231
+      },
+      "geometry_failures": 192,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": false,
+        "frames_from_bev": 0,
+        "frames_from_stub": 180
+      },
+      "keypoint_source": {
+        "native_pose": 0,
+        "bootstrap_from_bbox": 3453
+      },
+      "jitter_samples": {
+        "tier2": 1538,
+        "tier3": 1182,
+        "tier2_counterfactual_tier3": 1538
+      },
+      "jitter_std": {
+        "tier2": 60.71695459044935,
+        "tier3": 74.38077625349266,
+        "tier2_counterfactual_tier3": 120.21535043744646
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs/2907_1765738705(Video in Original Quality)_detections.json"
+    },
+    {
+      "clip_id": "2909_1765738725(Video in Original Quality)",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2909_1765738725(Video in Original Quality).mp4",
+      "frames_written": 180,
+      "detections_total": 5484,
+      "tier_counts": {
+        "1": 455,
+        "2": 2832,
+        "3": 2197
+      },
+      "geometry_failures": 211,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": false,
+        "frames_from_bev": 0,
+        "frames_from_stub": 180
+      },
+      "keypoint_source": {
+        "native_pose": 0,
+        "bootstrap_from_bbox": 5484
+      },
+      "jitter_samples": {
+        "tier2": 2791,
+        "tier3": 1984,
+        "tier2_counterfactual_tier3": 2791
+      },
+      "jitter_std": {
+        "tier2": 49.068790061026995,
+        "tier3": 70.38896357484252,
+        "tier2_counterfactual_tier3": 107.65044010280603
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs/2909_1765738725(Video in Original Quality)_detections.json"
+    },
+    {
+      "clip_id": "2911_1765738746(Video in Original Quality)",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2911_1765738746(Video in Original Quality).mp4",
+      "frames_written": 180,
+      "detections_total": 4287,
+      "tier_counts": {
+        "1": 219,
+        "2": 1824,
+        "3": 2244
+      },
+      "geometry_failures": 78,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": false,
+        "frames_from_bev": 0,
+        "frames_from_stub": 180
+      },
+      "keypoint_source": {
+        "native_pose": 0,
+        "bootstrap_from_bbox": 4287
+      },
+      "jitter_samples": {
+        "tier2": 1779,
+        "tier3": 2109,
+        "tier2_counterfactual_tier3": 1779
+      },
+      "jitter_std": {
+        "tier2": 60.94269281617522,
+        "tier3": 83.87806863739372,
+        "tier2_counterfactual_tier3": 109.41212707847177
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs/2911_1765738746(Video in Original Quality)_detections.json"
+    }
+  ],
+  "ablation_report": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/reports/ablation_fallback_20260219.md"
+}

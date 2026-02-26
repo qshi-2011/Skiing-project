@@ -1,0 +1,56 @@
+{
+  "states": [
+    "R",
+    "B",
+    "DNF"
+  ],
+  "emission_proxy": {
+    "red": {
+      "beta_alpha": 10.40318896164527,
+      "beta_beta": 5.33022732208254,
+      "sample_mean": 0.6612161512820776,
+      "sample_var": 0.013386946739837534,
+      "n": 262,
+      "ci95": {
+        "beta_alpha": {
+          "low": 5.44265059658753,
+          "high": 27.532403767927814
+        },
+        "beta_beta": {
+          "low": 4.262970048534861,
+          "high": 12.358662072371219
+        }
+      }
+    },
+    "blue": {
+      "beta_alpha": 14.792370952919605,
+      "beta_beta": 13.142711033276644,
+      "sample_mean": 0.5295266704507636,
+      "sample_var": 0.008609900461002355,
+      "n": 369,
+      "ci95": {
+        "beta_alpha": {
+          "low": 7.501928084693428,
+          "high": 43.871913568665335
+        },
+        "beta_beta": {
+          "low": 8.364776658443692,
+          "high": 31.42476993158875
+        }
+      }
+    }
+  },
+  "confusion_proxy": {
+    "R": {
+      "red": 262,
+      "blue": 0,
+      "unknown": 0
+    },
+    "B": {
+      "red": 0,
+      "blue": 369,
+      "unknown": 0
+    }
+  },
+  "method": "proxy_true_state_from_dominant_detection + confidence consistency beta-fit"
+}

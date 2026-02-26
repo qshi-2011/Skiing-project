@@ -1,0 +1,919 @@
+[Q-SWEEP] video=2907 q=200
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2907_1765738705(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 844 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 8 gates across 844 frames (844 frames with detections)
+         Found 7 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 9 detected gates, ~16 estimated real gates
+  one-gate reference: 16.2 px, ppm_y ≈ 12.65 px/m, course ≈ 20m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 489 measured, 499 total (scale stripped from 326 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 437/476 measured frames accepted (39 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.09 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 835 frames
+         Tracked 835 positions (99% coverage)
+         ByteTrack coverage: 98.9%, ID switches: 1
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 516/834 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 281 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.10× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.10× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.980462968444733
+  Duration:      28.1s
+  Distance:      892.7m
+------------------------------------------------------------
+
+  Speed (km/h):  115.3 avg, 21.4 med, 118.6 p90, 21834.0 max, 0.0 min
+  G-forces:      24.01 avg, 2339.21 max
+  Turn radius:   0.0m min, 37.8m avg
+  Smoothness:    202.30m max jump, 1.070m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 21834.0 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 2339.2G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 202.3m jump between consecutive frames
+     • Unrealistic acceleration: 181831.6 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2907_q200/2907_1765738705(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2907 q=400
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2907_1765738705(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 844 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 8 gates across 844 frames (844 frames with detections)
+         Found 7 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 9 detected gates, ~16 estimated real gates
+  one-gate reference: 16.2 px, ppm_y ≈ 12.65 px/m, course ≈ 20m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 489 measured, 499 total (scale stripped from 326 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 437/476 measured frames accepted (39 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.09 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 835 frames
+         Tracked 835 positions (99% coverage)
+         ByteTrack coverage: 98.9%, ID switches: 1
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 397/834 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 284 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.17× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.17× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.980462968444733
+  Duration:      28.1s
+  Distance:      917.1m
+------------------------------------------------------------
+
+  Speed (km/h):  118.5 avg, 26.6 med, 120.0 p90, 21851.8 max, 0.0 min
+  G-forces:      25.48 avg, 2820.37 max
+  Turn radius:   0.0m min, 27.0m avg
+  Smoothness:    202.46m max jump, 1.100m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 21851.8 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 2820.4G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 202.5m jump between consecutive frames
+     • Unrealistic acceleration: 181979.8 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2907_q400/2907_1765738705(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2907 q=800
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2907_1765738705(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 844 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 8 gates across 844 frames (844 frames with detections)
+         Found 7 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 9 detected gates, ~16 estimated real gates
+  one-gate reference: 16.2 px, ppm_y ≈ 12.65 px/m, course ≈ 20m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 489 measured, 499 total (scale stripped from 326 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 437/476 measured frames accepted (39 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.09 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 835 frames
+         Tracked 835 positions (99% coverage)
+         ByteTrack coverage: 98.9%, ID switches: 1
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 173/834 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 285 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.18× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.18× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.980462968444733
+  Duration:      28.1s
+  Distance:      973.8m
+------------------------------------------------------------
+
+  Speed (km/h):  125.8 avg, 32.2 med, 119.9 p90, 21868.9 max, 0.0 min
+  G-forces:      25.54 avg, 2124.86 max
+  Turn radius:   0.0m min, 25.4m avg
+  Smoothness:    202.62m max jump, 1.168m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 21868.9 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 2124.9G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 202.6m jump between consecutive frames
+     • Unrealistic acceleration: 182121.9 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2907_q800/2907_1765738705(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2907 q=1600
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2907_1765738705(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 844 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 8 gates across 844 frames (844 frames with detections)
+         Found 7 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 9 detected gates, ~16 estimated real gates
+  one-gate reference: 16.2 px, ppm_y ≈ 12.65 px/m, course ≈ 20m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 489 measured, 499 total (scale stripped from 326 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 437/476 measured frames accepted (39 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.09 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 835 frames
+         Tracked 835 positions (99% coverage)
+         ByteTrack coverage: 98.9%, ID switches: 1
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 167/834 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 359 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 6.53× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 6.53× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.980462968444733
+  Duration:      28.1s
+  Distance:      1146.3m
+------------------------------------------------------------
+
+  Speed (km/h):  146.8 avg, 43.1 med, 221.7 p90, 21879.4 max, 0.0 min
+  G-forces:      24.13 avg, 2070.66 max
+  Turn radius:   0.0m min, 31.6m avg
+  Smoothness:    202.72m max jump, 1.374m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 21879.4 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 2070.7G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 202.7m jump between consecutive frames
+     • Unrealistic acceleration: 182209.4 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2907_q1600/2907_1765738705(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2907 q=3200
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2907_1765738705(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 844 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 8 gates across 844 frames (844 frames with detections)
+         Found 7 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 9 detected gates, ~16 estimated real gates
+  one-gate reference: 16.2 px, ppm_y ≈ 12.65 px/m, course ≈ 20m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 489 measured, 499 total (scale stripped from 326 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 437/476 measured frames accepted (39 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.09 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 835 frames
+         Tracked 835 positions (99% coverage)
+         ByteTrack coverage: 98.9%, ID switches: 1
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 38/834 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 302 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.48× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.48× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.980462968444733
+  Duration:      28.1s
+  Distance:      1071.2m
+------------------------------------------------------------
+
+  Speed (km/h):  137.6 avg, 40.7 med, 161.8 p90, 21882.2 max, 0.0 min
+  G-forces:      22.88 avg, 2089.26 max
+  Turn radius:   0.0m min, 23.9m avg
+  Smoothness:    202.75m max jump, 1.284m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 21882.2 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 2089.3G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 202.7m jump between consecutive frames
+     • Unrealistic acceleration: 182233.1 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2907_q3200/2907_1765738705(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2909 q=200
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2909_1765738725(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 911 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 911 frames (911 frames with detections)
+         Found 4 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 8 detected gates, ~14 estimated real gates
+  one-gate reference: 15.9 px, ppm_y ≈ 12.61 px/m, course ≈ 18m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 482 measured, 562 total (scale stripped from 371 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 404/438 measured frames accepted (34 rejected, median_window=15, bounds=[0.5x, 2.0x], median=15.22 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 908 frames
+         Tracked 908 positions (100% coverage)
+         ByteTrack coverage: 99.7%, ID switches: 5
+         Outlier filter: corrected 2 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 558/907 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 265 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 4.82× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+     Applying 4.82× scale correction (target P90: 55 km/h)
+     This suggests the gate-based scale was off by ~4.8×
+     ppm_y corrected: 12.61 → 60.74 px/m
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.967105263157894
+  Duration:      30.4s
+  Distance:      183.0m
+------------------------------------------------------------
+
+  Speed (km/h):  21.8 avg, 3.8 med, 34.7 p90, 1344.8 max, 0.0 min
+  G-forces:      9.67 avg, 1956.76 max
+  Turn radius:   0.0m min, 19.9m avg
+  Smoothness:    12.47m max jump, 0.202m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 1344.8 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 1956.8G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 12.5m jump between consecutive frames
+     • Unrealistic acceleration: 10949.5 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2909_q200/2909_1765738725(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2909 q=400
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2909_1765738725(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 911 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 911 frames (911 frames with detections)
+         Found 4 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 8 detected gates, ~14 estimated real gates
+  one-gate reference: 15.9 px, ppm_y ≈ 12.61 px/m, course ≈ 18m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 482 measured, 562 total (scale stripped from 371 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 404/438 measured frames accepted (34 rejected, median_window=15, bounds=[0.5x, 2.0x], median=15.22 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 908 frames
+         Tracked 908 positions (100% coverage)
+         ByteTrack coverage: 99.7%, ID switches: 5
+         Outlier filter: corrected 2 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 450/907 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 295 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.36× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.36× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.967105263157894
+  Duration:      30.4s
+  Distance:      868.2m
+------------------------------------------------------------
+
+  Speed (km/h):  103.2 avg, 28.5 med, 169.9 p90, 5789.6 max, 0.0 min
+  G-forces:      51.20 avg, 8491.33 max
+  Turn radius:   0.0m min, 39.8m avg
+  Smoothness:    53.67m max jump, 0.957m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 5789.6 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 8491.3G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 53.7m jump between consecutive frames
+     • Unrealistic acceleration: 47240.1 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2909_q400/2909_1765738725(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2909 q=800
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2909_1765738725(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 911 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 911 frames (911 frames with detections)
+         Found 4 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 8 detected gates, ~14 estimated real gates
+  one-gate reference: 15.9 px, ppm_y ≈ 12.61 px/m, course ≈ 18m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 482 measured, 562 total (scale stripped from 371 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 404/438 measured frames accepted (34 rejected, median_window=15, bounds=[0.5x, 2.0x], median=15.22 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 908 frames
+         Tracked 908 positions (100% coverage)
+         ByteTrack coverage: 99.7%, ID switches: 5
+         Outlier filter: corrected 2 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 320/907 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 284 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.17× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.17× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.967105263157894
+  Duration:      30.4s
+  Distance:      971.0m
+------------------------------------------------------------
+
+  Speed (km/h):  115.5 avg, 35.7 med, 176.1 p90, 5839.0 max, 0.0 min
+  G-forces:      51.19 avg, 8510.91 max
+  Turn radius:   0.0m min, 49.1m avg
+  Smoothness:    54.12m max jump, 1.071m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 5839.0 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 8510.9G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 54.1m jump between consecutive frames
+     • Unrealistic acceleration: 47328.9 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2909_q800/2909_1765738725(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2909 q=1600
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2909_1765738725(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 911 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 911 frames (911 frames with detections)
+         Found 4 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 8 detected gates, ~14 estimated real gates
+  one-gate reference: 15.9 px, ppm_y ≈ 12.61 px/m, course ≈ 18m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 482 measured, 562 total (scale stripped from 371 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 404/438 measured frames accepted (34 rejected, median_window=15, bounds=[0.5x, 2.0x], median=15.22 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 908 frames
+         Tracked 908 positions (100% coverage)
+         ByteTrack coverage: 99.7%, ID switches: 5
+         Outlier filter: corrected 2 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 141/907 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 283 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.15× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.15× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.967105263157894
+  Duration:      30.4s
+  Distance:      1047.3m
+------------------------------------------------------------
+
+  Speed (km/h):  124.5 avg, 40.2 med, 182.4 p90, 6064.4 max, 0.0 min
+  G-forces:      53.73 avg, 8518.07 max
+  Turn radius:   0.0m min, 37.0m avg
+  Smoothness:    56.21m max jump, 1.155m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 6064.4 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 8518.1G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 56.2m jump between consecutive frames
+     • Unrealistic acceleration: 47547.5 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2909_q1600/2909_1765738725(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2909 q=3200
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2909_1765738725(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 911 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 911 frames (911 frames with detections)
+         Found 4 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 8 detected gates, ~14 estimated real gates
+  one-gate reference: 15.9 px, ppm_y ≈ 12.61 px/m, course ≈ 18m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 482 measured, 562 total (scale stripped from 371 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 404/438 measured frames accepted (34 rejected, median_window=15, bounds=[0.5x, 2.0x], median=15.22 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 908 frames
+         Tracked 908 positions (100% coverage)
+         ByteTrack coverage: 99.7%, ID switches: 5
+         Outlier filter: corrected 2 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 124/907 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 311 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.66× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.66× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.967105263157894
+  Duration:      30.4s
+  Distance:      1090.1m
+------------------------------------------------------------
+
+  Speed (km/h):  129.5 avg, 43.8 med, 207.1 p90, 6065.2 max, 0.0 min
+  G-forces:      53.56 avg, 8526.96 max
+  Turn radius:   0.0m min, 28.2m avg
+  Smoothness:    56.22m max jump, 1.202m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 6065.2 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 8527.0G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 56.2m jump between consecutive frames
+     • Unrealistic acceleration: 47569.9 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2909_q3200/2909_1765738725(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2911 q=200
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 730/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 435 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 7.90× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 7.90× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      1193.0m
+------------------------------------------------------------
+
+  Speed (km/h):  167.5 avg, 94.7 med, 187.4 p90, 8126.4 max, 0.0 min
+  G-forces:      87.35 avg, 8568.22 max
+  Turn radius:   0.0m min, 12.9m avg
+  Smoothness:    75.25m max jump, 1.586m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 8126.4 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 8568.2G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 75.3m jump between consecutive frames
+     • Unrealistic acceleration: 67560.3 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2911_q200/2911_1765738746(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2911 q=400
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 508/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 331 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 6.02× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 6.02× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      822.6m
+------------------------------------------------------------
+
+  Speed (km/h):  115.2 avg, 22.9 med, 142.1 p90, 8763.6 max, 0.0 min
+  G-forces:      68.97 avg, 7925.15 max
+  Turn radius:   0.0m min, 27.8m avg
+  Smoothness:    81.15m max jump, 1.094m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 8763.6 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 7925.2G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 81.2m jump between consecutive frames
+     • Unrealistic acceleration: 73020.6 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2911_q400/2911_1765738746(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2911 q=800
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 322/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 351 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 6.38× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 6.38× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      917.8m
+------------------------------------------------------------
+
+  Speed (km/h):  129.6 avg, 38.8 med, 166.2 p90, 8765.4 max, 0.0 min
+  G-forces:      62.52 avg, 6090.95 max
+  Turn radius:   0.0m min, 32.6m avg
+  Smoothness:    81.17m max jump, 1.221m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 8765.4 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 6091.0G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 81.2m jump between consecutive frames
+     • Unrealistic acceleration: 73035.5 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2911_q800/2911_1765738746(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2911 q=1600
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 220/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 320 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.83× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.83× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      957.2m
+------------------------------------------------------------
+
+  Speed (km/h):  134.1 avg, 44.2 med, 153.3 p90, 8762.6 max, 0.0 min
+  G-forces:      60.49 avg, 4821.40 max
+  Turn radius:   0.0m min, 24.7m avg
+  Smoothness:    81.15m max jump, 1.273m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 8762.6 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 4821.4G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 81.1m jump between consecutive frames
+     • Unrealistic acceleration: 73012.2 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2911_q1600/2911_1765738746(Video in Original Quality)_analysis.json
+[Q-SWEEP] video=2911 q=3200
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 200/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 327 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 5.95× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 5.95× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      1042.9m
+------------------------------------------------------------
+
+  Speed (km/h):  145.7 avg, 47.3 med, 227.4 p90, 8759.2 max, 0.0 min
+  G-forces:      57.59 avg, 4737.08 max
+  Turn radius:   0.0m min, 21.9m avg
+  Smoothness:    81.11m max jump, 1.387m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 8759.2 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 4737.1G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 81.1m jump between consecutive frames
+     • Unrealistic acceleration: 72983.7 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_sweep_artifacts_20260214/2911_q3200/2911_1765738746(Video in Original Quality)_analysis.json
+[ORDERING] video=2911 baseline
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+         Outlier filter: corrected 7 frames
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 730/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  ⚠️  AUTO-CALIBRATION: P90 speed 435 km/h exceeds 70 km/h limit for slalom
+     Large correction requested: 7.90× (>3×). Likely causes: wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  ❌ Unable to calibrate: requested correction 7.90× exceeds 5.0× cap. Upstream geometry is likely broken.
+     Diagnostics: likely causes -> wrong gate spacing, wrong camera pitch, too few gates detected, gate detections on non-gate objects
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      1193.0m
+------------------------------------------------------------
+
+  Speed (km/h):  167.5 avg, 94.7 med, 187.4 p90, 8126.4 max, 0.0 min
+  G-forces:      87.35 avg, 8568.22 max
+  Turn radius:   0.0m min, 12.9m avg
+  Smoothness:    75.25m max jump, 1.586m avg
+------------------------------------------------------------
+  ❌ FAILED — 5 issue(s) found:
+     • Unrealistic max speed: 8126.4 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 8568.2G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Trajectory discontinuity: 75.3m jump between consecutive frames
+     • Unrealistic acceleration: 67560.3 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/ordering_study_artifacts_20260214/baseline/2911_1765738746(Video in Original Quality)_analysis.json
+[ORDERING] video=2911 precomp-before-smoothing
+⚠️  Affine mode + dynamic scale: the affine transform's scale component has been stripped (Euclidean only = rotation+translation). If results are still unstable, switch to --camera-mode translation.
+Processing 2911_1765738746(Video in Original Quality).mp4... [STABILIZED]
+  Video: 848x480 @ 30.0 fps, 777 frames
+  [1/7] Detecting gates...
+  [2/7] Tracking gates across all frames (Phase 1)...
+         Tracked 6 gates across 777 frames (777 frames with detections)
+         Found 5 gates
+  [3/7] Calculating perspective transform...
+✓ Scale mapping: 7 detected gates, ~10 estimated real gates
+  one-gate reference: 18.3 px, ppm_y ≈ 14.25 px/m, course ≈ 13m, pitch=6.0°
+  pitch-adjusted spacing: 1.25m (from 12.00m)
+  [3/7]   + Camera motion compensation (Phase 2)...
+✓ Camera motion (rigid/Euclidean): 442 measured, 506 total (scale stripped from 335 frames)
+  [3/7]   + Dynamic per-frame scale (Phase 4)...
+✓ Dynamic scale: 401/401 measured frames accepted (0 rejected, median_window=15, bounds=[0.5x, 2.0x], median=16.73 px/m)
+  [4/7] Tracking skier...
+✓ ByteTrack reassociation: tracked 753 frames
+         Tracked 753 positions (97% coverage)
+         ByteTrack coverage: 96.9%, ID switches: 5
+  [4/7] Applying 2D camera compensation before smoothing (experiment)...
+         Outlier filter: corrected 68 frames
+  ⚠️  Tracking quality warning: 68/777 frames flagged as outliers (>5%).
+  [5/7] Smoothing trajectory with Kalman filter (Phase 3)...
+  ✓ Innovation gating: skipped 668/752 updates (mahal_sq > 9.0)
+  [6/7] Transforming to 3D coordinates...
+  [7/7] Running physics validation...
+
+============================================================
+  PHYSICS VALIDATION REPORT
+============================================================
+  Discipline:    slalom
+  Video FPS:     29.996139492986746
+  Duration:      25.9s
+  Distance:      139.5m
+------------------------------------------------------------
+
+  Speed (km/h):  19.4 avg, 17.7 med, 31.1 p90, 530.3 max, 0.4 min
+  G-forces:      2.40 avg, 301.06 max
+  Turn radius:   0.0m min, 33.6m avg
+  Smoothness:    4.91m max jump, 0.185m avg
+------------------------------------------------------------
+  ❌ FAILED — 4 issue(s) found:
+     • Unrealistic max speed: 530.3 km/h (limit: 70 km/h for slalom)
+     • Unrealistic G-force: 301.1G (limit: 5.0G) — check homography or gate spacing
+     • Unrealistic min turn radius: 0.0m (limit: 6.0m)
+     • Unrealistic acceleration: 4206.1 m/s^2 (limit: 15.0)
+============================================================
+
+
+✓ Results saved to /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/ordering_study_artifacts_20260214/precomp/2911_1765738746(Video in Original Quality)_analysis.json
+[DONE] /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_tuning_20260214.md
+[DONE] /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/kalman_tuning_20260214.json
+[DONE] /Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/pipeline_ordering_20260214.md

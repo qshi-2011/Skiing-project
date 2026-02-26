@@ -19,14 +19,14 @@ class GateDetector:
         """
         self.model = YOLO(model_path)
 
-    def detect_in_frame(self, frame, conf=0.35, iou=0.55):
+    def detect_in_frame(self, frame, conf=0.25, iou=0.45):
         """
         Detect gates in a single frame.
 
         Args:
             frame: BGR image (numpy array).
-            conf: Minimum confidence threshold.
-            iou: NMS IoU threshold.
+            conf: Minimum confidence threshold (lowered to 0.25 to catch more gates).
+            iou: NMS IoU threshold (lowered to 0.45 to reduce duplicate suppression).
 
         Returns:
             List of gate detections, each with class, center, base, confidence.
@@ -50,7 +50,7 @@ class GateDetector:
         gates.sort(key=lambda g: g["base_y"])
         return gates
 
-    def detect_from_first_frame(self, video_path, conf=0.35, iou=0.55):
+    def detect_from_first_frame(self, video_path, conf=0.25, iou=0.45):
         """
         Detect gates from the first frame of a video.
         Best used before the race starts when all gates are fully visible.
@@ -72,9 +72,17 @@ class GateDetector:
 
         return self.detect_in_frame(frame, conf=conf, iou=iou)
 
-    def detect_from_best_frame(self, video_path, conf=0.35, iou=0.55, max_frames=150, stride=5):
+    def detect_from_best_frame(self, video_path, conf=0.25, iou=0.45, max_frames=300, stride=3):
         """
         Scan early frames and return the frame with the most detected gates.
+
+        Improvements over v1:
+        - Wider search window (300 frames instead of 150) to handle videos
+          where the skier starts late or camera pans before the race.
+        - Smaller stride (3 instead of 5) for denser sampling.
+        - Lower default conf/iou to maximise recall.
+        - Multi-frame consensus: also tries a lowered conf pass if the best
+          result still has fewer than 2 gates.
 
         Args:
             video_path: Path to video file.
@@ -92,6 +100,8 @@ class GateDetector:
 
         best_gates = []
         best_frame_idx = -1
+        best_frame = None
+        best_mean_conf = 0.0
         frame_idx = 0
         stride = max(1, int(stride))
         max_frames = max(1, int(max_frames))
@@ -106,9 +116,19 @@ class GateDetector:
                 continue
 
             gates = self.detect_in_frame(frame, conf=conf, iou=iou)
-            if len(gates) > len(best_gates):
+            mean_conf = (
+                sum(g["confidence"] for g in gates) / len(gates) if gates else 0.0
+            )
+            # Primary: more gates wins outright.
+            # Tie-break: same count but meaningfully higher mean confidence
+            # (+0.02 margin avoids churn between near-identical frames).
+            if len(gates) > len(best_gates) or (
+                len(gates) == len(best_gates) and mean_conf > best_mean_conf + 0.02
+            ):
                 best_gates = gates
                 best_frame_idx = frame_idx
+                best_frame = frame.copy()
+                best_mean_conf = mean_conf
 
             frame_idx += 1
 
@@ -116,6 +136,17 @@ class GateDetector:
 
         if best_frame_idx >= 0:
             print(f"         Best gate frame: {best_frame_idx} with {len(best_gates)} gates")
+
+        # Fallback: if we still found fewer than 2 gates, try an even more
+        # aggressive conf on the best frame we found
+        if len(best_gates) < 2 and best_frame is not None:
+            for fallback_conf in (0.15, 0.10):
+                fallback_gates = self.detect_in_frame(best_frame, conf=fallback_conf, iou=0.40)
+                if len(fallback_gates) >= len(best_gates):
+                    print(f"         Fallback conf={fallback_conf}: found {len(fallback_gates)} gates")
+                    best_gates = fallback_gates
+                if len(best_gates) >= 2:
+                    break
 
         return best_gates
 
@@ -302,3 +333,151 @@ class TemporalGateTracker:
                 sum(self.confidence.values()) / total if total > 0 else 0
             ),
         }
+
+
+# ---------------------------------------------------------------------------
+# v2.1 additions — ported from Track B reference implementation (Wave 2)
+# Manager-applied 2026-02-19 from:
+#   tracks/B_model_retraining/reports/proposed_ski_racing_detection_py_changes_20260219.md
+# ---------------------------------------------------------------------------
+
+import math as _math
+from typing import Dict, Optional, Tuple
+
+
+def _clamp(value: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, value))
+
+
+def _safe_log(value: float) -> float:
+    return float(_math.log(max(value, 1e-9)))
+
+
+def resolve_gate_base(
+    detection: Dict,
+    bev_frame: Optional[Dict],
+    tau_kp: float = 0.5,
+) -> Dict:
+    """
+    Three-tier gate-base fallback hierarchy (v2.1 spec, Section 4.3).
+
+    Tier 1 — keypoint base confident (kp0_conf >= tau_kp).
+    Tier 2 — VP projection through tip keypoint when base is uncertain
+              but alpha_t > 0 and tip is confident.
+    Tier 3 — bbox bottom-centre (sets is_degraded=True).
+
+    Args:
+        detection: dict with keys bbox_xyxy, keypoint_base_px, keypoint_tip_px.
+        bev_frame:  one row from per_frame_bev.schema.json (Track C output).
+        tau_kp:     keypoint confidence threshold (default 0.5).
+
+    Returns:
+        dict with keys: base_px {x_px, y_px}, base_fallback_tier (1/2/3), is_degraded.
+    """
+    x1, y1, x2, y2 = [float(v) for v in detection["bbox_xyxy"]]
+    kp0 = detection.get("keypoint_base_px")
+    kp1 = detection.get("keypoint_tip_px")
+
+    kp0_conf = float(kp0["conf"]) if isinstance(kp0, dict) else 0.0
+    kp1_conf = float(kp1["conf"]) if isinstance(kp1, dict) else 0.0
+
+    alpha_t, vp_x, vp_y, horizon_y = 0.0, None, None, None
+    if isinstance(bev_frame, dict):
+        alpha_t = float(bev_frame.get("alpha_t", 0.0) or 0.0)
+        vp = bev_frame.get("vp_t") or {}
+        if isinstance(vp, dict) and "x_px" in vp and "y_px" in vp:
+            vp_x = float(vp["x_px"])
+            vp_y = float(vp["y_px"])
+        if "horizon_y_px" in bev_frame:
+            horizon_y = float(bev_frame["horizon_y_px"])
+
+    # Tier 1
+    if kp0_conf >= tau_kp and isinstance(kp0, dict):
+        return {
+            "base_px": {"x_px": float(kp0["x_px"]), "y_px": float(kp0["y_px"])},
+            "base_fallback_tier": 1,
+            "is_degraded": False,
+        }
+
+    # Tier 2
+    if (
+        kp0_conf < tau_kp
+        and alpha_t > 0.0
+        and kp1_conf >= tau_kp
+        and isinstance(kp1, dict)
+        and vp_x is not None
+        and vp_y is not None
+        and horizon_y is not None
+        and abs(vp_y - float(kp1["y_px"])) > 1e-6
+    ):
+        kp1_x, kp1_y = float(kp1["x_px"]), float(kp1["y_px"])
+        t = (horizon_y - kp1_y) / (vp_y - kp1_y)
+        base_x = kp1_x + t * (vp_x - kp1_x)
+        return {
+            "base_px": {"x_px": float(base_x), "y_px": float(horizon_y)},
+            "base_fallback_tier": 2,
+            "is_degraded": False,
+        }
+
+    # Tier 3
+    return {
+        "base_px": {"x_px": float((x1 + x2) * 0.5), "y_px": float(y2)},
+        "base_fallback_tier": 3,
+        "is_degraded": True,
+    }
+
+
+def compute_geometry_check(
+    kp0: Optional[Dict],
+    kp1: Optional[Dict],
+    bev_frame: Optional[Dict],
+    tau_kp: float = 0.5,
+) -> Tuple[Optional[float], bool]:
+    """
+    Rolling-shutter geometry check (v2.1 spec).
+
+    Computes pole_vector_angle_deg and checks it against the rolling-shutter
+    lean bound from Track C (rolling_shutter_theta_deg + 5° buffer).
+
+    Returns:
+        (pole_vector_angle_deg_or_None, geometry_check_passed)
+    """
+    if not isinstance(kp0, dict) or not isinstance(kp1, dict):
+        return None, True  # insufficient keypoints → pass by default
+    if float(kp0.get("conf", 0.0)) < tau_kp or float(kp1.get("conf", 0.0)) < tau_kp:
+        return None, True
+
+    dx = float(kp1["x_px"]) - float(kp0["x_px"])
+    dy = float(kp1["y_px"]) - float(kp0["y_px"])
+    angle_deg = float(_math.degrees(_math.atan2(dx, -dy)))
+
+    theta_deg = None
+    if isinstance(bev_frame, dict) and "rolling_shutter_theta_deg" in bev_frame:
+        theta_deg = float(bev_frame["rolling_shutter_theta_deg"])
+
+    if theta_deg is None:
+        return angle_deg, True  # no rolling-shutter data → pass
+    return angle_deg, abs(angle_deg) <= (abs(theta_deg) + 5.0)
+
+
+def emission_log_prob(class_label: str, conf_class: float) -> Dict[str, float]:
+    """
+    Per-state emission log-probabilities for HMM decoder (Track F).
+
+    Returns dict with log_prob_red, log_prob_blue, log_prob_dnf.
+    All values guaranteed <= 0 (log-space probabilities).
+    """
+    conf = _clamp(float(conf_class), 0.0, 1.0)
+    inv = 1.0 - conf + 1e-9
+    if class_label == "red":
+        log_red, log_blue = _safe_log(conf), _safe_log(inv)
+    elif class_label == "blue":
+        log_red, log_blue = _safe_log(inv), _safe_log(conf)
+    else:
+        log_red, log_blue = _safe_log(inv), _safe_log(inv)
+    log_dnf = _safe_log(0.05)
+    return {
+        "log_prob_red":  min(0.0, float(log_red)),
+        "log_prob_blue": min(0.0, float(log_blue)),
+        "log_prob_dnf":  min(0.0, float(log_dnf)),
+    }

@@ -1,0 +1,15 @@
+{
+  "clip_id": "MO GS T2_fifo_depth_90.0",
+  "events": [
+    {
+      "frame_idx": 178,
+      "event": "RESET",
+      "reason": "no_valid_chain_in_90_frames"
+    },
+    {
+      "frame_idx": 358,
+      "event": "RESET",
+      "reason": "no_valid_chain_in_90_frames"
+    }
+  ]
+}

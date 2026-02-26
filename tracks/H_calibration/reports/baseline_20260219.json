@@ -1,0 +1,506 @@
+{
+  "date": "20260219",
+  "notes": [
+    "Proxy GT mode: fixed-dt tracker outputs are used as GT anchor due missing full labelled GT tracks.",
+    "Detections generated from models/gate_detector_best.pt with Track B fallback logic."
+  ],
+  "detection_generation": {
+    "model": "/Users/quan/Documents/personal/Stanford application project/models/gate_detector_best.pt",
+    "summaries": [
+      {
+        "clip_id": "Lucas GS T",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/Lucas GS T_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "MO GS R",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/MO GS R_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "MO GS T2",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/MO GS T2_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "MS GS R2",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/MS GS R2_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "MS SL",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/MS SL_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "MS SL R",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/MS SL R_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "Mikaela Shifferin Slolom2",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/Mikaela Shifferin Slolom2_detections.json",
+        "cached": true
+      },
+      {
+        "clip_id": "Screen Recording 2026-02-07 at 15.01.01",
+        "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/detections/Screen Recording 2026-02-07 at 15.01.01_detections.json",
+        "cached": true
+      }
+    ]
+  },
+  "metrics": {
+    "per_clip": {
+      "Lucas GS T": {
+        "ground_truth": {
+          "clip_id": "Lucas GS T",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/Lucas GS T_gt.json"
+        },
+        "predictions": {
+          "clip_id": "Lucas GS T",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/Lucas GS T_pred.json"
+        },
+        "IDF1": 0.22624963460976322,
+        "HOTA": 0.5838116244660913,
+        "id_switches": 238,
+        "track_fragmentation": 97,
+        "topological_ordering_error": 0.060870380791596325,
+        "missed_gate_rate": 0.6125195007800313,
+        "false_gate_rate": 0.613047711781889,
+        "temporal_jitter": {
+          "per_track": [],
+          "global_mean": 0.0
+        },
+        "counts": {
+          "frames": 389,
+          "gt_total": 5128,
+          "pred_total": 5135,
+          "matched_total": 1987,
+          "missed_total": 3141,
+          "false_total": 3148,
+          "topology_pairs": 10662,
+          "topology_inversions": 649
+        },
+        "hota_components": {
+          "DetA": 0.3872162135827731,
+          "AssA": 0.8802214393558128
+        }
+      },
+      "MO GS R": {
+        "ground_truth": {
+          "clip_id": "MO GS R",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/MO GS R_gt.json"
+        },
+        "predictions": {
+          "clip_id": "MO GS R",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/MO GS R_pred.json"
+        },
+        "IDF1": 0.7850555686923623,
+        "HOTA": 0.9115532336108043,
+        "id_switches": 33,
+        "track_fragmentation": 39,
+        "topological_ordering_error": 0.008490930142802007,
+        "missed_gate_rate": 0.1592296852982621,
+        "false_gate_rate": 0.14761904761904762,
+        "temporal_jitter": {
+          "per_track": [],
+          "global_mean": 0.0
+        },
+        "counts": {
+          "frames": 381,
+          "gt_total": 2129,
+          "pred_total": 2100,
+          "matched_total": 1790,
+          "missed_total": 339,
+          "false_total": 310,
+          "topology_pairs": 5182,
+          "topology_inversions": 44
+        },
+        "hota_components": {
+          "DetA": 0.8465358240718847,
+          "AssA": 0.9815642458100559
+        }
+      },
+      "MO GS T2": {
+        "ground_truth": {
+          "clip_id": "MO GS T2",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/MO GS T2_gt.json"
+        },
+        "predictions": {
+          "clip_id": "MO GS T2",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/MO GS T2_pred.json"
+        },
+        "IDF1": 0.8642335766423358,
+        "HOTA": 0.9296416388277452,
+        "id_switches": 8,
+        "track_fragmentation": 5,
+        "topological_ordering_error": 0.016611295681063124,
+        "missed_gate_rate": 0.12408759124087591,
+        "false_gate_rate": 0.12408759124087591,
+        "temporal_jitter": {
+          "per_track": [
+            {
+              "gt_track_id": "3",
+              "pred_track_id": "3",
+              "jitter_std": 3.486695372527498e-13,
+              "track_len": 33
+            },
+            {
+              "gt_track_id": "4",
+              "pred_track_id": "4",
+              "jitter_std": 3.486695372527498e-13,
+              "track_len": 33
+            },
+            {
+              "gt_track_id": "5",
+              "pred_track_id": "5",
+              "jitter_std": 3.32723983877551e-13,
+              "track_len": 31
+            },
+            {
+              "gt_track_id": "6",
+              "pred_track_id": "6",
+              "jitter_std": 0.9735328269810586,
+              "track_len": 181
+            },
+            {
+              "gt_track_id": "8",
+              "pred_track_id": "8",
+              "jitter_std": 2.4897372650243487e-13,
+              "track_len": 31
+            },
+            {
+              "gt_track_id": "9",
+              "pred_track_id": "9",
+              "jitter_std": 2.755539516277788e-13,
+              "track_len": 47
+            }
+          ],
+          "global_mean": 0.16225547116376887
+        },
+        "counts": {
+          "frames": 349,
+          "gt_total": 685,
+          "pred_total": 685,
+          "matched_total": 600,
+          "missed_total": 85,
+          "false_total": 85,
+          "topology_pairs": 301,
+          "topology_inversions": 5
+        },
+        "hota_components": {
+          "DetA": 0.8759124087591241,
+          "AssA": 0.9866666666666667
+        }
+      },
+      "MS GS R2": {
+        "ground_truth": {
+          "clip_id": "MS GS R2",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/MS GS R2_gt.json"
+        },
+        "predictions": {
+          "clip_id": "MS GS R2",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/MS GS R2_pred.json"
+        },
+        "IDF1": 0.8194945848375451,
+        "HOTA": 0.8992576159965496,
+        "id_switches": 6,
+        "track_fragmentation": 1,
+        "topological_ordering_error": 0.0,
+        "missed_gate_rate": 0.16967509025270758,
+        "false_gate_rate": 0.16967509025270758,
+        "temporal_jitter": {
+          "per_track": [
+            {
+              "gt_track_id": "2",
+              "pred_track_id": "2",
+              "jitter_std": 6.304025092937052,
+              "track_len": 77
+            },
+            {
+              "gt_track_id": "3",
+              "pred_track_id": "3",
+              "jitter_std": 3.990596282987303e-13,
+              "track_len": 41
+            },
+            {
+              "gt_track_id": "4",
+              "pred_track_id": "4",
+              "jitter_std": 3.967098455006581e-13,
+              "track_len": 43
+            },
+            {
+              "gt_track_id": "5",
+              "pred_track_id": "5",
+              "jitter_std": 5.767760686331282e-13,
+              "track_len": 35
+            }
+          ],
+          "global_mean": 1.576006273234606
+        },
+        "counts": {
+          "frames": 201,
+          "gt_total": 277,
+          "pred_total": 277,
+          "matched_total": 230,
+          "missed_total": 47,
+          "false_total": 47,
+          "topology_pairs": 0,
+          "topology_inversions": 0
+        },
+        "hota_components": {
+          "DetA": 0.8303249097472925,
+          "AssA": 0.9739130434782609
+        }
+      },
+      "MS SL": {
+        "ground_truth": {
+          "clip_id": "MS SL",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/MS SL_gt.json"
+        },
+        "predictions": {
+          "clip_id": "MS SL",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/MS SL_pred.json"
+        },
+        "IDF1": 0.6989196806012212,
+        "HOTA": 0.8669063030575352,
+        "id_switches": 7,
+        "track_fragmentation": 5,
+        "topological_ordering_error": 0.004319654427645789,
+        "missed_gate_rate": 0.22179363548698167,
+        "false_gate_rate": 0.260989010989011,
+        "temporal_jitter": {
+          "per_track": [
+            {
+              "gt_track_id": "1",
+              "pred_track_id": "1",
+              "jitter_std": 1.2610262564939099,
+              "track_len": 63
+            },
+            {
+              "gt_track_id": "5",
+              "pred_track_id": "5",
+              "jitter_std": 1.4096195937482754e-13,
+              "track_len": 31
+            },
+            {
+              "gt_track_id": "6",
+              "pred_track_id": "6",
+              "jitter_std": 7.99226109416148,
+              "track_len": 37
+            },
+            {
+              "gt_track_id": "7",
+              "pred_track_id": "7",
+              "jitter_std": 3.792444966020058,
+              "track_len": 47
+            },
+            {
+              "gt_track_id": "9",
+              "pred_track_id": "9",
+              "jitter_std": 0.09725125365339886,
+              "track_len": 33
+            },
+            {
+              "gt_track_id": "14",
+              "pred_track_id": "12",
+              "jitter_std": 4.918642568428387,
+              "track_len": 49
+            },
+            {
+              "gt_track_id": "15",
+              "pred_track_id": "15",
+              "jitter_std": 158.80777354530514,
+              "track_len": 53
+            },
+            {
+              "gt_track_id": "17",
+              "pred_track_id": "17",
+              "jitter_std": 0.8568417029877117,
+              "track_len": 65
+            }
+          ],
+          "global_mean": 22.215780173381276
+        },
+        "counts": {
+          "frames": 317,
+          "gt_total": 1037,
+          "pred_total": 1092,
+          "matched_total": 807,
+          "missed_total": 230,
+          "false_total": 285,
+          "topology_pairs": 463,
+          "topology_inversions": 2
+        },
+        "hota_components": {
+          "DetA": 0.7581023954908408,
+          "AssA": 0.9913258983890955
+        }
+      },
+      "MS SL R": {
+        "ground_truth": {
+          "clip_id": "MS SL R",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/MS SL R_gt.json"
+        },
+        "predictions": {
+          "clip_id": "MS SL R",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/MS SL R_pred.json"
+        },
+        "IDF1": 1.0,
+        "HOTA": 1.0,
+        "id_switches": 0,
+        "track_fragmentation": 0,
+        "topological_ordering_error": 0.0,
+        "missed_gate_rate": 0.0,
+        "false_gate_rate": 0.0,
+        "temporal_jitter": {
+          "per_track": [],
+          "global_mean": 0.0
+        },
+        "counts": {
+          "frames": 112,
+          "gt_total": 274,
+          "pred_total": 274,
+          "matched_total": 274,
+          "missed_total": 0,
+          "false_total": 0,
+          "topology_pairs": 232,
+          "topology_inversions": 0
+        },
+        "hota_components": {
+          "DetA": 1.0,
+          "AssA": 1.0
+        }
+      },
+      "Mikaela Shifferin Slolom2": {
+        "ground_truth": {
+          "clip_id": "Mikaela Shifferin Slolom2",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/Mikaela Shifferin Slolom2_gt.json"
+        },
+        "predictions": {
+          "clip_id": "Mikaela Shifferin Slolom2",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/Mikaela Shifferin Slolom2_pred.json"
+        },
+        "IDF1": 0.6331425034813554,
+        "HOTA": 0.9177871658275123,
+        "id_switches": 382,
+        "track_fragmentation": 38,
+        "topological_ordering_error": 0.1009090909090909,
+        "missed_gate_rate": 0.03900928792569659,
+        "false_gate_rate": 0.03990102072378596,
+        "temporal_jitter": {
+          "per_track": [
+            {
+              "gt_track_id": "24",
+              "pred_track_id": "25",
+              "jitter_std": 4.73977858142575e-06,
+              "track_len": 317
+            },
+            {
+              "gt_track_id": "25",
+              "pred_track_id": "26",
+              "jitter_std": 1.863543362163361e-07,
+              "track_len": 213
+            },
+            {
+              "gt_track_id": "26",
+              "pred_track_id": "27",
+              "jitter_std": 4.53308407818234e-06,
+              "track_len": 209
+            },
+            {
+              "gt_track_id": "27",
+              "pred_track_id": "28",
+              "jitter_std": 6.013343506809898e-07,
+              "track_len": 167
+            },
+            {
+              "gt_track_id": "28",
+              "pred_track_id": "29",
+              "jitter_std": 5.785594929587244e-05,
+              "track_len": 71
+            }
+          ],
+          "global_mean": 1.3583300128475571e-05
+        },
+        "counts": {
+          "frames": 389,
+          "gt_total": 3230,
+          "pred_total": 3233,
+          "matched_total": 3104,
+          "missed_total": 126,
+          "false_total": 129,
+          "topology_pairs": 14300,
+          "topology_inversions": 1443
+        },
+        "hota_components": {
+          "DetA": 0.9605446387126721,
+          "AssA": 0.8769329896907216
+        }
+      },
+      "Screen Recording 2026-02-07 at 15.01.01": {
+        "ground_truth": {
+          "clip_id": "Screen Recording 2026-02-07 at 15.01.01",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_gt/Screen Recording 2026-02-07 at 15.01.01_gt.json"
+        },
+        "predictions": {
+          "clip_id": "Screen Recording 2026-02-07 at 15.01.01",
+          "format": "json_frames",
+          "path": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/outputs/calibration_run_20260219/baseline/metric_pred/Screen Recording 2026-02-07 at 15.01.01_pred.json"
+        },
+        "IDF1": 0.8253358925143954,
+        "HOTA": 0.9084799901563024,
+        "id_switches": 0,
+        "track_fragmentation": 10,
+        "topological_ordering_error": 0.029850746268656716,
+        "missed_gate_rate": 0.20222634508348794,
+        "false_gate_rate": 0.14512922465208747,
+        "temporal_jitter": {
+          "per_track": [],
+          "global_mean": 0.0
+        },
+        "counts": {
+          "frames": 221,
+          "gt_total": 539,
+          "pred_total": 503,
+          "matched_total": 430,
+          "missed_total": 109,
+          "false_total": 73,
+          "topology_pairs": 335,
+          "topology_inversions": 10
+        },
+        "hota_components": {
+          "DetA": 0.8253358925143954,
+          "AssA": 1.0
+        }
+      }
+    },
+    "aggregate": {
+      "IDF1": 0.5368281429519819,
+      "HOTA": 0.7855843915659328,
+      "topological_ordering_error": 0.051741081136288294,
+      "missed_gate_rate": 0.3065644033385969,
+      "false_gate_rate": 0.30586812330396174,
+      "temporal_jitter": {
+        "global_mean": 1.7734797089472116
+      },
+      "id_switches": 674,
+      "track_fragmentation": 195
+    }
+  }
+}

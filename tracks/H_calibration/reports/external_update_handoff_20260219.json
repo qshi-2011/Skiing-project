@@ -1,0 +1,11 @@
+{
+  "intended_external_updates": {
+    "configs/tracker_v2_calibrated.yaml": "/Users/quan/Documents/personal/Stanford application project/tracks/H_calibration/configs/tracker_v2_calibrated.yaml",
+    "shared/docs/MODEL_REGISTRY.md": {
+      "date": "20260219",
+      "baseline_idf1": 0.5368281429519819,
+      "baseline_hota": 0.7855843915659328,
+      "notes": "See tracks/H_calibration/reports/calibration_summary_*.md for full details."
+    }
+  }
+}

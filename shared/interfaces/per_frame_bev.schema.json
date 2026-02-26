@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Per-Frame BEV Output Schema",
+  "description": "Per-frame output produced by Wave 2 Worker A (Track C: bev_egomotion). Consumed by Track D (Kalman tracker), Track B (keypoint Tier-2 fallback), and Track E (degraded safety). DO NOT modify without coordinating all consumers.",
+  "version": "1.0",
+  "owner": "Track C (C_bev_egomotion)",
+  "consumers": ["Track D (kalman_tracker)", "Track B (model_retraining / keypoint fallback)", "Track E (degraded_safety)"],
+  "coordinate_system": "Topological BEV. Units are RELATIVE (ordinal), not metric. x increases rightward, y increases away from camera. No absolute metres — do not attempt to interpret as real-world distances.",
+  "type": "object",
+  "required": ["clip_id", "frames"],
+  "properties": {
+    "clip_id": {
+      "type": "string",
+      "description": "Must match the clip_id in the corresponding sidecar PTS file."
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["frame_idx", "vp_t", "alpha_t", "n_inliers", "horizon_y_px", "homography_H_t", "v_t", "delta2_eis"],
+        "properties": {
+          "frame_idx": {
+            "type": "integer",
+            "description": "Zero-based frame index. Must align 1:1 with sidecar_pts frames array."
+          },
+          "vp_t": {
+            "type": "object",
+            "description": "Estimated vanishing point in image pixel coordinates after EMA smoothing.",
+            "required": ["x_px", "y_px"],
+            "properties": {
+              "x_px": { "type": "number" },
+              "y_px": { "type": "number" }
+            }
+          },
+          "alpha_t": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 0.7,
+            "description": "EMA weight used this frame. 0.0 = full freeze (VP held from previous frame). Consumers: if alpha_t = 0.0, Tier-2 keypoint fallback is NOT available — fall through to Tier-3."
+          },
+          "n_inliers": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of RANSAC inlier vertical lines used to estimate VP this frame."
+          },
+          "horizon_y_px": {
+            "type": "number",
+            "description": "Estimated ground horizon y-coordinate in image pixels, derived from vp_t. Used by Track B for Tier-2 VP-projected base estimation."
+          },
+          "homography_H_t": {
+            "type": "array",
+            "description": "3x3 homography matrix (row-major, 9 elements) mapping image coordinates to Topological BEV plane.",
+            "items": { "type": "number" },
+            "minItems": 9,
+            "maxItems": 9
+          },
+          "v_t": {
+            "type": "number",
+            "minimum": 0.0,
+            "description": "Frame-to-frame homography translation magnitude in pixels. sqrt(tx^2 + ty^2). Used by Track E for EIS jump detection."
+          },
+          "delta2_eis": {
+            "type": "number",
+            "minimum": 0.0,
+            "description": "Second derivative of translation: |v_t - v_{t-1}|. 0.0 for frame_idx=0. PRIMARY signal for EIS snap detection in Track E."
+          },
+          "rolling_shutter_theta_deg": {
+            "type": "number",
+            "description": "Per-frame rolling shutter lean angle theta in degrees, computed as arctan(vx * tr / H). Provided as a convenience — Track B uses this directly in geometry checks."
+          },
+          "bev_gate_bases": {
+            "type": "array",
+            "description": "Optional. BEV-projected positions of detected gate bases this frame (if detector output is available at BEV stage).",
+            "items": {
+              "type": "object",
+              "required": ["detection_id", "bev_x", "bev_y"],
+              "properties": {
+                "detection_id": { "type": "string" },
+                "bev_x": { "type": "number" },
+                "bev_y": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

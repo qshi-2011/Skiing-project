@@ -53,6 +53,8 @@ class CameraMotionCompensator:
 
         # Translation-only (default)
         raw_offsets = {}
+        rejected_spike_frames = []
+        spike_thresh = None
 
         for frame_idx in sorted(self.history.keys()):
             frame_gates = self.history[frame_idx]
@@ -77,9 +79,52 @@ class CameraMotionCompensator:
             self.offsets = {}
             return
 
+        # Robust single-frame spike rejection: reject frames whose (dx,dy)
+        # step is wildly inconsistent with the typical motion.
+        all_frames_full = sorted(raw_offsets.keys())
+        min_f_full, max_f_full = int(all_frames_full[0]), int(all_frames_full[-1])
+
+        frames_sorted = list(all_frames_full)
+        if len(frames_sorted) >= 3:
+            offsets_arr = np.asarray([raw_offsets[f] for f in frames_sorted], dtype=np.float64)
+            steps = np.linalg.norm(offsets_arr[1:] - offsets_arr[:-1], axis=1)
+            frame_gaps = np.asarray(
+                [max(1, int(frames_sorted[i + 1] - frames_sorted[i])) for i in range(len(frames_sorted) - 1)],
+                dtype=np.float64,
+            )
+            # Normalize step by frame gap so missing-gate gaps don't look like spikes.
+            steps_per_frame = steps / np.maximum(1.0, frame_gaps)
+
+            med = float(np.median(steps_per_frame)) if len(steps_per_frame) else 0.0
+            mad = float(np.median(np.abs(steps_per_frame - med))) if len(steps_per_frame) else 0.0
+            spike_thresh = float(max(50.0, med + 6.0 * mad))
+
+            filtered = {}
+            last_kept = None
+            for f in frames_sorted:
+                if last_kept is None:
+                    filtered[f] = raw_offsets[f]
+                    last_kept = f
+                    continue
+                dx0, dy0 = raw_offsets[last_kept]
+                dx1, dy1 = raw_offsets[f]
+                gap = max(1, int(f - last_kept))
+                step = float(((dx1 - dx0) ** 2 + (dy1 - dy0) ** 2) ** 0.5)
+                step_per_frame = step / gap
+                if step_per_frame > spike_thresh:
+                    rejected_spike_frames.append(int(f))
+                    continue
+                filtered[f] = raw_offsets[f]
+                last_kept = f
+
+            # Only apply filtering if we still have enough anchors for interpolation.
+            if len(filtered) >= 2:
+                raw_offsets = filtered
+                frames_sorted = sorted(raw_offsets.keys())
+
         # Interpolate missing frames between known offsets
-        all_frames = sorted(raw_offsets.keys())
-        min_f, max_f = all_frames[0], all_frames[-1]
+        all_frames = frames_sorted
+        min_f, max_f = min_f_full, max_f_full
 
         for f in range(min_f, max_f + 1):
             if f in raw_offsets:
@@ -99,9 +144,43 @@ class CameraMotionCompensator:
                 elif next_f is not None:
                     self.offsets[f] = raw_offsets[next_f]
 
+        # Rolling-median smoothing over the dense interpolated offsets.
+        smooth_window = 15
+        smooth_applied = False
+        # Only smooth when we have enough frames to support the chosen window.
+        # Smoothing on very short sequences can incorrectly "pull" early frames
+        # toward the global median (e.g. 3 frames -> median over all frames),
+        # which breaks the expectation that the baseline frame has ~0 offset.
+        if smooth_window >= 3 and len(self.offsets) >= smooth_window:
+            if smooth_window % 2 == 0:
+                smooth_window += 1
+            dense_frames = list(range(min_f, max_f + 1))
+            dxs = np.asarray([self.offsets[f][0] for f in dense_frames], dtype=np.float64)
+            dys = np.asarray([self.offsets[f][1] for f in dense_frames], dtype=np.float64)
+            half = smooth_window // 2
+            dxs_s = []
+            dys_s = []
+            for i in range(len(dense_frames)):
+                lo = max(0, i - half)
+                hi = min(len(dense_frames), i + half + 1)
+                dxs_s.append(float(np.median(dxs[lo:hi])))
+                dys_s.append(float(np.median(dys[lo:hi])))
+            self.offsets = {
+                int(f): (float(dx), float(dy))
+                for f, dx, dy in zip(dense_frames, dxs_s, dys_s)
+            }
+            smooth_applied = True
+
         n_raw = len(raw_offsets)
         n_total = len(self.offsets)
-        print(f"✓ Camera motion (translation): {n_raw} measured frames, {n_total} total (interpolated)")
+        extra = []
+        if rejected_spike_frames:
+            extra.append(f"rejected_spikes={len(rejected_spike_frames)}")
+        if spike_thresh is not None:
+            extra.append(f"spike_thresh≈{spike_thresh:.0f}px")
+        extra.append(f"median_smooth={smooth_window}" if smooth_applied else "median_smooth=off")
+        extra_text = ", ".join(extra)
+        print(f"✓ Camera motion (translation): {n_raw} measured frames, {n_total} total ({extra_text})")
 
         # Phase 2 diagnostic (Prof. feedback): Translation-only assumes the
         # camera slides without rotating. For broadcast/pan cameras this
@@ -109,9 +188,9 @@ class CameraMotionCompensator:
         # the right during panning, biasing turn-radius calculations at
         # frame edges. Recommend affine mode for panning footage.
         if n_raw > 10:
-            sorted_frames = sorted(self.offsets.keys())[:n_raw]
-            dxs = [self.offsets[f][0] for f in sorted_frames]
-            dys = [self.offsets[f][1] for f in sorted_frames]
+            sorted_frames = sorted(raw_offsets.keys())
+            dxs = [raw_offsets[f][0] for f in sorted_frames]
+            dys = [raw_offsets[f][1] for f in sorted_frames]
             range_dx = max(dxs) - min(dxs) if dxs else 0
             # Large horizontal drift suggests panning camera
             if range_dx > 100:
@@ -667,6 +746,7 @@ class HomographyTransform:
         self.centerline_fit = None
         self.camera_compensator = None  # Phase 2: CameraMotionCompensator
         self.dynamic_scale = None       # Phase 4: DynamicScaleTransform
+        self.jump_guard_info = None     # Transform-time discontinuity guard
 
     def calculate_from_gates(self, gates_2d, gate_spacing_m=12.0):
         """
@@ -904,11 +984,19 @@ class HomographyTransform:
         #   2. Mark all points with jumps > max_jump_m as "suspect".
         #   3. Linearly interpolate suspect points between trusted anchors.
         #   4. Repeat until convergence or max iterations.
-        if jump_guard and max_jump_m is not None:
+        n_clamped = 0
+        enabled = bool(jump_guard and max_jump_m is not None)
+        if enabled:
             n_clamped = self._jump_guard_multipass(trajectory_3d, max_jump_m, fps)
 
             if n_clamped > 0:
                 print(f"  ⚠️  Jump guard: {n_clamped} points interpolated (multi-pass)")
+
+        self.jump_guard_info = {
+            "enabled": bool(enabled),
+            "max_jump_m": float(max_jump_m) if max_jump_m is not None else None,
+            "interpolated_points": int(n_clamped),
+        }
 
         return trajectory_3d
 

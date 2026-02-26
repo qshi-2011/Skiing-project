@@ -1,0 +1,301 @@
+{
+  "parameter": "stability_window",
+  "values": [
+    {
+      "value": 5.0,
+      "clip_level_precision": 0.0,
+      "clip_level_recall": 0.0,
+      "clip_level_f1": 0.0,
+      "mean_clip_objective": 0.5,
+      "per_clip": {
+        "Lucas GS T": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1144
+        },
+        "MO GS R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 2921
+        },
+        "MO GS T2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 58
+        },
+        "MS GS R2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 28
+        },
+        "MS SL": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 18
+        },
+        "MS SL R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 54
+        },
+        "Mikaela Shifferin Slolom2": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1003
+        },
+        "Screen Recording 2026-02-07 at 15.01.01": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1901
+        }
+      }
+    },
+    {
+      "value": 10.0,
+      "clip_level_precision": 0.0,
+      "clip_level_recall": 0.0,
+      "clip_level_f1": 0.0,
+      "mean_clip_objective": 0.5,
+      "per_clip": {
+        "Lucas GS T": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1149
+        },
+        "MO GS R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 2936
+        },
+        "MO GS T2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 63
+        },
+        "MS GS R2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 40
+        },
+        "MS SL": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 33
+        },
+        "MS SL R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 64
+        },
+        "Mikaela Shifferin Slolom2": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1013
+        },
+        "Screen Recording 2026-02-07 at 15.01.01": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1969
+        }
+      }
+    },
+    {
+      "value": 15.0,
+      "clip_level_precision": 0.0,
+      "clip_level_recall": 0.0,
+      "clip_level_f1": 0.0,
+      "mean_clip_objective": 0.5,
+      "per_clip": {
+        "Lucas GS T": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1150
+        },
+        "MO GS R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 2946
+        },
+        "MO GS T2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 68
+        },
+        "MS GS R2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 45
+        },
+        "MS SL": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 42
+        },
+        "MS SL R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 69
+        },
+        "Mikaela Shifferin Slolom2": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1022
+        },
+        "Screen Recording 2026-02-07 at 15.01.01": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 2010
+        }
+      }
+    },
+    {
+      "value": 20.0,
+      "clip_level_precision": 0.0,
+      "clip_level_recall": 0.0,
+      "clip_level_f1": 0.0,
+      "mean_clip_objective": 0.5,
+      "per_clip": {
+        "Lucas GS T": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1150
+        },
+        "MO GS R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 2951
+        },
+        "MO GS T2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 73
+        },
+        "MS GS R2": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 50
+        },
+        "MS SL": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 47
+        },
+        "MS SL R": {
+          "has_eis_label": false,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 74
+        },
+        "Mikaela Shifferin Slolom2": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 1027
+        },
+        "Screen Recording 2026-02-07 at 15.01.01": {
+          "has_eis_label": true,
+          "pred_eis": false,
+          "eis_snap_frames": 0,
+          "degraded_frames": 2037
+        }
+      }
+    }
+  ],
+  "selected": 5.0,
+  "ci95": {
+    "low": 5.0,
+    "high": 5.0
+  },
+  "objective_mean_by_value": {
+    "5.0": 0.5,
+    "10.0": 0.5,
+    "15.0": 0.5,
+    "20.0": 0.5
+  },
+  "top_row": {
+    "value": 5.0,
+    "clip_level_precision": 0.0,
+    "clip_level_recall": 0.0,
+    "clip_level_f1": 0.0,
+    "mean_clip_objective": 0.5,
+    "per_clip": {
+      "Lucas GS T": {
+        "has_eis_label": false,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 1144
+      },
+      "MO GS R": {
+        "has_eis_label": false,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 2921
+      },
+      "MO GS T2": {
+        "has_eis_label": false,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 58
+      },
+      "MS GS R2": {
+        "has_eis_label": false,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 28
+      },
+      "MS SL": {
+        "has_eis_label": false,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 18
+      },
+      "MS SL R": {
+        "has_eis_label": false,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 54
+      },
+      "Mikaela Shifferin Slolom2": {
+        "has_eis_label": true,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 1003
+      },
+      "Screen Recording 2026-02-07 at 15.01.01": {
+        "has_eis_label": true,
+        "pred_eis": false,
+        "eis_snap_frames": 0,
+        "degraded_frames": 1901
+      }
+    }
+  }
+}

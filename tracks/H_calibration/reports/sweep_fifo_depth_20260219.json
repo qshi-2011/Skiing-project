@@ -1,0 +1,158 @@
+{
+  "parameter": "fifo_depth",
+  "values": [
+    {
+      "value": 45.0,
+      "initialization_rate": 0.0,
+      "mean_trigger_frame": null,
+      "mean_clip_objective": -0.29129243677729244,
+      "per_clip": {
+        "Lucas GS T": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.7847873700416953
+        },
+        "MO GS R": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.8510765989349827
+        },
+        "MO GS T2": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.8174075174940406
+        },
+        "MS GS R2": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.8422108457481292
+        },
+        "MS SL": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.6762895546921818
+        },
+        "MS SL R": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -1.1885045847804148
+        },
+        "Mikaela Shifferin Slolom2": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.660655097684667
+        },
+        "Screen Recording 2026-02-07 at 15.01.01": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.7858583149906764
+        }
+      }
+    },
+    {
+      "value": 90.0,
+      "initialization_rate": 0.0,
+      "mean_trigger_frame": null,
+      "mean_clip_objective": -0.29129243677729244,
+      "per_clip": {
+        "Lucas GS T": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.7847873700416953
+        },
+        "MO GS R": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.8510765989349827
+        },
+        "MO GS T2": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.8174075174940406
+        },
+        "MS GS R2": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.8422108457481292
+        },
+        "MS SL": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.6762895546921818
+        },
+        "MS SL R": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -1.1885045847804148
+        },
+        "Mikaela Shifferin Slolom2": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.660655097684667
+        },
+        "Screen Recording 2026-02-07 at 15.01.01": {
+          "initialized": false,
+          "triggered_frame": null,
+          "mean_s_star": -0.7858583149906764
+        }
+      }
+    }
+  ],
+  "selected": 45.0,
+  "ci95": {
+    "low": 45.0,
+    "high": 45.0
+  },
+  "objective_mean_by_value": {
+    "45.0": -0.29129243677729244,
+    "90.0": -0.29129243677729244
+  },
+  "top_row": {
+    "value": 45.0,
+    "initialization_rate": 0.0,
+    "mean_trigger_frame": null,
+    "mean_clip_objective": -0.29129243677729244,
+    "per_clip": {
+      "Lucas GS T": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.7847873700416953
+      },
+      "MO GS R": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.8510765989349827
+      },
+      "MO GS T2": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.8174075174940406
+      },
+      "MS GS R2": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.8422108457481292
+      },
+      "MS SL": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.6762895546921818
+      },
+      "MS SL R": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -1.1885045847804148
+      },
+      "Mikaela Shifferin Slolom2": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.660655097684667
+      },
+      "Screen Recording 2026-02-07 at 15.01.01": {
+        "initialized": false,
+        "triggered_frame": null,
+        "mean_s_star": -0.7858583149906764
+      }
+    }
+  }
+}

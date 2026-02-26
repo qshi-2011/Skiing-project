@@ -1,0 +1,15 @@
+{
+  "clip_id": "Screen Recording 2026-02-07 at 15.01.01_T_min_3.0",
+  "events": [
+    {
+      "frame_idx": 178,
+      "event": "RESET",
+      "reason": "no_valid_chain_in_90_frames"
+    },
+    {
+      "frame_idx": 358,
+      "event": "RESET",
+      "reason": "no_valid_chain_in_90_frames"
+    }
+  ]
+}

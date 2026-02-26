@@ -1,0 +1,2507 @@
+{
+  "clip_id": "synthetic_eval_clip_dummy",
+  "frames": [
+    {
+      "frame_idx": 0,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00000_000",
+          "track_id": "dummy_0_0",
+          "base_px": {
+            "x_px": 320.5525317800426,
+            "y_px": 246.290743842387
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00000_001",
+          "track_id": "dummy_0_1",
+          "base_px": {
+            "x_px": 521.2478022226527,
+            "y_px": 302.29062257914416
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00000_002",
+          "track_id": "dummy_0_2",
+          "base_px": {
+            "x_px": 742.0743809364558,
+            "y_px": 363.7732778595632
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 1,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00001_000",
+          "track_id": "dummy_1_0",
+          "base_px": {
+            "x_px": 319.82102500534626,
+            "y_px": 249.2980081160038
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00001_001",
+          "track_id": "dummy_1_1",
+          "base_px": {
+            "x_px": 520.3417716756943,
+            "y_px": 299.1466444877726
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00001_002",
+          "track_id": "dummy_1_2",
+          "base_px": {
+            "x_px": 744.3869355806171,
+            "y_px": 362.3268312940492
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00001_003",
+          "track_id": "dummy_false_1",
+          "base_px": {
+            "x_px": 25.0,
+            "y_px": 24.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 2,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00002_000",
+          "track_id": "dummy_2_1",
+          "base_px": {
+            "x_px": 516.4510814242022,
+            "y_px": 299.76825436970466
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00002_001",
+          "track_id": "dummy_2_2",
+          "base_px": {
+            "x_px": 741.1683853305233,
+            "y_px": 356.49378847718737
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 3,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00003_000",
+          "track_id": "dummy_3_0",
+          "base_px": {
+            "x_px": 322.76246997791543,
+            "y_px": 249.11946235892924
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00003_001",
+          "track_id": "dummy_3_1",
+          "base_px": {
+            "x_px": 517.9482571047004,
+            "y_px": 299.56630356960187
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00003_002",
+          "track_id": "dummy_3_2",
+          "base_px": {
+            "x_px": 738.16812829899,
+            "y_px": 362.1288966380356
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 4,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00004_000",
+          "track_id": "dummy_4_0",
+          "base_px": {
+            "x_px": 321.15898574579336,
+            "y_px": 249.19486588897675
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00004_001",
+          "track_id": "dummy_4_1",
+          "base_px": {
+            "x_px": 518.5635980309527,
+            "y_px": 300.35069461406937
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 5,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00005_000",
+          "track_id": "dummy_5_0",
+          "base_px": {
+            "x_px": 317.7942549546012,
+            "y_px": 250.4296694226665
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00005_001",
+          "track_id": "dummy_5_2",
+          "base_px": {
+            "x_px": 738.7089293600986,
+            "y_px": 360.8094797005284
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 6,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00006_000",
+          "track_id": "dummy_6_0",
+          "base_px": {
+            "x_px": 322.216839286081,
+            "y_px": 249.8537073790465
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00006_001",
+          "track_id": "dummy_6_1",
+          "base_px": {
+            "x_px": 520.46946836772,
+            "y_px": 300.73205995084396
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00006_002",
+          "track_id": "dummy_6_2",
+          "base_px": {
+            "x_px": 742.198166348651,
+            "y_px": 361.8701255628187
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 7,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00007_000",
+          "track_id": "dummy_7_0",
+          "base_px": {
+            "x_px": 321.4388945806188,
+            "y_px": 251.082228888579
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00007_001",
+          "track_id": "dummy_7_1",
+          "base_px": {
+            "x_px": 517.9725822367768,
+            "y_px": 296.0796746194228
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 8,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00008_000",
+          "track_id": "dummy_8_0",
+          "base_px": {
+            "x_px": 318.0331385011733,
+            "y_px": 256.86229733521725
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00008_001",
+          "track_id": "dummy_8_1",
+          "base_px": {
+            "x_px": 520.5974195133139,
+            "y_px": 298.7836247525289
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 9,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00009_000",
+          "track_id": "dummy_9_0",
+          "base_px": {
+            "x_px": 321.49888929267655,
+            "y_px": 250.39006341539672
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00009_001",
+          "track_id": "dummy_9_1",
+          "base_px": {
+            "x_px": 521.6593927793609,
+            "y_px": 301.5979915774981
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 10,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00010_000",
+          "track_id": "dummy_10_1",
+          "base_px": {
+            "x_px": 518.5897460010518,
+            "y_px": 298.63893769822226
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00010_001",
+          "track_id": "dummy_10_2",
+          "base_px": {
+            "x_px": 742.6602959014932,
+            "y_px": 358.24417393606956
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 11,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00011_000",
+          "track_id": "dummy_11_0",
+          "base_px": {
+            "x_px": 320.9480623030402,
+            "y_px": 249.06669165362692
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00011_001",
+          "track_id": "dummy_11_1",
+          "base_px": {
+            "x_px": 521.3181500656012,
+            "y_px": 301.8263151072261
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00011_002",
+          "track_id": "dummy_11_2",
+          "base_px": {
+            "x_px": 739.2388821637134,
+            "y_px": 362.60031954477995
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 12,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00012_000",
+          "track_id": "dummy_12_0",
+          "base_px": {
+            "x_px": 319.0730278315322,
+            "y_px": 248.68509006018337
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00012_001",
+          "track_id": "dummy_12_1",
+          "base_px": {
+            "x_px": 520.0339498864187,
+            "y_px": 300.487738086944
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00012_002",
+          "track_id": "dummy_12_2",
+          "base_px": {
+            "x_px": 738.9177561716434,
+            "y_px": 354.32710268302253
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 13,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00013_000",
+          "track_id": "dummy_13_0",
+          "base_px": {
+            "x_px": 318.937680745465,
+            "y_px": 250.83358598831853
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00013_001",
+          "track_id": "dummy_13_1",
+          "base_px": {
+            "x_px": 521.5739175414432,
+            "y_px": 300.43153037656685
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 14,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00014_000",
+          "track_id": "dummy_14_0",
+          "base_px": {
+            "x_px": 326.0029494800321,
+            "y_px": 251.502694915616
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00014_001",
+          "track_id": "dummy_14_1",
+          "base_px": {
+            "x_px": 518.889470310106,
+            "y_px": 300.2732870687937
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 15,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00015_000",
+          "track_id": "dummy_15_0",
+          "base_px": {
+            "x_px": 321.3783308428764,
+            "y_px": 251.66506090962667
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00015_001",
+          "track_id": "dummy_15_1",
+          "base_px": {
+            "x_px": 522.1425448485016,
+            "y_px": 301.4080765134997
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00015_002",
+          "track_id": "dummy_15_2",
+          "base_px": {
+            "x_px": 739.5101816825256,
+            "y_px": 363.34490523643893
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 16,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00016_000",
+          "track_id": "dummy_16_0",
+          "base_px": {
+            "x_px": 323.03786779807774,
+            "y_px": 250.41310333728038
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00016_001",
+          "track_id": "dummy_16_1",
+          "base_px": {
+            "x_px": 519.7678351182207,
+            "y_px": 301.9264292241827
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 17,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00017_000",
+          "track_id": "dummy_17_0",
+          "base_px": {
+            "x_px": 320.7626966404304,
+            "y_px": 248.2437254096306
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00017_001",
+          "track_id": "dummy_17_1",
+          "base_px": {
+            "x_px": 522.5164332882059,
+            "y_px": 300.0839994749789
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00017_002",
+          "track_id": "dummy_17_2",
+          "base_px": {
+            "x_px": 745.0621697349985,
+            "y_px": 353.524206999962
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 18,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00018_000",
+          "track_id": "dummy_18_0",
+          "base_px": {
+            "x_px": 323.1402345801489,
+            "y_px": 249.16082671610278
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00018_001",
+          "track_id": "dummy_18_1",
+          "base_px": {
+            "x_px": 518.7193029460897,
+            "y_px": 301.27272899358843
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 19,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00019_000",
+          "track_id": "dummy_19_0",
+          "base_px": {
+            "x_px": 326.4383931353244,
+            "y_px": 247.93189827592724
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00019_001",
+          "track_id": "dummy_19_2",
+          "base_px": {
+            "x_px": 742.7033456473858,
+            "y_px": 362.60952253641915
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 20,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00020_000",
+          "track_id": "dummy_20_0",
+          "base_px": {
+            "x_px": 321.8370331452082,
+            "y_px": 249.1216822790838
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00020_001",
+          "track_id": "dummy_20_1",
+          "base_px": {
+            "x_px": 520.2673563224371,
+            "y_px": 304.7902797817181
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00020_002",
+          "track_id": "dummy_20_2",
+          "base_px": {
+            "x_px": 740.4084370352082,
+            "y_px": 360.9336913520211
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 21,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00021_000",
+          "track_id": "dummy_21_0",
+          "base_px": {
+            "x_px": 321.8942780462406,
+            "y_px": 252.23427846708586
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00021_001",
+          "track_id": "dummy_21_2",
+          "base_px": {
+            "x_px": 744.0747925506904,
+            "y_px": 363.8022569897548
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 22,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00022_000",
+          "track_id": "dummy_22_1",
+          "base_px": {
+            "x_px": 520.2445875435019,
+            "y_px": 298.0498470936937
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00022_001",
+          "track_id": "dummy_22_2",
+          "base_px": {
+            "x_px": 741.820791475524,
+            "y_px": 357.55788255917685
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 23,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00023_000",
+          "track_id": "dummy_23_0",
+          "base_px": {
+            "x_px": 318.6463612105787,
+            "y_px": 249.49070555244094
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00023_001",
+          "track_id": "dummy_23_1",
+          "base_px": {
+            "x_px": 518.4410030576665,
+            "y_px": 299.1389659487055
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00023_002",
+          "track_id": "dummy_23_2",
+          "base_px": {
+            "x_px": 741.984563597563,
+            "y_px": 361.6133897776883
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00023_003",
+          "track_id": "dummy_false_2",
+          "base_px": {
+            "x_px": 135.0,
+            "y_px": 112.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 24,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00024_000",
+          "track_id": "dummy_24_0",
+          "base_px": {
+            "x_px": 321.78614638025067,
+            "y_px": 249.03736997244303
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00024_001",
+          "track_id": "dummy_24_2",
+          "base_px": {
+            "x_px": 743.4045826502263,
+            "y_px": 362.19552456970365
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 25,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00025_000",
+          "track_id": "dummy_25_0",
+          "base_px": {
+            "x_px": 316.5905480758032,
+            "y_px": 249.87785185526764
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00025_001",
+          "track_id": "dummy_25_1",
+          "base_px": {
+            "x_px": 522.834050002137,
+            "y_px": 299.76407873713276
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00025_002",
+          "track_id": "dummy_false_3",
+          "base_px": {
+            "x_px": 145.0,
+            "y_px": 120.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 26,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00026_000",
+          "track_id": "dummy_26_0",
+          "base_px": {
+            "x_px": 322.93943469394816,
+            "y_px": 250.46201553871288
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00026_001",
+          "track_id": "dummy_26_1",
+          "base_px": {
+            "x_px": 525.8441320550555,
+            "y_px": 300.04700434217705
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00026_002",
+          "track_id": "dummy_26_2",
+          "base_px": {
+            "x_px": 739.1097058871597,
+            "y_px": 360.55001286310954
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 27,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00027_000",
+          "track_id": "dummy_27_1",
+          "base_px": {
+            "x_px": 519.4555303441562,
+            "y_px": 299.76467917452817
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00027_001",
+          "track_id": "dummy_27_2",
+          "base_px": {
+            "x_px": 739.5472820100955,
+            "y_px": 358.2837326942173
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 28,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00028_000",
+          "track_id": "dummy_28_0",
+          "base_px": {
+            "x_px": 322.9121832313523,
+            "y_px": 250.40893704168255
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00028_001",
+          "track_id": "dummy_28_1",
+          "base_px": {
+            "x_px": 521.2275666481597,
+            "y_px": 297.0085217096621
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00028_002",
+          "track_id": "dummy_28_2",
+          "base_px": {
+            "x_px": 743.4960646886548,
+            "y_px": 356.4719303675102
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 29,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00029_000",
+          "track_id": "dummy_29_0",
+          "base_px": {
+            "x_px": 320.33603903262986,
+            "y_px": 250.48844545441008
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00029_001",
+          "track_id": "dummy_29_1",
+          "base_px": {
+            "x_px": 517.3747756727012,
+            "y_px": 303.6239058880591
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00029_002",
+          "track_id": "dummy_29_2",
+          "base_px": {
+            "x_px": 739.4756548918587,
+            "y_px": 359.2413379451682
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 30,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00030_000",
+          "track_id": "dummy_30_0",
+          "base_px": {
+            "x_px": 321.1451000034319,
+            "y_px": 251.99590834488507
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00030_001",
+          "track_id": "dummy_30_2",
+          "base_px": {
+            "x_px": 741.8711196475643,
+            "y_px": 358.75042350731593
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00030_002",
+          "track_id": "dummy_false_4",
+          "base_px": {
+            "x_px": 170.0,
+            "y_px": 140.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 31,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00031_000",
+          "track_id": "dummy_31_0",
+          "base_px": {
+            "x_px": 321.0831681526551,
+            "y_px": 250.21415872379762
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00031_001",
+          "track_id": "dummy_31_1",
+          "base_px": {
+            "x_px": 522.6735641211859,
+            "y_px": 302.75009945324217
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00031_002",
+          "track_id": "dummy_31_2",
+          "base_px": {
+            "x_px": 740.8406484373872,
+            "y_px": 361.0054223210916
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 32,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00032_000",
+          "track_id": "dummy_32_0",
+          "base_px": {
+            "x_px": 322.6920722338913,
+            "y_px": 250.37854886116654
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00032_001",
+          "track_id": "dummy_32_1",
+          "base_px": {
+            "x_px": 521.2126574066074,
+            "y_px": 302.87631300392695
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00032_002",
+          "track_id": "dummy_32_2",
+          "base_px": {
+            "x_px": 741.0767378504939,
+            "y_px": 360.9765792877701
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 33,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00033_000",
+          "track_id": "dummy_33_0",
+          "base_px": {
+            "x_px": 319.51048650186846,
+            "y_px": 249.56820013642403
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00033_001",
+          "track_id": "dummy_33_1",
+          "base_px": {
+            "x_px": 520.8473422850825,
+            "y_px": 302.2540335560444
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00033_002",
+          "track_id": "dummy_33_2",
+          "base_px": {
+            "x_px": 738.0153839696499,
+            "y_px": 359.73033254276004
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 34,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00034_000",
+          "track_id": "dummy_34_0",
+          "base_px": {
+            "x_px": 321.5434787633426,
+            "y_px": 251.8765769921334
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00034_001",
+          "track_id": "dummy_34_1",
+          "base_px": {
+            "x_px": 521.0809379487332,
+            "y_px": 299.1557478861521
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00034_002",
+          "track_id": "dummy_34_2",
+          "base_px": {
+            "x_px": 742.1368581604269,
+            "y_px": 360.7441039273659
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 35,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00035_000",
+          "track_id": "dummy_35_0",
+          "base_px": {
+            "x_px": 321.6809178917193,
+            "y_px": 248.94097824607388
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00035_001",
+          "track_id": "dummy_35_2",
+          "base_px": {
+            "x_px": 741.1917769508083,
+            "y_px": 359.9132928965366
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 36,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00036_000",
+          "track_id": "dummy_36_0",
+          "base_px": {
+            "x_px": 319.90759319708116,
+            "y_px": 247.97425842740503
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00036_001",
+          "track_id": "dummy_36_1",
+          "base_px": {
+            "x_px": 518.2982404122064,
+            "y_px": 297.0362494644753
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00036_002",
+          "track_id": "dummy_36_2",
+          "base_px": {
+            "x_px": 743.3040570223783,
+            "y_px": 359.11319321719
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 37,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00037_000",
+          "track_id": "dummy_37_0",
+          "base_px": {
+            "x_px": 324.6183807205484,
+            "y_px": 246.56433284925737
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00037_001",
+          "track_id": "dummy_37_1",
+          "base_px": {
+            "x_px": 520.2105592658213,
+            "y_px": 302.9438550762069
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 38,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00038_000",
+          "track_id": "dummy_38_0",
+          "base_px": {
+            "x_px": 318.13175084440246,
+            "y_px": 247.88164187136132
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00038_001",
+          "track_id": "dummy_38_1",
+          "base_px": {
+            "x_px": 521.362613285287,
+            "y_px": 301.3635898288322
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00038_002",
+          "track_id": "dummy_38_2",
+          "base_px": {
+            "x_px": 740.7868645556177,
+            "y_px": 358.71839215723173
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 39,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00039_000",
+          "track_id": "dummy_39_0",
+          "base_px": {
+            "x_px": 320.36853611689963,
+            "y_px": 254.43567231050554
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00039_001",
+          "track_id": "dummy_39_1",
+          "base_px": {
+            "x_px": 522.9528731058468,
+            "y_px": 300.4840239774648
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00039_002",
+          "track_id": "dummy_39_2",
+          "base_px": {
+            "x_px": 738.9408173508682,
+            "y_px": 359.55566618205785
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 40,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00040_000",
+          "track_id": "dummy_40_1",
+          "base_px": {
+            "x_px": 523.8460963194755,
+            "y_px": 302.51581175010386
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00040_001",
+          "track_id": "dummy_40_2",
+          "base_px": {
+            "x_px": 737.4298263253891,
+            "y_px": 358.675962523504
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 41,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00041_000",
+          "track_id": "dummy_41_0",
+          "base_px": {
+            "x_px": 321.7260323067523,
+            "y_px": 253.94188244217082
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00041_001",
+          "track_id": "dummy_41_2",
+          "base_px": {
+            "x_px": 737.5463356418434,
+            "y_px": 360.47910817301727
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 42,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00042_000",
+          "track_id": "dummy_42_1",
+          "base_px": {
+            "x_px": 523.2543712442296,
+            "y_px": 302.5500197585131
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00042_001",
+          "track_id": "dummy_42_2",
+          "base_px": {
+            "x_px": 737.6948733772564,
+            "y_px": 358.9156241241133
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 43,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00043_000",
+          "track_id": "dummy_43_0",
+          "base_px": {
+            "x_px": 321.4791570305251,
+            "y_px": 249.16983500855494
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00043_001",
+          "track_id": "dummy_43_1",
+          "base_px": {
+            "x_px": 521.7919134840286,
+            "y_px": 300.2191534891467
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00043_002",
+          "track_id": "dummy_43_2",
+          "base_px": {
+            "x_px": 743.0316912725095,
+            "y_px": 356.9656665602731
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 44,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00044_000",
+          "track_id": "dummy_44_1",
+          "base_px": {
+            "x_px": 519.8368068183381,
+            "y_px": 303.06803648480445
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 45,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00045_000",
+          "track_id": "dummy_45_0",
+          "base_px": {
+            "x_px": 318.2232410343187,
+            "y_px": 251.5328912986337
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00045_001",
+          "track_id": "dummy_45_1",
+          "base_px": {
+            "x_px": 519.0564537925165,
+            "y_px": 299.2790165642181
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00045_002",
+          "track_id": "dummy_45_2",
+          "base_px": {
+            "x_px": 743.0947685643605,
+            "y_px": 362.1523267892703
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 46,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00046_000",
+          "track_id": "dummy_46_0",
+          "base_px": {
+            "x_px": 322.4922590312681,
+            "y_px": 247.63090309483974
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00046_001",
+          "track_id": "dummy_46_1",
+          "base_px": {
+            "x_px": 521.1171099389112,
+            "y_px": 300.7526216150265
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 47,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00047_000",
+          "track_id": "dummy_47_0",
+          "base_px": {
+            "x_px": 322.3976199003698,
+            "y_px": 252.71593271684335
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00047_001",
+          "track_id": "dummy_47_1",
+          "base_px": {
+            "x_px": 515.9725106112336,
+            "y_px": 299.54496089469654
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00047_002",
+          "track_id": "dummy_47_2",
+          "base_px": {
+            "x_px": 740.6477946945854,
+            "y_px": 361.2138940727258
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00047_003",
+          "track_id": "dummy_false_5",
+          "base_px": {
+            "x_px": 255.0,
+            "y_px": 48.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 48,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00048_000",
+          "track_id": "dummy_48_0",
+          "base_px": {
+            "x_px": 319.3211481057174,
+            "y_px": 248.99936198672864
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00048_001",
+          "track_id": "dummy_48_1",
+          "base_px": {
+            "x_px": 520.382403018587,
+            "y_px": 300.9862685004897
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00048_002",
+          "track_id": "dummy_48_2",
+          "base_px": {
+            "x_px": 744.1210285823889,
+            "y_px": 359.09371548645555
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 49,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00049_000",
+          "track_id": "dummy_49_0",
+          "base_px": {
+            "x_px": 321.07813146645213,
+            "y_px": 248.74051932763086
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00049_001",
+          "track_id": "dummy_49_1",
+          "base_px": {
+            "x_px": 524.2278293670671,
+            "y_px": 298.644890583462
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00049_002",
+          "track_id": "dummy_49_2",
+          "base_px": {
+            "x_px": 740.7842914749475,
+            "y_px": 362.9765419644198
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 50,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00050_000",
+          "track_id": "dummy_50_1",
+          "base_px": {
+            "x_px": 518.145848032317,
+            "y_px": 297.70346381255246
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00050_001",
+          "track_id": "dummy_50_2",
+          "base_px": {
+            "x_px": 741.5549911498803,
+            "y_px": 358.8625378709872
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 51,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00051_000",
+          "track_id": "dummy_51_0",
+          "base_px": {
+            "x_px": 323.4428394184858,
+            "y_px": 248.6602959569953
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00051_001",
+          "track_id": "dummy_51_1",
+          "base_px": {
+            "x_px": 518.2234836077487,
+            "y_px": 298.1161875179462
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00051_002",
+          "track_id": "dummy_51_2",
+          "base_px": {
+            "x_px": 740.3790877687355,
+            "y_px": 355.9321997810961
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 52,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00052_000",
+          "track_id": "dummy_52_0",
+          "base_px": {
+            "x_px": 320.6080272570019,
+            "y_px": 250.87629433857956
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00052_001",
+          "track_id": "dummy_52_2",
+          "base_px": {
+            "x_px": 736.6858616438558,
+            "y_px": 359.1351305116945
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 53,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00053_000",
+          "track_id": "dummy_53_0",
+          "base_px": {
+            "x_px": 319.1412466226155,
+            "y_px": 252.85568240953054
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00053_001",
+          "track_id": "dummy_53_1",
+          "base_px": {
+            "x_px": 520.2778074158816,
+            "y_px": 299.9804894026404
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00053_002",
+          "track_id": "dummy_53_2",
+          "base_px": {
+            "x_px": 739.0591053084254,
+            "y_px": 362.22929493966296
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 54,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00054_000",
+          "track_id": "dummy_54_1",
+          "base_px": {
+            "x_px": 521.7797297280584,
+            "y_px": 297.10477485117224
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 55,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00055_000",
+          "track_id": "dummy_55_0",
+          "base_px": {
+            "x_px": 321.5629921438308,
+            "y_px": 252.0395375444736
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00055_001",
+          "track_id": "dummy_55_1",
+          "base_px": {
+            "x_px": 520.520448186672,
+            "y_px": 301.98492335366257
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00055_002",
+          "track_id": "dummy_55_2",
+          "base_px": {
+            "x_px": 741.5457096416678,
+            "y_px": 356.95632532518204
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 56,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00056_000",
+          "track_id": "dummy_56_0",
+          "base_px": {
+            "x_px": 318.79503958525675,
+            "y_px": 250.4284868631999
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00056_001",
+          "track_id": "dummy_56_1",
+          "base_px": {
+            "x_px": 519.6485783080283,
+            "y_px": 298.2858515436455
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 57,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00057_000",
+          "track_id": "dummy_57_0",
+          "base_px": {
+            "x_px": 317.50485477300913,
+            "y_px": 247.40527061375087
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00057_001",
+          "track_id": "dummy_57_1",
+          "base_px": {
+            "x_px": 515.9814753946745,
+            "y_px": 299.84232808175295
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00057_002",
+          "track_id": "dummy_57_2",
+          "base_px": {
+            "x_px": 739.4263067887362,
+            "y_px": 357.26942680063854
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 58,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00058_000",
+          "track_id": "dummy_58_0",
+          "base_px": {
+            "x_px": 321.106711612272,
+            "y_px": 248.01720708877136
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00058_001",
+          "track_id": "dummy_58_1",
+          "base_px": {
+            "x_px": 516.6474627834655,
+            "y_px": 297.42528742079935
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00058_002",
+          "track_id": "dummy_58_2",
+          "base_px": {
+            "x_px": 737.8295729711034,
+            "y_px": 360.5263829008714
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 59,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00059_000",
+          "track_id": "dummy_59_0",
+          "base_px": {
+            "x_px": 318.24124840793064,
+            "y_px": 250.58790690614913
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00059_001",
+          "track_id": "dummy_false_6",
+          "base_px": {
+            "x_px": 65.0,
+            "y_px": 96.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 60,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00060_000",
+          "track_id": "dummy_60_0",
+          "base_px": {
+            "x_px": 319.62005750200956,
+            "y_px": 252.63966289742953
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00060_001",
+          "track_id": "dummy_60_1",
+          "base_px": {
+            "x_px": 519.616644985417,
+            "y_px": 298.39634559913503
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00060_002",
+          "track_id": "dummy_60_2",
+          "base_px": {
+            "x_px": 734.3291634606096,
+            "y_px": 359.61142809137317
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 61,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00061_000",
+          "track_id": "dummy_61_1",
+          "base_px": {
+            "x_px": 521.4925374217287,
+            "y_px": 299.71041985723497
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 62,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00062_000",
+          "track_id": "dummy_62_0",
+          "base_px": {
+            "x_px": 319.6674001935391,
+            "y_px": 250.4343014532539
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00062_001",
+          "track_id": "dummy_62_1",
+          "base_px": {
+            "x_px": 519.5094084655137,
+            "y_px": 300.9603958606286
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00062_002",
+          "track_id": "dummy_62_2",
+          "base_px": {
+            "x_px": 738.0989114743345,
+            "y_px": 359.48145949503385
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 63,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00063_000",
+          "track_id": "dummy_63_0",
+          "base_px": {
+            "x_px": 318.61323793279644,
+            "y_px": 251.65212234358646
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00063_001",
+          "track_id": "dummy_63_1",
+          "base_px": {
+            "x_px": 522.863907477913,
+            "y_px": 303.1248869337599
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00063_002",
+          "track_id": "dummy_63_2",
+          "base_px": {
+            "x_px": 738.7674104350812,
+            "y_px": 359.82652147525613
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 64,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00064_000",
+          "track_id": "dummy_64_2",
+          "base_px": {
+            "x_px": 740.7628477293655,
+            "y_px": 359.29760645284006
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 65,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00065_000",
+          "track_id": "dummy_65_0",
+          "base_px": {
+            "x_px": 317.3215964994423,
+            "y_px": 250.0738790455961
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00065_001",
+          "track_id": "dummy_65_1",
+          "base_px": {
+            "x_px": 519.0393851783464,
+            "y_px": 297.6163641786431
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00065_002",
+          "track_id": "dummy_65_2",
+          "base_px": {
+            "x_px": 740.1628632337186,
+            "y_px": 359.1896391125877
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 66,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00066_000",
+          "track_id": "dummy_66_0",
+          "base_px": {
+            "x_px": 316.83803494402457,
+            "y_px": 249.2311155080544
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00066_001",
+          "track_id": "dummy_66_1",
+          "base_px": {
+            "x_px": 521.7202534799325,
+            "y_px": 301.9078023929028
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00066_002",
+          "track_id": "dummy_66_2",
+          "base_px": {
+            "x_px": 740.8770862678505,
+            "y_px": 359.7655039746399
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 67,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00067_000",
+          "track_id": "dummy_67_0",
+          "base_px": {
+            "x_px": 320.1211469977062,
+            "y_px": 249.38830027037406
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00067_001",
+          "track_id": "dummy_67_2",
+          "base_px": {
+            "x_px": 739.6924341204513,
+            "y_px": 358.0475043306768
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 68,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00068_000",
+          "track_id": "dummy_68_0",
+          "base_px": {
+            "x_px": 321.65095763646724,
+            "y_px": 248.2799572326881
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00068_001",
+          "track_id": "dummy_68_1",
+          "base_px": {
+            "x_px": 522.3270126174331,
+            "y_px": 295.47451181934355
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 69,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00069_000",
+          "track_id": "dummy_69_1",
+          "base_px": {
+            "x_px": 518.398322392926,
+            "y_px": 299.6230503412125
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00069_001",
+          "track_id": "dummy_69_2",
+          "base_px": {
+            "x_px": 740.9109391409783,
+            "y_px": 361.3017597723989
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 70,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00070_000",
+          "track_id": "dummy_70_0",
+          "base_px": {
+            "x_px": 318.5409567651719,
+            "y_px": 251.15608257945308
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00070_001",
+          "track_id": "dummy_70_1",
+          "base_px": {
+            "x_px": 520.9439634313529,
+            "y_px": 299.2533713253634
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00070_002",
+          "track_id": "dummy_70_2",
+          "base_px": {
+            "x_px": 740.8655955414615,
+            "y_px": 356.68227839638485
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 71,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00071_000",
+          "track_id": "dummy_71_0",
+          "base_px": {
+            "x_px": 318.2781843952679,
+            "y_px": 251.10061373730957
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00071_001",
+          "track_id": "dummy_71_1",
+          "base_px": {
+            "x_px": 519.1434316523671,
+            "y_px": 300.4651125241816
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00071_002",
+          "track_id": "dummy_71_2",
+          "base_px": {
+            "x_px": 737.7612414736279,
+            "y_px": 359.6950533634793
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 72,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00072_000",
+          "track_id": "dummy_72_0",
+          "base_px": {
+            "x_px": 317.24434235353453,
+            "y_px": 246.87273537979286
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00072_001",
+          "track_id": "dummy_72_1",
+          "base_px": {
+            "x_px": 517.1300939272459,
+            "y_px": 301.95066046859915
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00072_002",
+          "track_id": "dummy_72_2",
+          "base_px": {
+            "x_px": 738.3504685938077,
+            "y_px": 360.84343646893785
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 73,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00073_000",
+          "track_id": "dummy_73_0",
+          "base_px": {
+            "x_px": 316.4601735960007,
+            "y_px": 248.6819140019457
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00073_001",
+          "track_id": "dummy_73_1",
+          "base_px": {
+            "x_px": 520.8982635911896,
+            "y_px": 299.7639161084121
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 74,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00074_000",
+          "track_id": "dummy_74_0",
+          "base_px": {
+            "x_px": 319.6666344554912,
+            "y_px": 244.84368993764613
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00074_001",
+          "track_id": "dummy_74_1",
+          "base_px": {
+            "x_px": 524.7351791007952,
+            "y_px": 300.23451032906365
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00074_002",
+          "track_id": "dummy_74_2",
+          "base_px": {
+            "x_px": 736.2464523113026,
+            "y_px": 359.13119115015763
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 75,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00075_000",
+          "track_id": "dummy_75_0",
+          "base_px": {
+            "x_px": 317.3987721756815,
+            "y_px": 250.37239343420495
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00075_001",
+          "track_id": "dummy_75_2",
+          "base_px": {
+            "x_px": 737.2503557938801,
+            "y_px": 360.24157552499196
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 76,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00076_000",
+          "track_id": "dummy_76_0",
+          "base_px": {
+            "x_px": 319.8893133114132,
+            "y_px": 248.4590750756093
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00076_001",
+          "track_id": "dummy_76_1",
+          "base_px": {
+            "x_px": 520.4749667296369,
+            "y_px": 299.5813322523646
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00076_002",
+          "track_id": "dummy_76_2",
+          "base_px": {
+            "x_px": 737.9930048884296,
+            "y_px": 359.4474677278409
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 77,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00077_000",
+          "track_id": "dummy_77_0",
+          "base_px": {
+            "x_px": 319.1967377262621,
+            "y_px": 249.3104588309688
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00077_001",
+          "track_id": "dummy_77_1",
+          "base_px": {
+            "x_px": 519.313310964827,
+            "y_px": 298.993790645899
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00077_002",
+          "track_id": "dummy_77_2",
+          "base_px": {
+            "x_px": 741.5563217399261,
+            "y_px": 359.9844825847576
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 78,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00078_000",
+          "track_id": "dummy_78_0",
+          "base_px": {
+            "x_px": 321.3331838910878,
+            "y_px": 252.23839750919154
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00078_001",
+          "track_id": "dummy_78_1",
+          "base_px": {
+            "x_px": 519.3765816687462,
+            "y_px": 301.42827497166417
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00078_002",
+          "track_id": "dummy_78_2",
+          "base_px": {
+            "x_px": 739.1276957723225,
+            "y_px": 358.87345435593636
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 79,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00079_000",
+          "track_id": "dummy_79_0",
+          "base_px": {
+            "x_px": 321.82473289158065,
+            "y_px": 250.98861134259602
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00079_001",
+          "track_id": "dummy_79_1",
+          "base_px": {
+            "x_px": 519.4421428466403,
+            "y_px": 298.31995721550845
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00079_002",
+          "track_id": "dummy_79_2",
+          "base_px": {
+            "x_px": 740.1316183171715,
+            "y_px": 360.80781666365226
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 80,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00080_000",
+          "track_id": "dummy_80_1",
+          "base_px": {
+            "x_px": 518.7534786555705,
+            "y_px": 299.78510324190177
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 81,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00081_000",
+          "track_id": "dummy_81_2",
+          "base_px": {
+            "x_px": 739.7521794427612,
+            "y_px": 356.34400806927647
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00081_001",
+          "track_id": "dummy_false_7",
+          "base_px": {
+            "x_px": 175.0,
+            "y_px": 24.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 82,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00082_000",
+          "track_id": "dummy_82_0",
+          "base_px": {
+            "x_px": 322.60100194058987,
+            "y_px": 251.07458015393163
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00082_001",
+          "track_id": "dummy_82_1",
+          "base_px": {
+            "x_px": 515.3598661966747,
+            "y_px": 302.298296069925
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00082_002",
+          "track_id": "dummy_82_2",
+          "base_px": {
+            "x_px": 740.763854993414,
+            "y_px": 358.1802576643156
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 83,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00083_000",
+          "track_id": "dummy_83_0",
+          "base_px": {
+            "x_px": 317.09518705807506,
+            "y_px": 249.60042589425385
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00083_001",
+          "track_id": "dummy_83_1",
+          "base_px": {
+            "x_px": 517.7670130945806,
+            "y_px": 300.2733765432043
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00083_002",
+          "track_id": "dummy_83_2",
+          "base_px": {
+            "x_px": 742.2404113845577,
+            "y_px": 356.6776363344495
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 84,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00084_000",
+          "track_id": "dummy_84_1",
+          "base_px": {
+            "x_px": 519.1395322730032,
+            "y_px": 302.85725752745896
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00084_001",
+          "track_id": "dummy_84_2",
+          "base_px": {
+            "x_px": 743.1822183566812,
+            "y_px": 360.3466208467934
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 85,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00085_000",
+          "track_id": "dummy_85_0",
+          "base_px": {
+            "x_px": 318.02647909133816,
+            "y_px": 250.81692022510916
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00085_001",
+          "track_id": "dummy_85_1",
+          "base_px": {
+            "x_px": 517.4529313249114,
+            "y_px": 297.8340668990738
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00085_002",
+          "track_id": "dummy_85_2",
+          "base_px": {
+            "x_px": 741.7778772245052,
+            "y_px": 359.99957984029817
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 86,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00086_000",
+          "track_id": "dummy_86_0",
+          "base_px": {
+            "x_px": 320.2849458347444,
+            "y_px": 247.4855756301123
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00086_001",
+          "track_id": "dummy_86_1",
+          "base_px": {
+            "x_px": 518.4826530621267,
+            "y_px": 298.65300200746094
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 87,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00087_000",
+          "track_id": "dummy_87_0",
+          "base_px": {
+            "x_px": 317.32764231579336,
+            "y_px": 250.5050278113574
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00087_001",
+          "track_id": "dummy_87_1",
+          "base_px": {
+            "x_px": 519.5468060511396,
+            "y_px": 297.79294271806407
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00087_002",
+          "track_id": "dummy_87_2",
+          "base_px": {
+            "x_px": 741.1854173605012,
+            "y_px": 358.7542188999152
+          },
+          "class_label": "gate"
+        }
+      ]
+    },
+    {
+      "frame_idx": 88,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00088_000",
+          "track_id": "dummy_88_0",
+          "base_px": {
+            "x_px": 316.6505963735682,
+            "y_px": 248.4761676369619
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00088_001",
+          "track_id": "dummy_88_2",
+          "base_px": {
+            "x_px": 739.4743097206459,
+            "y_px": 359.5990696528046
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00088_002",
+          "track_id": "dummy_false_8",
+          "base_px": {
+            "x_px": 210.0,
+            "y_px": 52.0
+          },
+          "class_label": "unknown"
+        }
+      ]
+    },
+    {
+      "frame_idx": 89,
+      "detections": [
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00089_000",
+          "track_id": "dummy_89_0",
+          "base_px": {
+            "x_px": 318.48367145852404,
+            "y_px": 251.16413660710822
+          },
+          "class_label": "gate"
+        },
+        {
+          "detection_id": "synthetic_eval_clip_dummy_00089_001",
+          "track_id": "dummy_89_2",
+          "base_px": {
+            "x_px": 740.0352334253337,
+            "y_px": 356.35188423925086
+          },
+          "class_label": "gate"
+        }
+      ]
+    }
+  ]
+}

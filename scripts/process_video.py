@@ -1,11 +1,17 @@
 """
-Process a ski racing video through the full analysis pipeline.
+Process a ski racing video: gate detection + 2D skier tracking.
+
+Note: 3D coordinate transformation and physics validation have been removed
+until gate detection quality is reliable enough to support them.
 
 Usage:
     python scripts/process_video.py data/test_videos/race1.mp4 --gate-model models/gate_detector_best.pt
     python scripts/process_video.py data/test_videos/ --gate-model models/gate_detector_best.pt --discipline giant_slalom
 """
 import sys
+import json
+import time
+import warnings
 from pathlib import Path
 
 # Add project root to path
@@ -23,23 +29,17 @@ def main():
     parser.add_argument("--gate-model", required=True, help="Path to gate detector model")
     parser.add_argument("--discipline", default=None,
                         choices=["slalom", "giant_slalom"],
-                        help="Discipline. If omitted, auto-detects slalom vs giant_slalom from gates")
-    parser.add_argument("--gate-spacing", type=float, default=None,
-                        help=("Gate spacing in meters. If omitted, uses discipline defaults: "
-                              "slalom=9.5, giant_slalom=27"))
-    parser.add_argument("--projection", default="scale",
-                        choices=["scale", "homography"],
-                        help="Projection mode (scale uses gate spacing; homography uses global H)")
-    parser.add_argument("--gate-conf", type=float, default=0.35,
-                        help="Gate detection confidence threshold")
-    parser.add_argument("--gate-iou", type=float, default=0.55,
-                        help="Gate detection NMS IoU threshold")
+                        help="Discipline. If omitted, auto-detects from gates")
+    parser.add_argument("--gate-conf", type=float, default=0.25,
+                        help="Gate detection confidence threshold (default 0.25)")
+    parser.add_argument("--gate-iou", type=float, default=0.45,
+                        help="Gate detection NMS IoU threshold (default 0.45)")
     parser.add_argument("--skier-conf", type=float, default=0.25,
                         help="Skier detection confidence threshold")
-    parser.add_argument("--gate-search-frames", type=int, default=150,
-                        help="Search first N frames for best gate detection")
-    parser.add_argument("--gate-search-stride", type=int, default=5,
-                        help="Stride for gate search frames")
+    parser.add_argument("--gate-search-frames", type=int, default=300,
+                        help="Search first N frames for best gate detection (default 300)")
+    parser.add_argument("--gate-search-stride", type=int, default=3,
+                        help="Stride for gate search frames (default 3)")
     parser.add_argument("--gate-track-frames", type=int, default=120,
                         help="Frames to use for temporal gate stabilization")
     parser.add_argument("--gate-track-stride", type=int, default=3,
@@ -47,59 +47,120 @@ def main():
     parser.add_argument("--gate-track-min-obs", type=int, default=3,
                         help="Minimum observations per gate to keep")
     parser.add_argument("--output-dir", default="artifacts/outputs", help="Output directory")
-    parser.add_argument("--no-physics", action="store_true", help="Skip physics validation")
     parser.add_argument("--demo-video", action="store_true", help="Also create demo video with overlay")
     parser.add_argument("--summary", action="store_true", help="Also create summary figure")
     parser.add_argument("--frame-stride", type=int, default=1,
-                        help="Process every Nth frame for tracking (temporal fallback)")
+                        help="Process every Nth frame for tracking")
     parser.add_argument("--max-frames", type=int, default=None,
                         help="Limit number of frames processed from start")
     parser.add_argument("--max-jump", type=float, default=None,
-                        help="Max pixel jump for temporal tracking (override dynamic default)")
+                        help="Max pixel jump for temporal tracking")
     parser.add_argument("--stabilize", action="store_true",
-                        help="Enable camera stabilization + Kalman smoothing + dynamic scale (all 4 phases)")
-    parser.add_argument("--camera-mode", default="affine",
-                        choices=["translation", "affine"],
-                        help="Camera motion model for stabilization (affine or translation)")
-    parser.add_argument("--camera-pitch-deg", "--camera-pitch", dest="camera_pitch_deg",
-                        type=float, default=6.0,
-                        help="Camera pitch angle in degrees for scale correction (set 0 to disable)")
+                        help="Enable Kalman smoothing on 2D trajectory")
     parser.add_argument("--kalman-q", type=float, default=None,
                         help="Override Kalman process noise (Q sigma_a in px/s^2)")
-    parser.add_argument("--camera-compensate-before-smoothing", action="store_true",
-                        help="Experimental order: track -> camera compensate 2D -> smooth -> transform")
-    parser.add_argument("--disable-dynamic-scale", action="store_true",
-                        help="Disable Phase 4 dynamic per-frame scale")
+
+    # ── Deprecated flags (one-release compat shim) ──────────────────────────
+    # These parameters were removed when the pipeline moved to 2D-first mode.
+    # They are accepted silently so existing shell scripts don't break with
+    # "unrecognized argument" errors, but they have no effect.
+    # TODO(remove-after-next-release): delete these deprecated arguments.
+    parser.add_argument("--gate-spacing", dest="_deprecated_gate_spacing",
+                        type=float, default=None,
+                        help="[deprecated — ignored in 2D-first pipeline, will be removed next release]")
+    parser.add_argument("--camera-mode", dest="_deprecated_camera_mode",
+                        default=None,
+                        help="[deprecated — ignored in 2D-first pipeline, will be removed next release]")
+    parser.add_argument("--camera-pitch-deg", "--camera-pitch",
+                        dest="_deprecated_camera_pitch_deg",
+                        type=float, default=None,
+                        help="[deprecated — ignored in 2D-first pipeline, will be removed next release]")
+    parser.add_argument("--no-physics", dest="_deprecated_no_physics",
+                        action="store_true",
+                        help="[deprecated — ignored in 2D-first pipeline, will be removed next release]")
+    parser.add_argument("--projection", dest="_deprecated_projection",
+                        default=None,
+                        help="[deprecated — ignored in 2D-first pipeline, will be removed next release]")
+    # ────────────────────────────────────────────────────────────────────────
+
     args = parser.parse_args()
 
-    pipeline = SkiRacingPipeline(
-        gate_model_path=args.gate_model,
-        discipline=args.discipline,
-        gate_spacing_m=args.gate_spacing,
-        stabilize=args.stabilize,
-        camera_mode=args.camera_mode,
-        camera_pitch_deg=args.camera_pitch_deg,
-    )
+    # Emit DeprecationWarnings for any deprecated flags the user actually passed.
+    _deprecated = {
+        "--gate-spacing": args._deprecated_gate_spacing,
+        "--camera-mode": args._deprecated_camera_mode,
+        "--camera-pitch-deg": args._deprecated_camera_pitch_deg,
+        "--no-physics": args._deprecated_no_physics or None,
+        "--projection": args._deprecated_projection,
+    }
+    for flag, value in _deprecated.items():
+        if value is not None:
+            warnings.warn(
+                f"{flag} is deprecated and has no effect in the 2D-first pipeline. "
+                "It will be removed in the next release.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+    pipeline = None
+    pipeline_init_error = None
+    try:
+        pipeline = SkiRacingPipeline(
+            gate_model_path=args.gate_model,
+            discipline=args.discipline,
+            stabilize=args.stabilize,
+        )
+    except Exception as exc:
+        pipeline_init_error = exc
 
     input_path = Path(args.input)
     if input_path.is_dir():
+        video_exts = {".mp4", ".avi", ".mov", ".mkv", ".m4v"}
         videos = sorted(
-            list(input_path.glob("*.mp4"))
-            + list(input_path.glob("*.avi"))
-            + list(input_path.glob("*.mov"))
+            p for p in input_path.iterdir()
+            if p.is_file() and p.suffix.lower() in video_exts
         )
     else:
         videos = [input_path]
 
     print(f"Found {len(videos)} video(s) to process\n")
 
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    run_summary_path = output_dir / "run_summary.json"
+    existing_summary = []
+    if run_summary_path.exists():
+        try:
+            data = json.loads(run_summary_path.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                existing_summary = [e for e in data if isinstance(e, dict)]
+        except Exception:
+            existing_summary = []
+
+    summary_by_video = {
+        str(e.get("video")): dict(e)
+        for e in existing_summary
+        if isinstance(e, dict) and e.get("video")
+    }
+    processed_in_run = []
+    run_summary = []
+
     for video in videos:
+        t0 = time.time()
+        if pipeline is None:
+            run_summary.append({
+                "video": video.name,
+                "status": "error",
+                "elapsed_s": float(time.time() - t0),
+                "error": f"Pipeline init failed: {pipeline_init_error}",
+            })
+            processed_in_run.append(video.name)
+            print(f"✗ Error processing {video.name}: pipeline init failed: {pipeline_init_error}\n")
+            continue
         try:
             results = pipeline.process_video(
                 video_path=str(video),
                 output_dir=args.output_dir,
-                validate_physics=not args.no_physics,
-                projection=args.projection,
                 gate_conf=args.gate_conf,
                 gate_iou=args.gate_iou,
                 skier_conf=args.skier_conf,
@@ -112,8 +173,6 @@ def main():
                 max_frames=args.max_frames,
                 max_jump=args.max_jump,
                 kalman_process_noise=args.kalman_q,
-                camera_compensate_before_smoothing=args.camera_compensate_before_smoothing,
-                enable_dynamic_scale=not args.disable_dynamic_scale,
             )
 
             analysis_path = Path(args.output_dir) / f"{video.stem}_analysis.json"
@@ -126,9 +185,35 @@ def main():
                 demo_path = Path(args.output_dir) / f"{video.stem}_demo.mp4"
                 create_demo_video(str(video), str(analysis_path), str(demo_path))
 
+            run_summary.append({
+                "video": video.name,
+                "status": "ok",
+                "elapsed_s": float(time.time() - t0),
+            })
+            processed_in_run.append(video.name)
             print(f"✓ Successfully processed {video.name}\n")
         except Exception as e:
+            run_summary.append({
+                "video": video.name,
+                "status": "error",
+                "elapsed_s": float(time.time() - t0),
+                "error": str(e),
+            })
+            processed_in_run.append(video.name)
             print(f"✗ Error processing {video.name}: {e}\n")
+
+    for entry in run_summary:
+        summary_by_video[entry["video"]] = entry
+    # Preserve any existing entries not touched in this run.
+    combined = []
+    for name in processed_in_run:
+        if name in summary_by_video:
+            combined.append(summary_by_video[name])
+    for name in sorted(k for k in summary_by_video.keys() if k not in set(processed_in_run)):
+        combined.append(summary_by_video[name])
+
+    with open(run_summary_path, "w") as f:
+        json.dump(combined, f, indent=2)
 
     print("Done!")
 

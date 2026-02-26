@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sidecar PTS Schema",
+  "description": "Per-clip sidecar JSON produced by Wave 1 (Track A). Consumed by all downstream tracks. DO NOT modify this schema without coordinating with all tracks.",
+  "version": "1.0",
+  "owner": "Track A (A_eval_harness)",
+  "consumers": ["Track C (bev_egomotion)", "Track D (kalman_tracker)", "Track B (model_retraining)"],
+  "type": "object",
+  "required": ["clip_id", "resolution", "fps_nominal", "is_vfr", "readout_time_ms", "slow_motion", "frames"],
+  "properties": {
+    "clip_id": {
+      "type": "string",
+      "description": "Unique clip identifier. Must match the source video filename without extension."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": ["1080p", "4K", "unknown"],
+      "description": "Resolved resolution from FFmpeg metadata. 'unknown' triggers conservative 33ms floor."
+    },
+    "fps_nominal": {
+      "type": "number",
+      "description": "Nominal frame rate declared in container metadata."
+    },
+    "is_vfr": {
+      "type": "boolean",
+      "description": "True if variable frame rate detected. If true, consumers MUST use per-frame delta_t_s, not fps_nominal."
+    },
+    "slow_motion": {
+      "type": "boolean",
+      "description": "True if fps_nominal >= 120. Clip is UNSUPPORTED in v1 — consumers must reject it."
+    },
+    "readout_time_ms": {
+      "type": "number",
+      "description": "Sensor readout time in milliseconds resolved from LUT. 16 for 1080p, 33 for 4K or unknown."
+    },
+    "failure_labels": {
+      "type": "array",
+      "description": "Optional. Failure taxonomy labels for this clip (used in eval harness only).",
+      "items": {
+        "type": "string",
+        "enum": ["occlusion", "rolling_shutter", "eis_jump", "snow_glare", "track_swap"]
+      }
+    },
+    "frames": {
+      "type": "array",
+      "description": "Ordered list of per-frame timestamp entries. One entry per frame.",
+      "items": {
+        "type": "object",
+        "required": ["frame_idx", "pts_seconds", "delta_t_s"],
+        "properties": {
+          "frame_idx": {
+            "type": "integer",
+            "description": "Zero-based frame index."
+          },
+          "pts_seconds": {
+            "type": "number",
+            "description": "Exact Presentation Time Stamp in seconds, extracted via FFmpeg."
+          },
+          "delta_t_s": {
+            "type": "number",
+            "description": "Exact elapsed time since previous frame in seconds. 0.0 for frame_idx=0. THIS is what the Kalman filter must use as delta_t — never 1/fps_nominal."
+          }
+        }
+      }
+    }
+  }
+}

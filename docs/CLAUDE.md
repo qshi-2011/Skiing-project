@@ -58,9 +58,18 @@ tools/                    # Data acquisition helpers
 # Install dependencies
 pip install -r requirements.txt
 
+# IMPORTANT: Verify your environment is ready before running any tests
+# This checks that ByteTrack's lap dependency is installed (critical for skier tracking)
+python scripts/check_env.py
+
 # Run physics tests
 python tests/test_physics.py
 ```
+
+> **Critical note on `lap`**: ByteTrack requires either `lap` or `lapjv` for linear assignment.
+> If missing, the pipeline previously silently fell back to the inferior temporal tracker,
+> which tracks the wrong person and produces garbage trajectories.
+> Now it raises a hard error. If `pip install lap` fails to build on your system, use `pip install lapjv`.
 
 ### Dataset Preparation
 ```bash
@@ -306,9 +315,17 @@ All results saved as JSON in `artifacts/outputs/` with structure:
   "video": "path/to/video.mp4",
   "gates": [...],
   "trajectory_2d": [...],
-  "trajectory_3d": [...],
-  "physics_validation": {...}
+  "trajectory_3d": "disabled",
+  "physics_validation": "disabled"
 }
 ```
+
+**Sentinel contract**: During the 2D-first sprint, `trajectory_3d` and
+`physics_validation` are always the string `"disabled"` at the top level.
+When 3D is re-enabled (Phase 3), `trajectory_3d` will become a list of
+`{"frame": int, "x": float, "y": float}` objects and `physics_validation`
+will become a metrics dict. Consumers must handle both shapes — check
+`isinstance(value, list)` / `isinstance(value, dict)` rather than
+truthy-checking the value.
 
 The JSON is human-readable and can be loaded in Python or visualized.

@@ -1,0 +1,15 @@
+{
+  "clip_id": "MS SL R_tau_seq_-1.0",
+  "events": [
+    {
+      "frame_idx": 178,
+      "event": "RESET",
+      "reason": "no_valid_chain_in_90_frames"
+    },
+    {
+      "frame_idx": 358,
+      "event": "RESET",
+      "reason": "no_valid_chain_in_90_frames"
+    }
+  ]
+}

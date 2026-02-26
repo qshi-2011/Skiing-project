@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-02-19T17:46:58.902584",
+  "ground_truth": {
+    "clip_id": "synthetic_eval_clip",
+    "format": "synthetic",
+    "path": null
+  },
+  "predictions": {
+    "clip_id": "synthetic_eval_clip_dummy",
+    "format": "dummy_tracker",
+    "path": null
+  },
+  "settings": {
+    "max_distance_px": 60.0,
+    "static_motion_threshold_px": 2.5,
+    "smoke_baseline": true,
+    "dummy_miss_rate": 0.2,
+    "dummy_false_rate": 0.15,
+    "seed": 17
+  },
+  "IDF1": 0.012048192771084338,
+  "HOTA": 0.43445945734938407,
+  "id_switches": 173,
+  "track_fragmentation": 44,
+  "topological_ordering_error": 0.0,
+  "missed_gate_rate": 0.18518518518518517,
+  "false_gate_rate": 0.03508771929824561,
+  "temporal_jitter": {
+    "per_track": [
+      {
+        "gt_track_id": "gate_A",
+        "pred_track_id": "dummy_0_0",
+        "jitter_std": 0.0,
+        "track_len": 1
+      },
+      {
+        "gt_track_id": "gate_B",
+        "pred_track_id": "dummy_0_1",
+        "jitter_std": 0.0,
+        "track_len": 1
+      },
+      {
+        "gt_track_id": "gate_C",
+        "pred_track_id": "dummy_0_2",
+        "jitter_std": 0.0,
+        "track_len": 1
+      }
+    ],
+    "global_mean": 0.0
+  },
+  "counts": {
+    "frames": 90,
+    "gt_total": 270,
+    "pred_total": 228,
+    "matched_total": 220,
+    "missed_total": 50,
+    "false_total": 8,
+    "topology_pairs": 177,
+    "topology_inversions": 0
+  },
+  "hota_components": {
+    "DetA": 0.8835341365461847,
+    "AssA": 0.21363636363636362
+  }
+}

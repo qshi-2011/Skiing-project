@@ -125,11 +125,11 @@ def create_demo_video(video_path, analysis_path, output_path):
         cv2.putText(frame, f"Outliers: {len(outlier_frames)}", (10, 110),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 170, 255), 2)
 
-        # Physics status
+        # Physics status — guard against sentinel string "disabled"
         physics = analysis.get("physics_validation")
-        if physics:
-            status = "PASS" if physics["valid"] else f"FAIL ({len(physics['issues'])} issues)"
-            color = (0, 255, 0) if physics["valid"] else (0, 0, 255)
+        if isinstance(physics, dict):
+            status = "PASS" if physics.get("valid") else f"FAIL ({len(physics.get('issues', []))} issues)"
+            color = (0, 255, 0) if physics.get("valid") else (0, 0, 255)
             cv2.putText(frame, f"Physics: {status}", (10, 145),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
@@ -150,19 +150,35 @@ def create_summary_figure(analysis_path, output_path):
     """
     Create 4-panel summary figure:
     1. 2D trajectory
-    2. 3D bird's-eye view
-    3. Speed profile
+    2. 3D bird's-eye view (or disabled notice)
+    3. Speed profile (or disabled notice)
     4. Statistics
+
+    Handles the 2D-first sprint JSON schema where trajectory_3d and
+    physics_validation are the sentinel string "disabled" rather than
+    data structures.  Also handles legacy JSONs where those keys are
+    absent, None, or empty lists.
     """
     with open(analysis_path, "r") as f:
         analysis = json.load(f)
+
+    # Normalise 3D trajectory — covers: absent key, "disabled", None, []
+    _raw_3d = analysis.get("trajectory_3d")
+    traj_3d = _raw_3d if isinstance(_raw_3d, list) and len(_raw_3d) > 0 else []
+    traj_3d_enabled = len(traj_3d) > 0
+
+    # Normalise physics — covers: "disabled", None, absent key
+    physics = analysis.get("physics_validation")
+    if not isinstance(physics, dict):
+        physics = {}
+    physics_has_metrics = bool(physics.get("metrics") and physics["metrics"].get("speeds_kmh"))
 
     fig = plt.figure(figsize=(16, 12))
 
     # Panel 1: 2D trajectory
     ax1 = plt.subplot(2, 2, 1)
-    x_2d = [p["x"] for p in analysis["trajectory_2d"]]
-    y_2d = [p["y"] for p in analysis["trajectory_2d"]]
+    x_2d = [p["x"] for p in analysis.get("trajectory_2d") or []]
+    y_2d = [p["y"] for p in analysis.get("trajectory_2d") or []]
     ax1.plot(x_2d, y_2d, "b-", linewidth=2, alpha=0.7)
     if x_2d:
         ax1.scatter(x_2d[0], y_2d[0], c="green", s=150, label="Start", zorder=5)
@@ -174,56 +190,70 @@ def create_summary_figure(analysis_path, output_path):
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
-    # Panel 2: 3D bird's-eye view
+    # Panel 2: 3D bird's-eye view — disabled notice when 3D is not available
     ax2 = plt.subplot(2, 2, 2)
-    x_3d = [p["x"] for p in analysis["trajectory_3d"]]
-    y_3d = [p["y"] for p in analysis["trajectory_3d"]]
-    ax2.plot(x_3d, y_3d, "r-", linewidth=2, alpha=0.7)
-    if x_3d:
-        ax2.scatter(x_3d[0], y_3d[0], c="green", s=150, label="Start", zorder=5)
-        ax2.scatter(x_3d[-1], y_3d[-1], c="red", s=150, label="Finish", zorder=5)
-    ax2.set_title("3D Trajectory (Meters, Bird's Eye)", fontsize=14, fontweight="bold")
-    ax2.set_xlabel("X (meters)")
-    ax2.set_ylabel("Y (meters)")
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    ax2.set_aspect("equal")
+    if traj_3d_enabled:
+        x_3d = [p["x"] for p in traj_3d]
+        y_3d = [p["y"] for p in traj_3d]
+        ax2.plot(x_3d, y_3d, "r-", linewidth=2, alpha=0.7)
+        if x_3d:
+            ax2.scatter(x_3d[0], y_3d[0], c="green", s=150, label="Start", zorder=5)
+            ax2.scatter(x_3d[-1], y_3d[-1], c="red", s=150, label="Finish", zorder=5)
+        ax2.set_xlabel("X (meters)")
+        ax2.set_ylabel("Y (meters)")
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        ax2.set_aspect("equal")
+        ax2.set_title("3D Trajectory (Meters, Bird's Eye)", fontsize=14, fontweight="bold")
+    else:
+        ax2.text(0.5, 0.5, "3D disabled\n(2D-first mode)",
+                 ha="center", va="center", transform=ax2.transAxes,
+                 fontsize=13, color="gray")
+        ax2.set_title("3D Trajectory — Disabled", fontsize=14, fontweight="bold")
+        ax2.set_xticks([])
+        ax2.set_yticks([])
 
-    # Panel 3: Speed profile
+    # Panel 3: Speed profile — requires 3D trajectory
     ax3 = plt.subplot(2, 2, 3)
-    physics = analysis.get("physics_validation")
-    if physics and "metrics" in physics:
-        speeds = physics["metrics"]["speeds_kmh"]
-        # Reconstruct speed array from trajectory
+    if traj_3d_enabled:
         speed_vals = []
-        t3d = analysis["trajectory_3d"]
-        fps = analysis.get("video_info", {}).get("fps", 30)
+        fps = (analysis.get("video_info") or {}).get("fps", 30)
         dt = 1.0 / fps
-        for i in range(1, len(t3d)):
-            dx = t3d[i]["x"] - t3d[i - 1]["x"]
-            dy = t3d[i]["y"] - t3d[i - 1]["y"]
+        for i in range(1, len(traj_3d)):
+            dx = traj_3d[i]["x"] - traj_3d[i - 1]["x"]
+            dy = traj_3d[i]["y"] - traj_3d[i - 1]["y"]
             dist = (dx**2 + dy**2) ** 0.5
             speed_vals.append(dist / dt * 3.6)
-
         ax3.plot(speed_vals, "g-", linewidth=2)
         ax3.set_title("Speed Profile", fontsize=14, fontweight="bold")
         ax3.set_xlabel("Frame")
         ax3.set_ylabel("Speed (km/h)")
         ax3.grid(True, alpha=0.3)
         ax3.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+    else:
+        ax3.text(0.5, 0.5, "Speed profile unavailable\n(requires 3D trajectory)",
+                 ha="center", va="center", transform=ax3.transAxes,
+                 fontsize=13, color="gray")
+        ax3.set_title("Speed Profile — Unavailable", fontsize=14, fontweight="bold")
+        ax3.set_xticks([])
+        ax3.set_yticks([])
 
     # Panel 4: Statistics
     ax4 = plt.subplot(2, 2, 4)
     ax4.axis("off")
 
-    if physics and "metrics" in physics:
+    gates_count = len(analysis.get("gates") or [])
+    traj_count = len(analysis.get("trajectory_2d") or [])
+    video_name = Path(analysis.get("video", "unknown")).name
+
+    if physics_has_metrics and traj_3d_enabled:
         m = physics["metrics"]
-        status = "PASS" if physics["valid"] else "FAIL"
+        status = "PASS" if physics.get("valid") else "FAIL"
         stats_text = (
             f"ANALYSIS SUMMARY\n"
             f"{'=' * 30}\n\n"
-            f"Gates Detected:     {len(analysis['gates'])}\n"
-            f"Trajectory Points:  {len(analysis['trajectory_2d'])}\n"
+            f"Gates Detected:     {gates_count}\n"
+            f"Trajectory Points:  {traj_count}\n"
             f"Total Distance:     {m['total_distance_m']:.1f} m\n"
             f"Duration:           {m['duration_s']:.1f} s\n\n"
             f"Avg Speed:          {m['speeds_kmh']['mean']:.1f} km/h\n"
@@ -234,21 +264,25 @@ def create_summary_figure(analysis_path, output_path):
         )
         if analysis.get("stabilized"):
             stats_text += "Mode:               STABILIZED\n"
-        stats_text += f"Video: {Path(analysis['video']).name}"
+        stats_text += f"Video: {video_name}"
     else:
         stats_text = (
             f"ANALYSIS SUMMARY\n"
             f"{'=' * 30}\n\n"
-            f"Gates Detected:     {len(analysis['gates'])}\n"
-            f"Trajectory Points:  {len(analysis['trajectory_2d'])}\n"
-            f"Video: {Path(analysis['video']).name}"
+            f"Gates Detected:     {gates_count}\n"
+            f"Trajectory Points:  {traj_count}\n"
+            f"3D / Physics:       disabled (2D-first sprint)\n"
         )
+        if analysis.get("stabilized"):
+            stats_text += "Mode:               STABILIZED\n"
+        stats_text += f"Video: {video_name}"
 
     ax4.text(0.1, 0.5, stats_text, fontsize=11, family="monospace",
              verticalalignment="center", transform=ax4.transAxes)
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
     print(f"✓ Summary saved to {output_path}")
 
 
@@ -267,9 +301,11 @@ def plot_trajectory_comparison(analysis_paths, output_path):
         with open(path, "r") as f:
             analysis = json.load(f)
 
-        x = [p["x"] for p in analysis["trajectory_3d"]]
-        y = [p["y"] for p in analysis["trajectory_3d"]]
-        label = Path(analysis["video"]).stem
+        _raw = analysis.get("trajectory_3d")
+        t3d = _raw if isinstance(_raw, list) and len(_raw) > 0 else []
+        x = [p["x"] for p in t3d]
+        y = [p["y"] for p in t3d]
+        label = Path(analysis.get("video", "unknown")).stem
 
         ax.plot(x, y, color=colors[i], linewidth=2, alpha=0.8, label=label)
 

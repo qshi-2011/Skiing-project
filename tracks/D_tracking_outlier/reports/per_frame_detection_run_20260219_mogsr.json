@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-02-19T19:10:39.529424",
+  "model": "/Users/quan/Documents/personal/Stanford application project/models/gate_detector_best.pt",
+  "videos": [
+    "/Users/quan/Documents/personal/Stanford application project/data/raw_videos/GS/MO GS R.mov"
+  ],
+  "output_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections",
+  "schema": "/Users/quan/Documents/personal/Stanford application project/shared/interfaces/per_frame_detections.schema.json",
+  "summaries": [
+    {
+      "clip_id": "MO GS R",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/data/raw_videos/GS/MO GS R.mov",
+      "frames_written": 600,
+      "detections_total": 2488,
+      "tier_counts": {
+        "1": 1,
+        "2": 243,
+        "3": 2244
+      },
+      "geometry_failures": 1,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": true,
+        "frames_from_bev": 600,
+        "frames_from_stub": 0
+      },
+      "keypoint_source": {
+        "native_pose": 0,
+        "bootstrap_from_bbox": 2488
+      },
+      "jitter_samples": {
+        "tier2": 162,
+        "tier3": 2112,
+        "tier2_counterfactual_tier3": 162
+      },
+      "jitter_std": {
+        "tier2": 50.46452084898548,
+        "tier3": 112.39126812827485,
+        "tier2_counterfactual_tier3": 738.753813748421
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/inputs/per_frame_detections/MO GS R_detections.json"
+    }
+  ],
+  "ablation_report": "/Users/quan/Documents/personal/Stanford application project/tracks/D_tracking_outlier/reports/ablation_fallback_20260219_mogsr.md"
+}

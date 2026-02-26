@@ -6,10 +6,12 @@ Single-command evaluation pipeline for ski racing:
   Stage 3: Markdown summary + PASS/FAIL verdict
 """
 import argparse
+import inspect
 import json
 import shutil
 import subprocess
 import sys
+import warnings
 from datetime import datetime
 from pathlib import Path
 
@@ -31,6 +33,7 @@ VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".m4v"}
 METRIC_SPECS = {
     "gates_detected": {"label": "Gates detected", "direction": "higher"},
     "trajectory_coverage": {"label": "Trajectory coverage", "direction": "higher"},
+    "track_id_switches": {"label": "Track ID switches", "direction": "lower"},
     "p90_speed_kmh": {"label": "P90 speed (km/h)", "direction": "lower"},
     "max_speed_kmh": {"label": "Max speed (km/h)", "direction": "lower"},
     "max_g_force": {"label": "Max G-force", "direction": "lower"},
@@ -89,8 +92,9 @@ def load_regression_config(config_path):
         "gate_conf": 0.35,
         "gate_iou": 0.55,
         "stabilize": True,
-        "camera_mode": "affine",
-        "projection": "scale",
+        # camera_mode and projection removed — 2D-first pipeline no longer uses them.
+        # Old YAML files that still contain these keys will have them loaded into the
+        # config dict (no parse error) but they will not be forwarded to the pipeline.
         "discipline": "slalom",
         "skier_conf": 0.25,
         "gate_search_frames": 150,
@@ -157,7 +161,13 @@ def safe_mean(values):
 
 
 def extract_stage2_metrics(video_id, video_path, analysis_path, results):
-    physics = results.get("physics_validation") or {}
+    # Guard against sentinel string "disabled" (2D-first sprint) as well as
+    # None / absent key.  `or {}` would wrongly keep the truthy string "disabled".
+    physics = results.get("physics_validation")
+    if not isinstance(physics, dict):
+        # "disabled" sentinel or missing — intentional during 2D-only sprint;
+        # speed/G-force/jump metrics are expected to be zero.
+        physics = {}
     metrics = physics.get("metrics") or {}
     speeds = metrics.get("speeds_kmh") or {}
     g_forces = metrics.get("g_forces") or {}
@@ -180,6 +190,7 @@ def extract_stage2_metrics(video_id, video_path, analysis_path, results):
         "trajectory_coverage": float(coverage),
         "tracked_frames": tracked_frames,
         "total_frames": total_frames,
+        "track_id_switches": int(results.get("track_id_switches") or 0),
         "p90_speed_kmh": safe_float(speeds.get("p90"), 0.0),
         "max_speed_kmh": safe_float(speeds.get("max"), 0.0),
         "max_g_force": safe_float(g_forces.get("max"), 0.0),
@@ -195,6 +206,7 @@ def aggregate_stage2(per_video):
         "videos": int(len(per_video)),
         "gates_detected": safe_mean([row["gates_detected"] for row in per_video]),
         "trajectory_coverage": safe_mean([row["trajectory_coverage"] for row in per_video]),
+        "track_id_switches": safe_mean([row["track_id_switches"] for row in per_video]),
         "p90_speed_kmh": safe_mean([row["p90_speed_kmh"] for row in per_video]),
         "max_speed_kmh": safe_mean([row["max_speed_kmh"] for row in per_video]),
         "max_g_force": safe_mean([row["max_g_force"] for row in per_video]),
@@ -554,38 +566,58 @@ def main():
     stage2_dir.mkdir(parents=True, exist_ok=True)
     stage2_tmp_dir.mkdir(parents=True, exist_ok=True)
 
-    # gate_spacing_m and camera_pitch_deg are now optional; when absent,
-    # the pipeline uses discipline defaults (slalom=9.5m) and skips pitch.
-    _spacing = regression_config.get("gate_spacing_m")
-    _pitch = regression_config.get("camera_pitch_deg")
-    pipeline = SkiRacingPipeline(
-        gate_model_path=str(model_path),
-        discipline=str(regression_config["discipline"]),
-        gate_spacing_m=float(_spacing) if _spacing is not None else None,
-        stabilize=bool(regression_config["stabilize"]),
-        camera_mode=str(regression_config["camera_mode"]),
-        camera_pitch_deg=float(_pitch) if _pitch is not None else None,
-    )
+    # ── Signature preflight ──────────────────────────────────────────────────
+    # Warn (not hard-fail) if this runner is about to pass config-derived keys
+    # that no longer exist in the pipeline signatures.
+    _init_params = set(inspect.signature(SkiRacingPipeline.__init__).parameters) - {"self"}
+    _run_params = set(inspect.signature(SkiRacingPipeline.process_video).parameters) - {"self"}
+
+    init_kwargs = {"gate_model_path": str(model_path)}
+    config_init_kwargs = {
+        "discipline": str(regression_config["discipline"]),
+        "stabilize": bool(regression_config["stabilize"]),
+    }
+    for key, value in config_init_kwargs.items():
+        if key not in _init_params:
+            warnings.warn(
+                f"[run_eval] Config key '{key}' is not a valid pipeline parameter and will be ignored.",
+                stacklevel=2,
+            )
+            continue
+        init_kwargs[key] = value
+    # ────────────────────────────────────────────────────────────────────────
+
+    pipeline = SkiRacingPipeline(**init_kwargs)
 
     stage2_per_video = []
     for video_id in REGRESSION_VIDEO_IDS:
         video_path = regression_videos[video_id]
         print(f"[INFO]   Processing regression video {video_id}: {video_path.name}")
-        results = pipeline.process_video(
-            video_path=str(video_path),
-            output_dir=str(stage2_tmp_dir),
-            validate_physics=True,
-            projection=str(regression_config["projection"]),
-            gate_conf=safe_float(regression_config["gate_conf"]),
-            gate_iou=safe_float(regression_config["gate_iou"]),
-            skier_conf=safe_float(regression_config.get("skier_conf"), 0.25),
-            gate_search_frames=int(regression_config.get("gate_search_frames", 150)),
-            gate_search_stride=int(regression_config.get("gate_search_stride", 5)),
-            gate_track_frames=int(regression_config.get("gate_track_frames", 120)),
-            gate_track_stride=int(regression_config.get("gate_track_stride", 3)),
-            gate_track_min_obs=int(regression_config.get("gate_track_min_obs", 3)),
-            frame_stride=int(regression_config.get("frame_stride", 1)),
-        )
+        run_kwargs = {
+            "video_path": str(video_path),
+            "output_dir": str(stage2_tmp_dir),
+        }
+        config_run_kwargs = {
+            "gate_conf": safe_float(regression_config["gate_conf"]),
+            "gate_iou": safe_float(regression_config["gate_iou"]),
+            "skier_conf": safe_float(regression_config.get("skier_conf"), 0.25),
+            "gate_search_frames": int(regression_config.get("gate_search_frames", 150)),
+            "gate_search_stride": int(regression_config.get("gate_search_stride", 5)),
+            "gate_track_frames": int(regression_config.get("gate_track_frames", 120)),
+            "gate_track_stride": int(regression_config.get("gate_track_stride", 3)),
+            "gate_track_min_obs": int(regression_config.get("gate_track_min_obs", 3)),
+            "frame_stride": int(regression_config.get("frame_stride", 1)),
+        }
+        for key, value in config_run_kwargs.items():
+            if key not in _run_params:
+                warnings.warn(
+                    f"[run_eval] Config key '{key}' is not a valid pipeline parameter and will be ignored.",
+                    stacklevel=2,
+                )
+                continue
+            run_kwargs[key] = value
+
+        results = pipeline.process_video(**run_kwargs)
 
         canonical_analysis_path = stage2_dir / f"{video_id}_analysis.json"
         canonical_analysis_path.write_text(

@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-02-19T18:52:31.382682",
+  "model": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/artifacts/models/gate_pose_best_20260219.pt",
+  "videos": [
+    "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2907_1765738705(Video in Original Quality).mp4",
+    "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2909_1765738725(Video in Original Quality).mp4",
+    "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2911_1765738746(Video in Original Quality).mp4"
+  ],
+  "output_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs",
+  "schema": "/Users/quan/Documents/personal/Stanford application project/shared/interfaces/per_frame_detections.schema.json",
+  "summaries": [
+    {
+      "clip_id": "2907_1765738705(Video in Original Quality)",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2907_1765738705(Video in Original Quality).mp4",
+      "frames_written": 180,
+      "detections_total": 0,
+      "tier_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "geometry_failures": 0,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": false,
+        "frames_from_bev": 0,
+        "frames_from_stub": 180
+      },
+      "jitter_samples": {
+        "tier2": 0,
+        "tier3": 0,
+        "tier2_counterfactual_tier3": 0
+      },
+      "jitter_std": {
+        "tier2": null,
+        "tier3": null,
+        "tier2_counterfactual_tier3": null
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs/2907_1765738705(Video in Original Quality)_detections.json"
+    },
+    {
+      "clip_id": "2909_1765738725(Video in Original Quality)",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2909_1765738725(Video in Original Quality).mp4",
+      "frames_written": 180,
+      "detections_total": 0,
+      "tier_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "geometry_failures": 0,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": false,
+        "frames_from_bev": 0,
+        "frames_from_stub": 180
+      },
+      "jitter_samples": {
+        "tier2": 0,
+        "tier3": 0,
+        "tier2_counterfactual_tier3": 0
+      },
+      "jitter_std": {
+        "tier2": null,
+        "tier3": null,
+        "tier2_counterfactual_tier3": null
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs/2909_1765738725(Video in Original Quality)_detections.json"
+    },
+    {
+      "clip_id": "2911_1765738746(Video in Original Quality)",
+      "video_path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2911_1765738746(Video in Original Quality).mp4",
+      "frames_written": 180,
+      "detections_total": 0,
+      "tier_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "geometry_failures": 0,
+      "emission_positive_violations": 0,
+      "bev_source": {
+        "clip_bev_found": false,
+        "frames_from_bev": 0,
+        "frames_from_stub": 180
+      },
+      "jitter_samples": {
+        "tier2": 0,
+        "tier3": 0,
+        "tier2_counterfactual_tier3": 0
+      },
+      "jitter_std": {
+        "tier2": null,
+        "tier3": null,
+        "tier2_counterfactual_tier3": null
+      },
+      "json_path": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/outputs/2911_1765738746(Video in Original Quality)_detections.json"
+    }
+  ],
+  "ablation_report": "/Users/quan/Documents/personal/Stanford application project/tracks/B_model_retraining/reports/ablation_fallback_20260219.md"
+}

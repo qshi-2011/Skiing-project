@@ -19,6 +19,15 @@ runs/
 artifacts/outputs/
 artifacts/training_results/
 
+# Training dataset artifacts (too large for git)
+tracks/B_model_retraining/artifacts/
+
+# Regression test videos
+tracks/E_evaluation_ci/regression_videos/
+
+# Demo / regression video outputs
+*.mp4
+
 # Eval / pipeline temp
 _stage2_tmp/
 stage2_tmp/
