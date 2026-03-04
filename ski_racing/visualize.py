@@ -51,10 +51,24 @@ def create_demo_video(video_path, analysis_path, output_path,
 
     # Live detector: re-detect gates on each frame so positions follow the camera
     live_detector = None
+    live_stabilizer = None
     if gate_model_path is not None:
-        from ski_racing.detection import GateDetector
+        from ski_racing.detection import GateDetector, LiveGateStabilizer
         live_detector = GateDetector(gate_model_path)
-    live_cache = []        # last live-detected gate positions
+        live_stabilizer = LiveGateStabilizer(
+            show_stale=False,
+            max_shown_stale_calls=1,
+            stale_conf_decay=0.85,
+            min_hits_to_show=2,
+            spawn_conf=0.35,
+            update_conf_min=0.15,
+            display_conf=0.30,
+            meas_sigma_px=10.0,
+            accel_sigma_px=8.0,
+            maha_threshold=3.0,
+            match_threshold=130.0,
+        )
+    live_cache = []        # last shown gate positions
     live_frame_at = -999   # frame index of last live inference run
 
     # Static/per-frame fallback (used when live_detector is None)
@@ -88,11 +102,14 @@ def create_demo_video(video_path, analysis_path, output_path,
 
         # Resolve gate positions for this frame
         if live_detector is not None:
-            # Live mode: re-detect every live_gate_stride frames, cache between
+            # Live mode: re-detect every live_gate_stride frames, predict every frame.
             if frame_num - live_frame_at >= live_gate_stride:
-                dets = live_detector.detect_in_frame(frame, conf=0.20, iou=0.45)
-                live_cache = [(int(d["center_x"]), int(d["base_y"]), d) for d in dets]
+                dets = live_detector.detect_in_frame(frame, conf=0.15, iou=0.55)
+                shown = live_stabilizer.step(frame_num, dets)
                 live_frame_at = frame_num
+            else:
+                shown = live_stabilizer.step(frame_num, None)
+            live_cache = [(int(round(d["center_x"])), int(round(d["base_y"])), d) for d in shown]
             gate_positions = live_cache
         elif frame_gate_lookup is not None:
             # Per-frame data: only show gates that were actually detected

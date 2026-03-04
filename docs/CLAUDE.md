@@ -29,8 +29,9 @@ scripts/                 # Command-line tools
 ├── process_video.py    # Full pipeline runner (main entry point)
 └── evaluate.py         # Evaluate accuracy against ground truth
 
-tests/                   # Unit tests
-└── test_physics.py     # Physics validation module tests
+tests/                   # Unit tests (pytest)
+
+eval/                    # Tracked evaluation fixtures + golden outputs
 
 data/                    # Dataset directory (not in git)
 ├── annotations/        # Annotated dataset in YOLOv8 format

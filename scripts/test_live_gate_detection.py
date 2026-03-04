@@ -1,15 +1,16 @@
 """
 Gate-only live detection test runner.
 
-Generates overlay videos with live gate detections (cached between inference
-frames) and writes per-video JSON summaries (counts + timing).
+Generates overlay videos with live gate detections and per-frame Kalman
+propagation between inference calls. Writes per-video JSON summaries
+(counts + timing).
 
 Example:
   python scripts/test_live_gate_detection.py \\
-    "tests/re-test videos" \\
+    "eval/gate_live_videos" \\
     --gate-model models/gate_detector_best.pt \\
-    --stride 3 --conf 0.20 --iou 0.45 --infer-width 1280 \\
-    --output-dir outputs/gate_live_retest
+    --stride 3 --conf 0.15 --iou 0.55 --infer-width 1280 \\
+    --output-dir artifacts/outputs/gate_live/retest
 """
 
 import argparse
@@ -66,7 +67,7 @@ def run_one(
     infer_width: int | None,
     max_frames: int | None,
 ):
-    from ski_racing.detection import GateDetector
+    from ski_racing.detection import GateDetector, LiveGateStabilizer
 
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
@@ -85,6 +86,19 @@ def run_one(
     out = cv2.VideoWriter(str(out_video_path), fourcc, fps if fps > 1e-6 else 30.0, (width, height))
 
     detector = GateDetector(str(gate_model_path))
+    stabilizer = LiveGateStabilizer(
+        show_stale=False,
+        max_shown_stale_calls=1,
+        stale_conf_decay=0.85,
+        min_hits_to_show=2,
+        spawn_conf=0.35,
+        update_conf_min=0.15,
+        display_conf=0.30,
+        meas_sigma_px=10.0,
+        accel_sigma_px=8.0,
+        maha_threshold=3.0,
+        match_threshold=130.0,
+    )
 
     stride = max(1, int(stride))
     infer_times_ms = []
@@ -105,28 +119,46 @@ def run_one(
         if frame_idx - last_infer_frame >= stride:
             infer_frame = frame
             sx = sy = 1.0
+            resize_ms = 0.0
             if infer_width is not None and int(infer_width) > 0 and width > int(infer_width):
                 target_w = int(infer_width)
                 target_h = int(round(height * (target_w / width)))
+                tr0 = time.perf_counter()
                 infer_frame = cv2.resize(infer_frame, (target_w, target_h), interpolation=cv2.INTER_AREA)
+                tr1 = time.perf_counter()
+                resize_ms = 1000.0 * (tr1 - tr0)
                 sx = float(width / target_w)
                 sy = float(height / target_h)
 
             t0 = time.perf_counter()
             dets = detector.detect_in_frame(infer_frame, conf=float(conf), iou=float(iou))
             t1 = time.perf_counter()
-            infer_times_ms.append(1000.0 * (t1 - t0))
+            infer_ms = 1000.0 * (t1 - t0)
+            infer_times_ms.append(infer_ms)
             if sx != 1.0 or sy != 1.0:
                 dets = _scale_dets(dets, sx=sx, sy=sy)
-            cached = dets
+            # Inference frame: predict+update with fresh detections.
+            cached = stabilizer.step(frame_idx, dets)
             last_infer_frame = frame_idx
 
-            c = int(len(dets))
+            c = int(len(dets))   # raw detection count for diagnostics
             counts.append(c)
             mean_conf = _safe_mean([float(d.get("confidence", 0.0)) for d in dets if isinstance(d, dict)])
-            call_rows.append({"frame": int(frame_idx), "count": c, "mean_conf": float(mean_conf)})
+            shown_count = int(len(cached))
+            call_rows.append({
+                "frame": int(frame_idx),
+                "count": c,
+                "shown_count": shown_count,
+                "stable_count": shown_count,  # kept for compatibility with prior summaries
+                "mean_conf": float(mean_conf),
+                "infer_ms": float(infer_ms),
+                "resize_ms": float(resize_ms),
+            })
+        else:
+            # Non-inference frame: predict-only propagation.
+            cached = stabilizer.step(frame_idx, None)
 
-        # Draw cached gates on every frame
+        # Draw stabilized gate positions on every frame
         for i, d in enumerate(cached):
             if not isinstance(d, dict):
                 continue
@@ -144,7 +176,7 @@ def run_one(
         # Text overlay
         cv2.putText(frame, f"Frame: {frame_idx}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.putText(frame, f"Gates (cached): {len(cached)}", (10, 70),
+        cv2.putText(frame, f"Gates (shown): {len(cached)}", (10, 70),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         cv2.putText(frame, f"Infer stride: {stride}", (10, 110),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
@@ -219,8 +251,8 @@ def main():
     parser.add_argument("--gate-model", required=True, help="Path to trained gate detector weights")
     parser.add_argument("--output-dir", required=True, help="Output directory for overlays + summaries")
     parser.add_argument("--stride", type=int, default=3, help="Run inference every N frames (default 3)")
-    parser.add_argument("--conf", type=float, default=0.20, help="Gate detection confidence (default 0.20)")
-    parser.add_argument("--iou", type=float, default=0.45, help="Gate detection NMS IoU (default 0.45)")
+    parser.add_argument("--conf", type=float, default=0.15, help="Gate detection confidence (default 0.15)")
+    parser.add_argument("--iou", type=float, default=0.55, help="Gate detection NMS IoU (default 0.55)")
     parser.add_argument("--infer-width", type=int, default=1280,
                         help="Resize width for inference (default 1280; set 0 to disable)")
     parser.add_argument("--max-frames", type=int, default=None, help="Optional cap on processed frames")

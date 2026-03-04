@@ -304,17 +304,20 @@ class TemporalGateTracker:
     racers hit them (cross-blocking technique).
     """
 
-    def __init__(self, max_missing_frames=10, match_threshold=50.0):
+    def __init__(self, max_missing_frames=10, match_threshold=50.0, ema_alpha=0.4):
         """
         Args:
             max_missing_frames: How many frames a gate can be missing before removal.
             match_threshold: Max pixel distance to consider a detection matching a tracked gate.
+            ema_alpha: EMA weight for position updates (0 = frozen, 1 = no smoothing).
+                0.4 damps per-frame jitter while still following real camera motion.
         """
         self.gate_memory = {}       # gate_id -> last known position
         self.missing_frames = {}    # gate_id -> frames since last detection
         self.confidence = {}        # gate_id -> current confidence level
         self.max_missing = max_missing_frames
         self.match_threshold = match_threshold
+        self.ema_alpha = ema_alpha
         self.next_id = 0
         self.frame_history = {}     # frame_idx -> {gate_id: (center_x, base_y)} (detected-only)
         self.frame_history_full = {}  # frame_idx -> {gate_id: gate_info} (includes interpolated)
@@ -370,10 +373,15 @@ class TemporalGateTracker:
                     best_match = i
 
             if best_match is not None:
-                # Update with fresh detection
+                # Update with fresh detection, EMA-smoothed to reduce jitter
                 det = detected_gates[best_match]
-                self.gate_memory[gate_id]["center_x"] = det["center_x"]
-                self.gate_memory[gate_id]["base_y"] = det["base_y"]
+                a = self.ema_alpha
+                self.gate_memory[gate_id]["center_x"] = (
+                    a * det["center_x"] + (1 - a) * self.gate_memory[gate_id]["center_x"]
+                )
+                self.gate_memory[gate_id]["base_y"] = (
+                    a * det["base_y"] + (1 - a) * self.gate_memory[gate_id]["base_y"]
+                )
                 self.missing_frames[gate_id] = 0
                 # Smooth confidence using detector output if available
                 det_conf = float(det.get("confidence", self.confidence[gate_id]))
@@ -479,6 +487,288 @@ class TemporalGateTracker:
                 sum(self.confidence.values()) / total if total > 0 else 0
             ),
         }
+
+
+class LiveGateStabilizer:
+    """
+    Kalman-based stabilizer for live YOLO gate detections.
+
+    Tracks store a constant-velocity state ``[cx, by, vx, vy]`` and are
+    predicted on every ``step()`` call, including non-inference frames.
+    """
+
+    def __init__(self, match_threshold: float = 80.0, alpha: float = 0.4,
+                 max_stale_calls: int = 3, min_hits_to_show: int = 2,
+                 show_stale: bool = False, max_shown_stale_calls: int = 0,
+                 stale_conf_decay: float = 0.85, spawn_conf: float = 0.35,
+                 update_conf_min: float = 0.15, display_conf: float = 0.30,
+                 meas_sigma_px: float = 10.0, accel_sigma_px: float = 8.0,
+                 maha_threshold: float = 3.0, class_mismatch_cost: float = 0.75):
+        """
+        Args:
+            match_threshold: Hard Euclidean pixel-distance cap for association.
+            alpha: EMA weight for confidence only (position uses Kalman filter).
+            max_stale_calls: Consecutive inference calls a track can go
+                unmatched before removal.
+            min_hits_to_show: Track needs this many matched updates before it
+                can be shown in output.
+            show_stale: Whether unmatched (stale) tracks are allowed in output.
+                Legacy compatibility flag.
+            max_shown_stale_calls: Maximum stale inference calls still shown.
+            stale_conf_decay: Confidence EMA decay applied on inference misses.
+            spawn_conf: Minimum confidence required to start a new track.
+            update_conf_min: Minimum confidence accepted for matching updates.
+            display_conf: Minimum confidence EMA required to show a track.
+            meas_sigma_px: Measurement noise sigma for Kalman R.
+            accel_sigma_px: Process acceleration sigma for Kalman Q.
+            maha_threshold: Mahalanobis distance gate for association.
+            class_mismatch_cost: Cost penalty added when classes differ.
+        """
+        self._tracks: dict = {}
+        self._next_id: int = 0
+        self._match_threshold = float(match_threshold)
+        self._alpha = float(alpha)
+        self._max_stale_calls = max(0, int(max_stale_calls))
+        self._min_hits_to_show = max(1, int(min_hits_to_show))
+        if show_stale:
+            # Legacy path: match prior "show stale until dropped" behavior.
+            self._max_shown_stale_calls = self._max_stale_calls
+        else:
+            self._max_shown_stale_calls = max(0, int(max_shown_stale_calls))
+        self._stale_conf_decay = max(0.0, float(stale_conf_decay))
+        self._spawn_conf = float(spawn_conf)
+        self._update_conf_min = float(update_conf_min)
+        self._display_conf = float(display_conf)
+        self._meas_sigma_px = float(meas_sigma_px)
+        self._accel_sigma_px = float(accel_sigma_px)
+        self._maha_threshold = float(maha_threshold)
+        self._class_mismatch_cost = float(class_mismatch_cost)
+
+        self._H = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]], dtype=float)
+        self._I = np.eye(4, dtype=float)
+        self._R = np.diag([self._meas_sigma_px ** 2, self._meas_sigma_px ** 2]).astype(float)
+
+        self._last_step_frame_idx: int | None = None
+        self._update_call_idx: int = 0
+
+    @staticmethod
+    def _greedy_assign(cost_triples: list[tuple[float, int, int]]) -> list[tuple[int, int]]:
+        matches = []
+        used_tracks = set()
+        used_dets = set()
+        for _cost, track_id, det_i in sorted(cost_triples, key=lambda t: t[0]):
+            if track_id in used_tracks or det_i in used_dets:
+                continue
+            used_tracks.add(track_id)
+            used_dets.add(det_i)
+            matches.append((track_id, det_i))
+        return matches
+
+    def _transition_matrix(self, dt: float) -> np.ndarray:
+        return np.array(
+            [[1.0, 0.0, dt, 0.0], [0.0, 1.0, 0.0, dt], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+            dtype=float,
+        )
+
+    def _process_noise(self, dt: float) -> np.ndarray:
+        dt2 = dt * dt
+        dt3 = dt2 * dt
+        dt4 = dt2 * dt2
+        axis_q = np.array([[dt4 / 4.0, dt3 / 2.0], [dt3 / 2.0, dt2]], dtype=float)
+        axis_q *= self._accel_sigma_px ** 2
+        q = np.zeros((4, 4), dtype=float)
+        q[np.ix_([0, 2], [0, 2])] = axis_q
+        q[np.ix_([1, 3], [1, 3])] = axis_q
+        return q
+
+    def _parse_candidates(self, dets: list) -> list[dict]:
+        candidates = []
+        for det in dets:
+            if not isinstance(det, dict):
+                continue
+            try:
+                center_x = float(det["center_x"])
+                base_y = float(det["base_y"])
+                confidence = float(det["confidence"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not np.isfinite(center_x) or not np.isfinite(base_y) or not np.isfinite(confidence):
+                continue
+            if confidence < self._update_conf_min:
+                continue
+            try:
+                det_class = int(det.get("class", 0))
+            except (TypeError, ValueError):
+                det_class = 0
+            class_name = det.get("class_name", "unknown")
+            candidates.append(
+                {
+                    "det": det,
+                    "z": np.array([center_x, base_y], dtype=float),
+                    "confidence": confidence,
+                    "class": det_class,
+                    "class_name": str(class_name if class_name is not None else "unknown"),
+                }
+            )
+        return candidates
+
+    def _drop_stale_tracks(self) -> None:
+        stale_ids = [
+            track_id
+            for track_id, track in self._tracks.items()
+            if int(track.get("stale_calls", 0)) > self._max_stale_calls
+        ]
+        for track_id in stale_ids:
+            del self._tracks[track_id]
+
+    def _shown_tracks(self) -> list:
+        output = []
+        for track in self._tracks.values():
+            if int(track.get("hits", 0)) < self._min_hits_to_show:
+                continue
+            if int(track.get("stale_calls", 0)) > self._max_shown_stale_calls:
+                continue
+            if float(track.get("confidence_ema", 0.0)) < self._display_conf:
+                continue
+            output.append({
+                "track_id": int(track["track_id"]),
+                "center_x": float(track["x"][0]),
+                "base_y": float(track["x"][1]),
+                "class": int(track.get("class", 0)),
+                "class_name": str(track.get("class_name", "unknown")),
+                "confidence": float(track.get("confidence_ema", 0.0)),
+                "confidence_ema": float(track.get("confidence_ema", 0.0)),
+                "hits": int(track.get("hits", 0)),
+                "stale_calls": int(track.get("stale_calls", 0)),
+            })
+        output.sort(key=lambda g: g["base_y"])
+        return output
+
+    def step(self, frame_idx: int, dets: list | None) -> list:
+        """
+        Predict tracks and optionally update with detections.
+
+        Args:
+            frame_idx: Monotonic frame/update index for dt computation.
+            dets: ``None`` for predict-only frame; ``[]`` for inference miss;
+                or a detection list for normal update.
+
+        Returns:
+            List of shown gate dicts sorted by ``base_y`` ascending.
+        """
+        frame_idx = int(frame_idx)
+        if self._last_step_frame_idx is None:
+            dt = 1.0
+        else:
+            dt = float(max(1, frame_idx - int(self._last_step_frame_idx)))
+
+        f = self._transition_matrix(dt)
+        q = self._process_noise(dt)
+
+        for track in self._tracks.values():
+            track["x"] = f @ track["x"]
+            track["P"] = f @ track["P"] @ f.T + q
+
+        if dets is None:
+            self._last_step_frame_idx = frame_idx
+            return self._shown_tracks()
+
+        candidates = self._parse_candidates(dets)
+        cost_triples: list[tuple[float, int, int]] = []
+
+        for track_id, track in self._tracks.items():
+            x = track["x"]
+            p = track["P"]
+            hx = self._H @ x
+            s = self._H @ p @ self._H.T + self._R
+            try:
+                s_inv = np.linalg.inv(s)
+            except np.linalg.LinAlgError:
+                s_inv = np.linalg.pinv(s)
+
+            for det_i, candidate in enumerate(candidates):
+                y = candidate["z"] - hx
+                px_dist = float(np.linalg.norm(y))
+                mahal_sq = float(y.T @ s_inv @ y)
+                mahal = float(np.sqrt(max(mahal_sq, 0.0)))
+                if mahal > self._maha_threshold or px_dist > self._match_threshold:
+                    continue
+                class_penalty = (
+                    self._class_mismatch_cost
+                    if int(track.get("class", 0)) != int(candidate["class"])
+                    else 0.0
+                )
+                cost_triples.append((mahal + class_penalty, int(track_id), int(det_i)))
+
+        matches = self._greedy_assign(cost_triples)
+        matched_track_ids = {track_id for track_id, _ in matches}
+        matched_det_ids = {det_i for _, det_i in matches}
+
+        for track_id, det_i in matches:
+            track = self._tracks[track_id]
+            candidate = candidates[det_i]
+            z = candidate["z"]
+            y = z - (self._H @ track["x"])
+            s = self._H @ track["P"] @ self._H.T + self._R
+            try:
+                s_inv = np.linalg.inv(s)
+            except np.linalg.LinAlgError:
+                s_inv = np.linalg.pinv(s)
+            k = track["P"] @ self._H.T @ s_inv
+            track["x"] = track["x"] + (k @ y)
+            # Joseph form is more numerically stable; standard form is kept here
+            # intentionally for simplicity/size.
+            track["P"] = (self._I - (k @ self._H)) @ track["P"]
+            track["hits"] = int(track.get("hits", 0)) + 1
+            track["stale_calls"] = 0
+            track["confidence_ema"] = (
+                self._alpha * float(candidate["confidence"])
+                + (1.0 - self._alpha) * float(track.get("confidence_ema", candidate["confidence"]))
+            )
+            track["class"] = int(candidate["class"])
+            track["class_name"] = str(candidate["class_name"])
+
+        for track_id, track in self._tracks.items():
+            if track_id in matched_track_ids:
+                continue
+            track["stale_calls"] = int(track.get("stale_calls", 0)) + 1
+            track["confidence_ema"] = float(track.get("confidence_ema", 0.0)) * self._stale_conf_decay
+
+        self._drop_stale_tracks()
+
+        init_cov = np.diag([self._meas_sigma_px ** 2, self._meas_sigma_px ** 2, 50.0 ** 2, 50.0 ** 2]).astype(float)
+        for det_i, candidate in enumerate(candidates):
+            if det_i in matched_det_ids:
+                continue
+            if float(candidate["confidence"]) < self._spawn_conf:
+                continue
+            track_id = self._next_id
+            self._tracks[track_id] = {
+                "track_id": int(track_id),
+                "x": np.array([candidate["z"][0], candidate["z"][1], 0.0, 0.0], dtype=float),
+                "P": init_cov.copy(),
+                "class": int(candidate["class"]),
+                "class_name": str(candidate["class_name"]),
+                "confidence_ema": float(candidate["confidence"]),
+                "hits": 1,
+                "stale_calls": 0,
+            }
+            self._next_id += 1
+
+        self._last_step_frame_idx = frame_idx
+
+        return self._shown_tracks()
+
+    def update(self, dets: list) -> list:
+        """
+        Legacy wrapper around ``step()``.
+
+        Notes:
+            dt is measured in update-call units when this wrapper is used.
+            Velocities are therefore "pixels per update call" by design.
+        """
+        self._update_call_idx += 1
+        return self.step(self._update_call_idx, dets)
 
 
 # ---------------------------------------------------------------------------

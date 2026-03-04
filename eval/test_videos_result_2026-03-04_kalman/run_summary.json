@@ -1,0 +1,112 @@
+[
+  {
+    "video": "28_1752484118(\u539f\u89c6\u9891).mp4",
+    "min_gates": 0,
+    "p50_gates": 10.0,
+    "max_gates": 19,
+    "avg_infer_ms": 40.492641515403214,
+    "p95_infer_ms": 42.97473899714532,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/28_1752484118(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/28_1752484118(\u539f\u89c6\u9891)_live_gates_summary.json"
+  },
+  {
+    "video": "30_1752484596(\u539f\u89c6\u9891).mp4",
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 28,
+    "avg_infer_ms": 41.28649728808886,
+    "p95_infer_ms": 46.894021205662284,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/30_1752484596(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/30_1752484596(\u539f\u89c6\u9891)_live_gates_summary.json"
+  },
+  {
+    "video": "38_1752843425(\u539f\u89c6\u9891).mp4",
+    "min_gates": 0,
+    "p50_gates": 8.0,
+    "max_gates": 20,
+    "avg_infer_ms": 41.44153495746289,
+    "p95_infer_ms": 46.79618360241875,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/38_1752843425(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/38_1752843425(\u539f\u89c6\u9891)_live_gates_summary.json"
+  },
+  {
+    "video": "594_1732936638(\u539f\u89c6\u9891).mp4",
+    "min_gates": 2,
+    "p50_gates": 16.0,
+    "max_gates": 22,
+    "avg_infer_ms": 42.15747128575317,
+    "p95_infer_ms": 49.49445819947868,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/594_1732936638(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/594_1732936638(\u539f\u89c6\u9891)_live_gates_summary.json"
+  },
+  {
+    "video": "IMG_1309.MOV",
+    "min_gates": 11,
+    "p50_gates": 16.0,
+    "max_gates": 24,
+    "avg_infer_ms": 44.45000673756682,
+    "p95_infer_ms": 50.54665804564138,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/IMG_1309_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/IMG_1309_live_gates_summary.json"
+  },
+  {
+    "video": "IMG_1478.MOV",
+    "min_gates": 0,
+    "p50_gates": 10.0,
+    "max_gates": 27,
+    "avg_infer_ms": 41.336109266965394,
+    "p95_infer_ms": 46.22575000394136,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/IMG_1478_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/IMG_1478_live_gates_summary.json"
+  },
+  {
+    "video": "mmexport1704088159935.mp4",
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 18,
+    "avg_infer_ms": 40.21298178310301,
+    "p95_infer_ms": 42.666267046297435,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/mmexport1704088159935_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/mmexport1704088159935_live_gates_summary.json"
+  },
+  {
+    "video": "mmexport1704089261026.mp4",
+    "min_gates": 0,
+    "p50_gates": 14.0,
+    "max_gates": 27,
+    "avg_infer_ms": 48.3472659770107,
+    "p95_infer_ms": 51.81870850356063,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/mmexport1704089261026_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/mmexport1704089261026_live_gates_summary.json"
+  },
+  {
+    "video": "mmexport1706098456374.mp4",
+    "min_gates": 0,
+    "p50_gates": 8.0,
+    "max_gates": 19,
+    "avg_infer_ms": 49.57667733326547,
+    "p95_infer_ms": 54.124920652247965,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/mmexport1706098456374_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/mmexport1706098456374_live_gates_summary.json"
+  },
+  {
+    "video": "\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891).mp4",
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 22,
+    "avg_infer_ms": 42.77646936380529,
+    "p95_infer_ms": 47.139012801926576,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates_summary.json"
+  },
+  {
+    "video": "\u957f\u57ce\u5cad12.8.mp4",
+    "min_gates": 0,
+    "p50_gates": 8.0,
+    "max_gates": 29,
+    "avg_infer_ms": 55.88502855605248,
+    "p95_infer_ms": 62.055468749895226,
+    "overlay_video": "eval/test_videos_result_2026-03-04_kalman/\u957f\u57ce\u5cad12.8_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-04_kalman/\u957f\u57ce\u5cad12.8_live_gates_summary.json"
+  }
+]
