@@ -1,0 +1,427 @@
+[
+  {
+    "video": "28_1752484118(\u539f\u89c6\u9891).mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 196,
+    "min_gates": 0,
+    "p50_gates": 10.0,
+    "max_gates": 19,
+    "raw_p50": 10.0,
+    "shown_p50": 8.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 10.0,
+      "max": 19,
+      "mean": 9.591836734693878
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 17,
+      "mean": 8.040816326530612
+    },
+    "blank_calls": 1,
+    "max_blank_streak": 1,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.8,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 36.56714648456486,
+    "p95_infer_ms": 39.782229006959824,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/28_1752484118(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/28_1752484118(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [
+      312
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 360,
+      "end_frame": 360,
+      "calls": 1
+    }
+  },
+  {
+    "video": "30_1752484596(\u539f\u89c6\u9891).mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 399,
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 28,
+    "raw_p50": 9.0,
+    "shown_p50": 6.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 9.0,
+      "max": 28,
+      "mean": 8.80952380952381
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 6.0,
+      "max": 20,
+      "mean": 6.601503759398496
+    },
+    "blank_calls": 10,
+    "max_blank_streak": 2,
+    "ghost_calls": 4,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.6666666666666666,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 37.29468046642757,
+    "p95_infer_ms": 44.273112203518394,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/30_1752484596(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/30_1752484596(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [
+      708,
+      735,
+      813,
+      858
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 786,
+      "end_frame": 789,
+      "calls": 2
+    }
+  },
+  {
+    "video": "38_1752843425(\u539f\u89c6\u9891).mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 237,
+    "min_gates": 0,
+    "p50_gates": 8.0,
+    "max_gates": 20,
+    "raw_p50": 8.0,
+    "shown_p50": 7.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 20,
+      "mean": 8.628691983122362
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 7.0,
+      "max": 18,
+      "mean": 7.70042194092827
+    },
+    "blank_calls": 0,
+    "max_blank_streak": 0,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.875,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 41.919583670980636,
+    "p95_infer_ms": 49.97895779670215,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/38_1752843425(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/38_1752843425(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [
+      261
+    ],
+    "worst_blank_streak_segment": null
+  },
+  {
+    "video": "594_1732936638(\u539f\u89c6\u9891).mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 515,
+    "min_gates": 2,
+    "p50_gates": 16.0,
+    "max_gates": 22,
+    "raw_p50": 16.0,
+    "shown_p50": 12.0,
+    "raw_stats": {
+      "min": 2,
+      "p50": 16.0,
+      "max": 22,
+      "mean": 14.427184466019417
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 12.0,
+      "max": 19,
+      "mean": 11.537864077669903
+    },
+    "blank_calls": 4,
+    "max_blank_streak": 4,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.75,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 41.3590774970588,
+    "p95_infer_ms": 51.970716696814634,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/594_1732936638(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/594_1732936638(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": {
+      "start_frame": 1281,
+      "end_frame": 1290,
+      "calls": 4
+    }
+  },
+  {
+    "video": "IMG_1309.MOV",
+    "run_tag": "StageB_T1H",
+    "calls": 278,
+    "min_gates": 11,
+    "p50_gates": 17.0,
+    "max_gates": 24,
+    "raw_p50": 17.0,
+    "shown_p50": 12.0,
+    "raw_stats": {
+      "min": 11,
+      "p50": 17.0,
+      "max": 24,
+      "mean": 16.805755395683452
+    },
+    "shown_stats": {
+      "min": 8,
+      "p50": 12.0,
+      "max": 18,
+      "mean": 12.014388489208633
+    },
+    "blank_calls": 0,
+    "max_blank_streak": 0,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.7058823529411765,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 33.94074576986215,
+    "p95_infer_ms": 36.21857059843023,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/IMG_1309_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/IMG_1309_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": null
+  },
+  {
+    "video": "IMG_1478.MOV",
+    "run_tag": "StageB_T1H",
+    "calls": 461,
+    "min_gates": 0,
+    "p50_gates": 10.0,
+    "max_gates": 27,
+    "raw_p50": 10.0,
+    "shown_p50": 8.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 10.0,
+      "max": 27,
+      "mean": 9.898047722342733
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 15,
+      "mean": 7.405639913232104
+    },
+    "blank_calls": 5,
+    "max_blank_streak": 3,
+    "ghost_calls": 3,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.8,
+    "miss_after_det_blank": 2,
+    "avg_infer_ms": 34.110686479645445,
+    "p95_infer_ms": 36.54041700065136,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/IMG_1478_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/IMG_1478_live_gates_summary.json",
+    "ghost_frames": [
+      1224,
+      1329,
+      1353
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 1257,
+      "end_frame": 1263,
+      "calls": 3
+    }
+  },
+  {
+    "video": "mmexport1704088159935.mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 604,
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 18,
+    "raw_p50": 9.0,
+    "shown_p50": 8.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 9.0,
+      "max": 18,
+      "mean": 8.917218543046358
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 14,
+      "mean": 7.473509933774834
+    },
+    "blank_calls": 15,
+    "max_blank_streak": 4,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.8888888888888888,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 37.570247148817586,
+    "p95_infer_ms": 40.946243696816964,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/mmexport1704088159935_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/mmexport1704088159935_live_gates_summary.json",
+    "ghost_frames": [
+      1056
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 1038,
+      "end_frame": 1047,
+      "calls": 4
+    }
+  },
+  {
+    "video": "mmexport1704089261026.mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 266,
+    "min_gates": 0,
+    "p50_gates": 14.0,
+    "max_gates": 27,
+    "raw_p50": 14.0,
+    "shown_p50": 11.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 14.0,
+      "max": 27,
+      "mean": 13.541353383458647
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 11.0,
+      "max": 19,
+      "mean": 10.526315789473685
+    },
+    "blank_calls": 3,
+    "max_blank_streak": 2,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.7857142857142857,
+    "miss_after_det_blank": 2,
+    "avg_infer_ms": 45.068019917134116,
+    "p95_infer_ms": 50.261145745025715,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/mmexport1704089261026_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/mmexport1704089261026_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": {
+      "start_frame": 483,
+      "end_frame": 486,
+      "calls": 2
+    }
+  },
+  {
+    "video": "mmexport1706098456374.mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 132,
+    "min_gates": 0,
+    "p50_gates": 8.0,
+    "max_gates": 19,
+    "raw_p50": 8.0,
+    "shown_p50": 7.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 19,
+      "mean": 8.136363636363637
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 7.0,
+      "max": 17,
+      "mean": 7.265151515151516
+    },
+    "blank_calls": 5,
+    "max_blank_streak": 2,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.875,
+    "miss_after_det_blank": 1,
+    "avg_infer_ms": 45.90363862889441,
+    "p95_infer_ms": 48.36181045466219,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/mmexport1706098456374_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/mmexport1706098456374_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": {
+      "start_frame": 318,
+      "end_frame": 321,
+      "calls": 2
+    }
+  },
+  {
+    "video": "\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891).mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 503,
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 22,
+    "raw_p50": 9.0,
+    "shown_p50": 6.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 9.0,
+      "max": 22,
+      "mean": 8.765407554671969
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 6.0,
+      "max": 18,
+      "mean": 6.5168986083499005
+    },
+    "blank_calls": 11,
+    "max_blank_streak": 3,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.6666666666666666,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 42.70495375744243,
+    "p95_infer_ms": 46.985975310963106,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [
+      720
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 726,
+      "end_frame": 732,
+      "calls": 3
+    }
+  },
+  {
+    "video": "\u957f\u57ce\u5cad12.8.mp4",
+    "run_tag": "StageB_T1H",
+    "calls": 302,
+    "min_gates": 0,
+    "p50_gates": 8.0,
+    "max_gates": 29,
+    "raw_p50": 8.0,
+    "shown_p50": 6.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 29,
+      "mean": 11.850993377483444
+    },
+    "shown_stats": {
+      "min": 1,
+      "p50": 6.0,
+      "max": 21,
+      "mean": 9.04635761589404
+    },
+    "blank_calls": 0,
+    "max_blank_streak": 0,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.75,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 49.14736081784381,
+    "p95_infer_ms": 54.52646284975344,
+    "overlay_video": "eval/test_videos_result_2026-03-05_stageB_T1H/\u957f\u57ce\u5cad12.8_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_stageB_T1H/\u957f\u57ce\u5cad12.8_live_gates_summary.json",
+    "ghost_frames": [
+      504
+    ],
+    "worst_blank_streak_segment": null
+  }
+]

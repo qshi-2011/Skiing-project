@@ -131,11 +131,18 @@ def create_demo_video(video_path, analysis_path, output_path,
 
         # Draw gates
         for i, (gx, gy, gmeta) in enumerate(gate_positions):
-            if isinstance(gmeta, dict) and "class" in gmeta:
-                color = (0, 0, 255) if int(gmeta["class"]) % 2 == 0 else (255, 0, 0)
-            elif isinstance(gmeta, dict) and "gate_id" in gmeta:
-                color = (0, 0, 255) if int(gmeta["gate_id"]) % 2 == 0 else (255, 0, 0)
-            else:
+            color = None
+            if isinstance(gmeta, dict):
+                for key in ("track_id", "class", "gate_id"):
+                    if gmeta.get(key) is None:
+                        continue
+                    try:
+                        color = (0, 0, 255) if int(gmeta[key]) % 2 == 0 else (255, 0, 0)
+                    except (TypeError, ValueError):
+                        color = None
+                    if color is not None:
+                        break
+            if color is None:
                 color = (0, 0, 255) if i % 2 == 0 else (255, 0, 0)  # Red / Blue
             cv2.circle(frame, (gx, gy), 10, color, -1)
             cv2.circle(frame, (gx, gy), 15, color, 2)

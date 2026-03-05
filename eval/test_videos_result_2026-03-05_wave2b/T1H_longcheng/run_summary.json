@@ -1,0 +1,42 @@
+[
+  {
+    "video": "\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891).mp4",
+    "run_tag": "T1H_longcheng",
+    "calls": 503,
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 22,
+    "raw_p50": 9.0,
+    "shown_p50": 6.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 9.0,
+      "max": 22,
+      "mean": 8.765407554671969
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 6.0,
+      "max": 18,
+      "mean": 6.5168986083499005
+    },
+    "blank_calls": 11,
+    "max_blank_streak": 3,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.6666666666666666,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 37.540722252728386,
+    "p95_infer_ms": 41.99625419132644,
+    "overlay_video": "eval/test_videos_result_2026-03-05_wave2b/T1H_longcheng/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_wave2b/T1H_longcheng/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [
+      720
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 726,
+      "end_frame": 732,
+      "calls": 3
+    }
+  }
+]

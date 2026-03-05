@@ -1,0 +1,80 @@
+[
+  {
+    "video": "mmexport1704088159935.mp4",
+    "run_tag": "T1",
+    "calls": 604,
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 18,
+    "raw_p50": 9.0,
+    "shown_p50": 8.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 9.0,
+      "max": 18,
+      "mean": 8.917218543046358
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 8.0,
+      "max": 14,
+      "mean": 7.617549668874172
+    },
+    "blank_calls": 30,
+    "max_blank_streak": 14,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.8888888888888888,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 42.21373765747389,
+    "p95_infer_ms": 46.898283907648874,
+    "overlay_video": "eval/test_videos_result_2026-03-05_wave2a/T1/mmexport1704088159935_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_wave2a/T1/mmexport1704088159935_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": {
+      "start_frame": 1074,
+      "end_frame": 1113,
+      "calls": 14
+    }
+  },
+  {
+    "video": "\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891).mp4",
+    "run_tag": "T1",
+    "calls": 503,
+    "min_gates": 0,
+    "p50_gates": 9.0,
+    "max_gates": 22,
+    "raw_p50": 9.0,
+    "shown_p50": 6.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 9.0,
+      "max": 22,
+      "mean": 8.765407554671969
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 6.0,
+      "max": 17,
+      "mean": 6.713717693836978
+    },
+    "blank_calls": 27,
+    "max_blank_streak": 12,
+    "ghost_calls": 1,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.6666666666666666,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 39.19948271572822,
+    "p95_infer_ms": 45.0858003066969,
+    "overlay_video": "eval/test_videos_result_2026-03-05_wave2a/T1/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates.mp4",
+    "summary_json": "eval/test_videos_result_2026-03-05_wave2a/T1/\u957f\u57ce\u5cad12.12(\u539f\u89c6\u9891)_live_gates_summary.json",
+    "ghost_frames": [
+      720
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 738,
+      "end_frame": 771,
+      "calls": 12
+    }
+  }
+]
