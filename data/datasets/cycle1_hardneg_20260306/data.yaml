@@ -1,0 +1,12 @@
+# Cycle 1 retraining dataset (2026-03-06)
+# Base: final_combined_1class_20260226_curated (360 train)
+# Added: 98 hard negatives from GS aerial/shadow frames, finish-area netting, venue infrastructure
+# Train: 458 images (360 original + 98 hard negatives)
+# Valid: 72 images
+# Test:  26 images
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 1
+names: ['gate']

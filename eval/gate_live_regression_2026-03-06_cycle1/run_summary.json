@@ -1,0 +1,136 @@
+[
+  {
+    "video": "1571_raw.MP4",
+    "run_tag": "gate_live_regression_2026-03-06_cycle1",
+    "calls": 560,
+    "min_gates": 0,
+    "p50_gates": 13.0,
+    "max_gates": 25,
+    "raw_p50": 13.0,
+    "shown_p50": 11.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 13.0,
+      "max": 25,
+      "mean": 10.989285714285714
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 11.0,
+      "max": 20,
+      "mean": 8.773214285714285
+    },
+    "blank_calls": 9,
+    "blank_spawnable_calls": 0,
+    "max_blank_streak": 2,
+    "ghost_calls": 6,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.8461538461538461,
+    "miss_after_det_blank": 1,
+    "avg_infer_ms": 49.66836695764089,
+    "p95_infer_ms": 65.87966248771409,
+    "overlay_video": "eval/gate_live_regression_2026-03-06_cycle1/1571_raw_live_gates.mp4",
+    "summary_json": "eval/gate_live_regression_2026-03-06_cycle1/1571_raw_live_gates_summary.json",
+    "ghost_frames": [
+      1251,
+      1284,
+      1335,
+      1416,
+      1596,
+      1623
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 1338,
+      "end_frame": 1341,
+      "calls": 2
+    }
+  },
+  {
+    "video": "1575_raw.MP4",
+    "run_tag": "gate_live_regression_2026-03-06_cycle1",
+    "calls": 352,
+    "min_gates": 0,
+    "p50_gates": 7.0,
+    "max_gates": 27,
+    "raw_p50": 7.0,
+    "shown_p50": 6.0,
+    "raw_stats": {
+      "min": 0,
+      "p50": 7.0,
+      "max": 27,
+      "mean": 7.971590909090909
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 6.0,
+      "max": 20,
+      "mean": 6.349431818181818
+    },
+    "blank_calls": 6,
+    "blank_spawnable_calls": 0,
+    "max_blank_streak": 1,
+    "ghost_calls": 9,
+    "max_ghost_streak": 1,
+    "shown_raw_ratio_p50": 0.8571428571428571,
+    "miss_after_det_blank": 2,
+    "avg_infer_ms": 47.85372123627564,
+    "p95_infer_ms": 62.1014352014754,
+    "overlay_video": "eval/gate_live_regression_2026-03-06_cycle1/1575_raw_live_gates.mp4",
+    "summary_json": "eval/gate_live_regression_2026-03-06_cycle1/1575_raw_live_gates_summary.json",
+    "ghost_frames": [
+      156,
+      216,
+      381,
+      408,
+      498,
+      558,
+      630,
+      903,
+      1017
+    ],
+    "worst_blank_streak_segment": {
+      "start_frame": 228,
+      "end_frame": 228,
+      "calls": 1
+    }
+  },
+  {
+    "video": "IMG_1310.MOV",
+    "run_tag": "gate_live_regression_2026-03-06_cycle1",
+    "calls": 515,
+    "min_gates": 2,
+    "p50_gates": 16.0,
+    "max_gates": 22,
+    "raw_p50": 16.0,
+    "shown_p50": 13.0,
+    "raw_stats": {
+      "min": 2,
+      "p50": 16.0,
+      "max": 22,
+      "mean": 14.483495145631068
+    },
+    "shown_stats": {
+      "min": 0,
+      "p50": 13.0,
+      "max": 19,
+      "mean": 11.636893203883496
+    },
+    "blank_calls": 4,
+    "blank_spawnable_calls": 2,
+    "max_blank_streak": 4,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.8125,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 47.96745608813916,
+    "p95_infer_ms": 61.69805899844502,
+    "overlay_video": "eval/gate_live_regression_2026-03-06_cycle1/IMG_1310_live_gates.mp4",
+    "summary_json": "eval/gate_live_regression_2026-03-06_cycle1/IMG_1310_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": {
+      "start_frame": 1281,
+      "end_frame": 1290,
+      "calls": 4
+    }
+  }
+]

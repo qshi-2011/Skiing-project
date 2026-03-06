@@ -1,0 +1,37 @@
+[
+  {
+    "video": "1571_raw.MP4",
+    "run_tag": "smoke_t1h",
+    "calls": 40,
+    "min_gates": 8,
+    "p50_gates": 15.0,
+    "max_gates": 19,
+    "raw_p50": 15.0,
+    "shown_p50": 10.0,
+    "raw_stats": {
+      "min": 8,
+      "p50": 15.0,
+      "max": 19,
+      "mean": 14.325
+    },
+    "shown_stats": {
+      "min": 6,
+      "p50": 10.0,
+      "max": 13,
+      "mean": 10.025
+    },
+    "blank_calls": 0,
+    "blank_spawnable_calls": 0,
+    "max_blank_streak": 0,
+    "ghost_calls": 0,
+    "max_ghost_streak": 0,
+    "shown_raw_ratio_p50": 0.6666666666666666,
+    "miss_after_det_blank": 0,
+    "avg_infer_ms": 40.58273027512769,
+    "p95_infer_ms": 41.34289645808167,
+    "overlay_video": "eval/smoke_stageb_t1h_default/1571_raw_live_gates.mp4",
+    "summary_json": "eval/smoke_stageb_t1h_default/1571_raw_live_gates_summary.json",
+    "ghost_frames": [],
+    "worst_blank_streak_segment": null
+  }
+]

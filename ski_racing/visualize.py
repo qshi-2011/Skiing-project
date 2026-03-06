@@ -11,9 +11,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+from ski_racing.live_gate_presets import (
+    DEFAULT_LIVE_GATE_PRESET,
+    get_live_gate_stabilizer_params,
+)
 
 def create_demo_video(video_path, analysis_path, output_path,
-                      gate_model_path=None, live_gate_stride=3):
+                      gate_model_path=None, live_gate_stride=3,
+                      live_gate_preset=DEFAULT_LIVE_GATE_PRESET, live_gate_params=None):
     """
     Create demo video with trajectory and gate overlay.
 
@@ -25,6 +30,8 @@ def create_demo_video(video_path, analysis_path, output_path,
             re-detected live on each frame so positions follow the camera exactly.
         live_gate_stride: Run live inference every N frames (default 3).
             Lower = more accurate but slower rendering.
+        live_gate_preset: Shared stabilizer preset name (default T1H).
+        live_gate_params: Optional per-field stabilizer overrides.
     """
     with open(analysis_path, "r") as f:
         analysis = json.load(f)
@@ -54,20 +61,11 @@ def create_demo_video(video_path, analysis_path, output_path,
     live_stabilizer = None
     if gate_model_path is not None:
         from ski_racing.detection import GateDetector, LiveGateStabilizer
+        params = get_live_gate_stabilizer_params(live_gate_preset)
+        if live_gate_params:
+            params.update(dict(live_gate_params))
         live_detector = GateDetector(gate_model_path)
-        live_stabilizer = LiveGateStabilizer(
-            show_stale=False,
-            max_shown_stale_calls=1,
-            stale_conf_decay=0.85,
-            min_hits_to_show=2,
-            spawn_conf=0.35,
-            update_conf_min=0.15,
-            display_conf=0.30,
-            meas_sigma_px=10.0,
-            accel_sigma_px=8.0,
-            maha_threshold=3.0,
-            match_threshold=130.0,
-        )
+        live_stabilizer = LiveGateStabilizer(show_stale=False, **params)
     live_cache = []        # last shown gate positions
     live_frame_at = -999   # frame index of last live inference run
 

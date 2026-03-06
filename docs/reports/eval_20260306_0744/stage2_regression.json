@@ -1,0 +1,123 @@
+{
+  "config": "/Users/quan/Documents/personal/Stanford application project/configs/regression_defaults.yaml",
+  "regression_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos",
+  "settings": {
+    "gate_conf": 0.36,
+    "gate_iou": 0.55,
+    "ensemble_model": "models/gate_detector_neg20_ensemble.pt",
+    "ensemble_nms_iou": 0.5,
+    "gate_full_track": true,
+    "outlier_filter": true,
+    "kalman_smooth": true,
+    "gate_init_mode": "single_best",
+    "gate_consensus_min_support": 3,
+    "discipline": "slalom",
+    "skier_conf": 0.15,
+    "gate_search_frames": 150,
+    "gate_search_stride": 5,
+    "gate_track_frames": 120,
+    "gate_track_stride": 3,
+    "gate_track_min_obs": 3,
+    "frame_stride": 1,
+    "stabilize": true
+  },
+  "videos": [
+    {
+      "video_id": "2907",
+      "path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2907_1765738705(Video in Original Quality).mp4"
+    },
+    {
+      "video_id": "2909",
+      "path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2909_1765738725(Video in Original Quality).mp4"
+    },
+    {
+      "video_id": "2911",
+      "path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2911_1765738746(Video in Original Quality).mp4"
+    }
+  ],
+  "per_video": [
+    {
+      "video_id": "2907",
+      "video_file": "2907_1765738705(Video in Original Quality).mp4",
+      "analysis_json": "stage2_regression/2907_analysis.json",
+      "gates_detected": 14,
+      "confirmed_gate_count": 15,
+      "ghost_gate_count_raw": 0,
+      "gate_interp_rate": 0.34497206703910616,
+      "provisional_dropped_count": 0,
+      "trajectory_coverage": 0.9644549763033176,
+      "tracked_frames": 814,
+      "total_frames": 844,
+      "track_id_switches": 0,
+      "p90_speed_kmh": 0.0,
+      "max_speed_kmh": 0.0,
+      "max_g_force": 0.0,
+      "max_jump_m": 0.0,
+      "auto_cal_correction": 1.0,
+      "auto_cal_applied": false,
+      "physics_issue_count": 0,
+      "course_gates_count": 76
+    },
+    {
+      "video_id": "2909",
+      "video_file": "2909_1765738725(Video in Original Quality).mp4",
+      "analysis_json": "stage2_regression/2909_analysis.json",
+      "gates_detected": 26,
+      "confirmed_gate_count": 27,
+      "ghost_gate_count_raw": 0,
+      "gate_interp_rate": 0.34704724409448817,
+      "provisional_dropped_count": 0,
+      "trajectory_coverage": 0.823271130625686,
+      "tracked_frames": 750,
+      "total_frames": 911,
+      "track_id_switches": 0,
+      "p90_speed_kmh": 0.0,
+      "max_speed_kmh": 0.0,
+      "max_g_force": 0.0,
+      "max_jump_m": 0.0,
+      "auto_cal_correction": 1.0,
+      "auto_cal_applied": false,
+      "physics_issue_count": 0,
+      "course_gates_count": 69
+    },
+    {
+      "video_id": "2911",
+      "video_file": "2911_1765738746(Video in Original Quality).mp4",
+      "analysis_json": "stage2_regression/2911_analysis.json",
+      "gates_detected": 24,
+      "confirmed_gate_count": 24,
+      "ghost_gate_count_raw": 0,
+      "gate_interp_rate": 0.4179357021996616,
+      "provisional_dropped_count": 1,
+      "trajectory_coverage": 0.8185328185328186,
+      "tracked_frames": 636,
+      "total_frames": 777,
+      "track_id_switches": 0,
+      "p90_speed_kmh": 0.0,
+      "max_speed_kmh": 0.0,
+      "max_g_force": 0.0,
+      "max_jump_m": 0.0,
+      "auto_cal_correction": 1.0,
+      "auto_cal_applied": false,
+      "physics_issue_count": 0,
+      "course_gates_count": 85
+    }
+  ],
+  "aggregate": {
+    "videos": 3,
+    "gates_detected": 21.333333333333332,
+    "confirmed_gate_count": 22.0,
+    "ghost_gate_count_raw": 0.0,
+    "gate_interp_rate": 0.3699850044444186,
+    "provisional_dropped_count": 0.3333333333333333,
+    "trajectory_coverage": 0.8687529751539408,
+    "track_id_switches": 0.0,
+    "p90_speed_kmh": 0.0,
+    "max_speed_kmh": 0.0,
+    "max_g_force": 0.0,
+    "max_jump_m": 0.0,
+    "auto_cal_correction": 1.0,
+    "physics_issue_count": 0.0,
+    "course_gates_count": 76.66666666666667
+  }
+}

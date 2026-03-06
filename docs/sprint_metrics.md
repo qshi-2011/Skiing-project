@@ -1,21 +1,21 @@
 # Sprint Graduation Criteria
 
 **Phase**: 2 — Detection/Tracking Quality Sprint
-**Last updated**: 2026-02-26
+**Last updated**: 2026-03-06
 **Gating**: All criteria must pass before Phase 3 (reintroduce 3D) begins.
 
 ---
 
 ## Pass/Fail Criteria
 
-| # | Criterion | Target | Current (2026-02-26) | Status |
+| # | Criterion | Target | Current (2026-03-06) | Status |
 |---|-----------|--------|----------------------|--------|
-| G1 | Gate holdout F1 @ conf=0.35 | ≥ 0.85 | 0.630* | ❌ FAIL |
+| G1 | Gate holdout F1 @ conf≈0.35 | ≥ 0.85 | 0.818 ensemble @ conf=0.36 / 0.767 single @ conf=0.35* | ❌ FAIL |
 | G2 | `track_id_switches` mean (regression suite) | ≤ 2 | 0.00 | ✅ PASS |
 | G3 | `trajectory_coverage` mean (regression suite) | ≥ 0.80 | 0.988 | ✅ PASS |
-| G4 | No Stage 2 metric regression > 20% vs. baseline | — | TBD | ⏳ PENDING |
+| G4 | No Stage 2 metric regression > 20% vs. baseline | — | Not re-run for cycle1; candidate already blocked by G1 | ⏳ PENDING |
 
-*F1 estimate: P=0.615, R=0.645 → F1 = 2·P·R/(P+R) ≈ 0.630. Measured on valid split of `final_combined_1class_20260226_curated`.
+*Cycle1 holdout after label corrections to the frozen test split: 73 GT instances instead of 76. Best ensemble result is TP=65, FP=21, FN=8, F1=0.8176 at conf=0.36. Best single-model result is TP=56, FP=14, FN=17, F1=0.7671 at conf=0.35.
 
 ---
 
@@ -40,6 +40,21 @@ regression videos 2907, 2909, 2911. See `tracks/D_tracking_outlier/reports/track
 ### G4 — No Stage 2 regression > 20%
 Run `scripts/run_eval.py --model <new_model> --baseline tracks/E_evaluation_ci/reports/baseline_regression.json`.
 Stage 3 must emit PASS.
+
+---
+
+## Phase 2 Review (2026-03-06)
+
+- **Verdict**: HOLD. Phase 3 remains blocked.
+- Annotation fixes improved the corrected holdout from `F1=0.8025` on 76 GT to `F1=0.8176` on 73 GT, but that still misses the `0.85` graduation bar.
+- Live-overlay guardrail behavior is unchanged on the frozen T1H regression set (`1571_raw`, `1575_raw`, `IMG_1310`): `blank_spawnable_calls`, `ghost_calls`, and `max_blank_streak` all matched baseline.
+- Timing measurements in the live-overlay regression run were inflated by concurrent training load and were not treated as a functional blocker because the model and behavioral metrics were unchanged.
+- A fresh full `run_eval.py` promotion check was not required to reject cycle1 because `G1` already failed. `G4` remains pending for the next candidate that gets close enough to promotion.
+- Next cycle is **data-only**:
+  - add hard negatives for safety netting / finish-area fencing
+  - add hard negatives for gate-shadow scenes
+  - add more thin / distant / edge-clipped gate positives
+  - do not spend another cycle retraining unchanged data
 
 ---
 
@@ -108,9 +123,10 @@ Results from `tracks/D_tracking_outlier/reports/gate_recall_sweep_20260226_1025.
 ## Phase 3 Readiness Checklist
 
 - [ ] G1: Gate F1 ≥ 0.85 — **blocked on retraining completion**
+- [ ] G1: Gate F1 ≥ 0.85 — **blocked on next data cycle**
 - [x] G2: Track ID switches ≤ 2 — PASS (= 0)
 - [x] G3: Coverage ≥ 0.80 — PASS (= 0.988)
-- [ ] G4: No Stage 2 regression > 20% — pending new model eval
+- [ ] G4: No Stage 2 regression > 20% — pending next promotable candidate
 - [ ] Update `configs/regression_defaults.yaml` with best sweep params
 - [ ] Update `shared/docs/MODEL_REGISTRY.md` with new model checkpoint
 

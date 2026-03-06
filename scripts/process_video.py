@@ -20,6 +20,10 @@ sys.path.insert(0, str(project_root))
 
 from ski_racing.pipeline import SkiRacingPipeline
 from ski_racing.visualize import create_summary_figure, create_demo_video
+from ski_racing.live_gate_presets import (
+    DEFAULT_LIVE_GATE_PRESET,
+    LIVE_GATE_STABILIZER_PRESETS,
+)
 import argparse
 
 
@@ -56,6 +60,12 @@ def main():
     parser.add_argument("--live-gate-stride", type=int, default=3,
                         help="Run live gate detection every N frames in demo video (default 3). "
                              "Lower = more accurate but slower rendering.")
+    parser.add_argument(
+        "--live-gate-preset",
+        choices=tuple(LIVE_GATE_STABILIZER_PRESETS.keys()),
+        default=DEFAULT_LIVE_GATE_PRESET,
+        help="Live gate stabilizer preset for demo overlays (default T1H).",
+    )
     parser.add_argument("--summary", action="store_true", help="Also create summary figure")
     parser.add_argument("--frame-stride", type=int, default=1,
                         help="Process every Nth frame for tracking")
@@ -263,7 +273,8 @@ def main():
                 demo_path = Path(args.output_dir) / f"{video.stem}_demo.mp4"
                 create_demo_video(str(video), str(analysis_path), str(demo_path),
                                   gate_model_path=args.gate_model,
-                                  live_gate_stride=args.live_gate_stride)
+                                  live_gate_stride=args.live_gate_stride,
+                                  live_gate_preset=args.live_gate_preset)
 
             run_summary.append({
                 "video": video.name,

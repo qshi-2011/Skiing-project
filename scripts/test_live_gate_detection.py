@@ -27,6 +27,12 @@ import numpy as np
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+from ski_racing.live_gate_presets import (
+    DEFAULT_LIVE_GATE_PRESET,
+    LIVE_GATE_STABILIZER_PRESETS,
+    get_live_gate_stabilizer_params,
+)
+
 VIDEO_EXTS = {".mp4", ".avi", ".mov", ".mkv", ".m4v"}
 
 
@@ -85,12 +91,14 @@ def _track_color(gmeta, fallback_idx: int):
     return (0, 0, 255) if int(fallback_idx) % 2 == 0 else (255, 0, 0)
 
 
-def _compute_stabilizer_quality(call_rows):
+def _compute_stabilizer_quality(call_rows, spawn_conf: float):
     rows = [r for r in call_rows if isinstance(r, dict)]
     raw_counts = [int(r.get("count", 0) or 0) for r in rows]
     shown_counts = [int(r.get("shown_count", r.get("stable_count", 0)) or 0) for r in rows]
+    max_confs = [float(r.get("max_conf", 0.0) or 0.0) for r in rows]
 
     blank_calls = 0
+    blank_spawnable_calls = 0
     ghost_calls = 0
     max_blank_streak = 0
     max_ghost_streak = 0
@@ -102,13 +110,15 @@ def _compute_stabilizer_quality(call_rows):
     max_blank_end = None
     ghost_frames = []
 
-    for row, raw_count, shown_count in zip(rows, raw_counts, shown_counts):
+    for row, raw_count, shown_count, max_conf in zip(rows, raw_counts, shown_counts, max_confs):
         frame_idx = int(row.get("frame", 0) or 0)
         is_blank = raw_count > 0 and shown_count == 0
         is_ghost = raw_count == 0 and shown_count > 0
 
         if is_blank:
             blank_calls += 1
+            if max_conf >= float(spawn_conf):
+                blank_spawnable_calls += 1
             if cur_blank_streak == 0:
                 cur_blank_start = frame_idx
             cur_blank_streak += 1
@@ -163,6 +173,7 @@ def _compute_stabilizer_quality(call_rows):
 
     return {
         "blank_calls": int(blank_calls),
+        "blank_spawnable_calls": int(blank_spawnable_calls),
         "max_blank_streak": int(max_blank_streak),
         "ghost_calls": int(ghost_calls),
         "max_ghost_streak": int(max_ghost_streak),
@@ -196,18 +207,19 @@ def _write_analysis_report(output_dir: Path, run_tag: str, run_rows):
         "",
         "## Per-video metrics",
         "",
-        "| video | calls | raw_p50 | shown_p50 | blank | ghost | avg_ms | p95_ms |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| video | calls | raw_p50 | shown_p50 | blank | blank_spawnable | ghost | avg_ms | p95_ms |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in run_rows:
         lines.append(
             "| `{video}` | {calls} | {raw_p50} | {shown_p50} | {blank_calls} | "
-            "{ghost_calls} | {avg_infer_ms} | {p95_infer_ms} |".format(
+            "{blank_spawnable_calls} | {ghost_calls} | {avg_infer_ms} | {p95_infer_ms} |".format(
                 video=row.get("video", ""),
                 calls=_fmt(row.get("calls")),
                 raw_p50=_fmt(row.get("raw_p50")),
                 shown_p50=_fmt(row.get("shown_p50")),
                 blank_calls=_fmt(row.get("blank_calls")),
+                blank_spawnable_calls=_fmt(row.get("blank_spawnable_calls")),
                 ghost_calls=_fmt(row.get("ghost_calls")),
                 avg_infer_ms=_fmt(row.get("avg_infer_ms")),
                 p95_infer_ms=_fmt(row.get("p95_infer_ms")),
@@ -278,6 +290,7 @@ def run_one(
     infer_width: int | None,
     max_frames: int | None,
     stabilizer_params: dict,
+    live_gate_preset: str,
     run_tag: str,
 ):
     from ski_racing.detection import GateDetector, LiveGateStabilizer
@@ -345,6 +358,7 @@ def run_one(
             count = int(len(dets))  # raw detection count for diagnostics
             counts.append(count)
             mean_conf = _safe_mean([float(d.get("confidence", 0.0)) for d in dets if isinstance(d, dict)])
+            max_conf = max([float(d.get("confidence", 0.0)) for d in dets if isinstance(d, dict)], default=0.0)
             shown_count = int(len(cached))
             call_rows.append({
                 "frame": int(frame_idx),
@@ -352,6 +366,7 @@ def run_one(
                 "shown_count": shown_count,
                 "stable_count": shown_count,  # compatibility with older summaries
                 "mean_conf": float(mean_conf),
+                "max_conf": float(max_conf),
                 "infer_ms": float(infer_ms),
                 "resize_ms": float(resize_ms),
             })
@@ -399,7 +414,7 @@ def run_one(
     if duration_s is not None and wall_s > 1e-9:
         realtime_x = float(duration_s / wall_s)
 
-    quality = _compute_stabilizer_quality(call_rows)
+    quality = _compute_stabilizer_quality(call_rows, spawn_conf=float(stabilizer_params["spawn_conf"]))
 
     summary = {
         "video": str(video_path),
@@ -412,6 +427,7 @@ def run_one(
             "duration_s": duration_s,
         },
         "params": {
+            "preset": str(live_gate_preset),
             "gate_model": str(gate_model_path),
             "stride": int(stride),
             "conf": float(conf),
@@ -473,19 +489,25 @@ def main():
     parser.add_argument("--infer-width", type=int, default=1280,
                         help="Resize width for inference (default 1280; set 0 to disable)")
     parser.add_argument("--max-frames", type=int, default=None, help="Optional cap on processed frames")
-    parser.add_argument("--min-hits-to-show", type=int, default=2)
-    parser.add_argument("--spawn-conf", type=float, default=0.35)
-    parser.add_argument("--display-conf", type=float, default=0.30)
-    parser.add_argument("--update-conf-min", type=float, default=0.15)
-    parser.add_argument("--stale-conf-decay", type=float, default=0.85)
-    parser.add_argument("--max-shown-stale-calls", type=int, default=1)
-    parser.add_argument("--max-stale-calls", type=int, default=3)
-    parser.add_argument("--match-threshold", type=float, default=130.0)
-    parser.add_argument("--maha-threshold", type=float, default=3.0)
-    parser.add_argument("--meas-sigma-px", type=float, default=10.0)
-    parser.add_argument("--accel-sigma-px", type=float, default=8.0)
-    parser.add_argument("--alpha", type=float, default=0.4,
-                        help="Confidence EMA alpha for stabilizer (default 0.4)")
+    parser.add_argument(
+        "--preset",
+        choices=tuple(LIVE_GATE_STABILIZER_PRESETS.keys()),
+        default=DEFAULT_LIVE_GATE_PRESET,
+        help="Stabilizer preset (default T1H).",
+    )
+    parser.add_argument("--min-hits-to-show", type=int, default=None)
+    parser.add_argument("--spawn-conf", type=float, default=None)
+    parser.add_argument("--display-conf", type=float, default=None)
+    parser.add_argument("--update-conf-min", type=float, default=None)
+    parser.add_argument("--stale-conf-decay", type=float, default=None)
+    parser.add_argument("--max-shown-stale-calls", type=int, default=None)
+    parser.add_argument("--max-stale-calls", type=int, default=None)
+    parser.add_argument("--match-threshold", type=float, default=None)
+    parser.add_argument("--maha-threshold", type=float, default=None)
+    parser.add_argument("--meas-sigma-px", type=float, default=None)
+    parser.add_argument("--accel-sigma-px", type=float, default=None)
+    parser.add_argument("--alpha", type=float, default=None,
+                        help="Confidence EMA alpha for stabilizer (override preset only)")
     parser.add_argument("--run-tag", type=str, default=None,
                         help="Optional run tag for report naming and summary metadata")
     args = parser.parse_args()
@@ -502,20 +524,24 @@ def main():
     if not run_tag:
         run_tag = out_dir.name or "run"
 
-    stabilizer_params = {
-        "min_hits_to_show": int(args.min_hits_to_show),
-        "spawn_conf": float(args.spawn_conf),
-        "display_conf": float(args.display_conf),
-        "update_conf_min": float(args.update_conf_min),
-        "stale_conf_decay": float(args.stale_conf_decay),
-        "max_shown_stale_calls": int(args.max_shown_stale_calls),
-        "max_stale_calls": int(args.max_stale_calls),
-        "match_threshold": float(args.match_threshold),
-        "maha_threshold": float(args.maha_threshold),
-        "meas_sigma_px": float(args.meas_sigma_px),
-        "accel_sigma_px": float(args.accel_sigma_px),
-        "alpha": float(args.alpha),
+    stabilizer_params = get_live_gate_stabilizer_params(args.preset)
+    cli_overrides = {
+        "min_hits_to_show": args.min_hits_to_show,
+        "spawn_conf": args.spawn_conf,
+        "display_conf": args.display_conf,
+        "update_conf_min": args.update_conf_min,
+        "stale_conf_decay": args.stale_conf_decay,
+        "max_shown_stale_calls": args.max_shown_stale_calls,
+        "max_stale_calls": args.max_stale_calls,
+        "match_threshold": args.match_threshold,
+        "maha_threshold": args.maha_threshold,
+        "meas_sigma_px": args.meas_sigma_px,
+        "accel_sigma_px": args.accel_sigma_px,
+        "alpha": args.alpha,
     }
+    for key, value in cli_overrides.items():
+        if value is not None:
+            stabilizer_params[key] = value
 
     run_rows = []
     for v in videos:
@@ -530,6 +556,7 @@ def main():
             infer_width=(int(args.infer_width) if int(args.infer_width) > 0 else None),
             max_frames=args.max_frames,
             stabilizer_params=stabilizer_params,
+            live_gate_preset=str(args.preset),
             run_tag=run_tag,
         )
         quality = summary.get("stabilizer_quality", {})
@@ -548,6 +575,7 @@ def main():
             "raw_stats": raw_stats,
             "shown_stats": shown_stats,
             "blank_calls": quality.get("blank_calls"),
+            "blank_spawnable_calls": quality.get("blank_spawnable_calls"),
             "max_blank_streak": quality.get("max_blank_streak"),
             "ghost_calls": quality.get("ghost_calls"),
             "max_ghost_streak": quality.get("max_ghost_streak"),
