@@ -1,0 +1,301 @@
+"""Two-step pose extractor: YOLOv8 person detection → MediaPipe on crop."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+import cv2
+import numpy as np
+
+from technique_analysis.common.contracts.models import FramePose, PoseLandmark
+from technique_analysis.common.pose.person_detector import PersonDetector
+from technique_analysis.common.pose.tracker import PersonTracker
+
+# Key joint indices for confidence scoring
+_CONFIDENCE_JOINTS = [11, 12, 23, 24, 25, 26, 27, 28]
+
+_MODEL_PREFERENCE = ["pose_landmarker_full.task", "pose_landmarker_lite.task"]
+_FULL_MODEL_URL = (
+    "https://storage.googleapis.com/mediapipe-models/"
+    "pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task"
+)
+
+
+def _find_or_download_model() -> Path:
+    """Locate best available pose model; auto-download full if missing."""
+    model_dir = Path(__file__).parent
+    full_local = model_dir / "pose_landmarker_full.task"
+    if full_local.exists():
+        return full_local
+    try:
+        import mediapipe as mp
+        pkg_dir = Path(mp.__file__).parent
+        for name in _MODEL_PREFERENCE:
+            candidates = list(pkg_dir.rglob(name))
+            if candidates:
+                return candidates[0]
+    except Exception:
+        pass
+    try:
+        import urllib.request
+        print("[pose] Downloading pose_landmarker_full.task…")
+        urllib.request.urlretrieve(_FULL_MODEL_URL, full_local)
+        print(f"[pose]   Saved to {full_local}")
+        return full_local
+    except Exception as e:
+        print(f"[pose]   Download failed ({e}), falling back to lite model.")
+    lite_local = model_dir / "pose_landmarker_lite.task"
+    if lite_local.exists():
+        return lite_local
+    raise FileNotFoundError(
+        "No pose model found. Download pose_landmarker_full.task from:\n"
+        f"  {_FULL_MODEL_URL}"
+    )
+
+
+def _transform_landmarks(
+    landmarks: list[PoseLandmark],
+    cx1: int, cy1: int, cx2: int, cy2: int,
+    frame_w: int, frame_h: int,
+) -> list[PoseLandmark]:
+    """Convert landmarks from crop-normalised to full-frame-normalised coords."""
+    crop_w = cx2 - cx1
+    crop_h = cy2 - cy1
+    return [
+        PoseLandmark(
+            x=(cx1 + lm.x * crop_w) / frame_w,
+            y=(cy1 + lm.y * crop_h) / frame_h,
+            z=lm.z,
+            visibility=lm.visibility,
+        )
+        for lm in landmarks
+    ]
+
+
+class PoseExtractor:
+    """Two-step pose extractor: YOLOv8 person detector → MediaPipe on crop.
+
+    Pipeline per frame:
+      1. YOLOv8 detects all persons → bounding boxes.
+      2. Kalman BBox tracker selects the primary skier's box.
+      3. Frame is cropped to that box + 20 % padding.
+      4. MediaPipe runs on the crop (person fills the frame → higher accuracy).
+      5. Landmarks are transformed back to full-frame normalised coordinates.
+      6. World landmarks are returned as-is (metric space, unaffected by crop).
+
+    Falls back to full-frame MediaPipe if YOLOv8 is unavailable or returns
+    no person for the current frame.
+    """
+
+    def __init__(self, min_visibility: float = 0.5) -> None:
+        self._min_visibility = min_visibility
+        self._landmarker: Any = None
+        self._mp: Any = None
+        self._detector = PersonDetector()  # owns ByteTrack locking internally
+        self._pose_tracker = PersonTracker()     # fallback: tracks hip midpoints
+        self._last_timestamp_s: float | None = None
+        self._yolo_ok = True   # flips to False on repeated YOLO failures
+
+    # ------------------------------------------------------------------
+    # Context manager
+    # ------------------------------------------------------------------
+
+    def __enter__(self) -> "PoseExtractor":
+        try:
+            import mediapipe as mp
+            from mediapipe.tasks import python as mp_python
+            from mediapipe.tasks.python import vision as mp_vision
+        except ImportError as e:
+            raise ImportError(
+                "mediapipe is required. Install with: pip install 'mediapipe>=0.10.14'"
+            ) from e
+
+        model_path = _find_or_download_model()
+        print(f"[pose] Model: {model_path.name}")
+
+        base_options = mp_python.BaseOptions(model_asset_path=str(model_path))
+        # With two-step cropping we only need one pose per crop
+        options = mp_vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            num_poses=1,
+            min_pose_detection_confidence=0.25,
+            min_pose_presence_confidence=0.25,
+            min_tracking_confidence=0.25,
+        )
+        self._landmarker = mp_vision.PoseLandmarker.create_from_options(options)
+        self._mp = mp
+
+        # Warm up YOLOv8 (triggers model download once, if needed)
+        try:
+            self._detector._ensure_loaded()
+            print("[pose] Detector: YOLOv8n (two-step pipeline active)")
+        except Exception as e:
+            print(f"[pose] YOLOv8 unavailable ({e}), using full-frame fallback.")
+            self._yolo_ok = False
+
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        if self._landmarker is not None:
+            self._landmarker.close()
+            self._landmarker = None
+
+    def update_tracking(self, frame_bgr: np.ndarray) -> None:
+        """YOLO-only pass: advances ByteTrack state without running MediaPipe.
+
+        Called on intermediate frames (between analysis frames) so ByteTrack
+        sees continuous motion rather than large time jumps.
+        """
+        if self._yolo_ok:
+            try:
+                self._detector.detect_primary(frame_bgr)
+            except Exception:
+                pass
+
+    # ------------------------------------------------------------------
+    # Internal MediaPipe call
+    # ------------------------------------------------------------------
+
+    def _run_mediapipe(self, frame_bgr: np.ndarray) -> Any:
+        """Run the MediaPipe landmarker on a BGR frame. Returns raw result."""
+        rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+        mp_image = self._mp.Image(
+            image_format=self._mp.ImageFormat.SRGB, data=rgb
+        )
+        return self._landmarker.detect(mp_image)
+
+    def _make_frame_pose(
+        self,
+        landmarks: list[PoseLandmark],
+        world_landmarks: list[PoseLandmark] | None,
+        frame_idx: int,
+        timestamp_s: float,
+        detection_bbox: tuple[int, int, int, int] | None = None,
+    ) -> FramePose:
+        key_vis = [
+            landmarks[i].visibility
+            for i in _CONFIDENCE_JOINTS
+            if i < len(landmarks)
+        ]
+        conf = float(np.mean(key_vis)) if key_vis else 0.0
+        return FramePose(
+            frame_idx=frame_idx,
+            timestamp_s=timestamp_s,
+            landmarks=landmarks,
+            pose_confidence=conf,
+            is_smoothed=False,
+            world_landmarks=world_landmarks,
+            tracking_quality=1.0,
+            detection_bbox=detection_bbox,
+        )
+
+    # ------------------------------------------------------------------
+    # Public extraction entry point
+    # ------------------------------------------------------------------
+
+    def extract(
+        self, frame_bgr: np.ndarray, frame_idx: int, timestamp_s: float
+    ) -> FramePose | None:
+        """Extract pose from one BGR frame. Returns None if no person found."""
+        if self._landmarker is None:
+            raise RuntimeError("PoseExtractor must be used as a context manager.")
+
+        dt = 0.05
+        if self._last_timestamp_s is not None:
+            dt = max(1e-3, timestamp_s - self._last_timestamp_s)
+        self._last_timestamp_s = timestamp_s
+
+        h, w = frame_bgr.shape[:2]
+
+        # ------ Two-step path (YOLOv8 ByteTrack → crop → MediaPipe) ---------
+        if self._yolo_ok:
+            try:
+                best_bbox = self._detector.detect_primary(frame_bgr)
+                if best_bbox is not None:
+                    bx1, by1, bx2, by2, bconf = best_bbox
+                    raw_area = (bx2 - bx1) * (by2 - by1)
+
+                    # Area gate: skip MediaPipe on tiny distant skiers.
+                    # Pose estimation on a <55×65px person crop is unreliable
+                    # and produces scattered landmarks that look worse than
+                    # nothing.  Let gap-filling carry the last good pose instead.
+                    _MIN_BBOX_AREA_PX = 3500  # ~55×65 pixels
+                    if raw_area < _MIN_BBOX_AREA_PX:
+                        return None
+
+                    crop, region = self._detector.crop(frame_bgr, best_bbox)
+                    cx1, cy1, cx2, cy2 = region
+
+                    if crop.size == 0:
+                        return None
+
+                    result = self._run_mediapipe(crop)
+                    if not result.pose_landmarks:
+                        return None
+
+                    raw_lms = result.pose_landmarks[0]
+                    landmarks = _transform_landmarks(
+                        [
+                            PoseLandmark(
+                                x=float(lm.x), y=float(lm.y), z=float(lm.z),
+                                visibility=float(getattr(lm, "visibility", 1.0)),
+                            )
+                            for lm in raw_lms
+                        ],
+                        cx1, cy1, cx2, cy2, w, h,
+                    )
+
+                    world_landmarks: list[PoseLandmark] | None = None
+                    if result.pose_world_landmarks:
+                        world_landmarks = [
+                            PoseLandmark(
+                                x=float(lm.x), y=float(lm.y), z=float(lm.z),
+                                visibility=float(getattr(lm, "visibility", 1.0)),
+                            )
+                            for lm in result.pose_world_landmarks[0]
+                        ]
+
+                    return self._make_frame_pose(
+                        landmarks, world_landmarks, frame_idx, timestamp_s,
+                        detection_bbox=(bx1, by1, bx2, by2),
+                    )
+                # No primary person found — return None for gap-filling
+                return None
+
+            except Exception as e:
+                print(f"[pose] Two-step error frame {frame_idx}: {e}. Using fallback.")
+                self._yolo_ok = False
+
+        # ------ Fallback: full-frame MediaPipe with hip tracker -----------
+        result = self._run_mediapipe(frame_bgr)
+        if not result.pose_landmarks:
+            return None
+
+        all_lms = list(result.pose_landmarks)
+        landmark_lists = [
+            [
+                PoseLandmark(
+                    x=float(lm.x), y=float(lm.y), z=float(lm.z),
+                    visibility=float(getattr(lm, "visibility", 1.0)),
+                )
+                for lm in person_lms
+            ]
+            for person_lms in all_lms
+        ]
+        best_idx = self._pose_tracker.select_best(landmark_lists, dt=dt)
+        landmarks = landmark_lists[best_idx]
+
+        world_landmarks = None
+        if result.pose_world_landmarks and best_idx < len(result.pose_world_landmarks):
+            world_landmarks = [
+                PoseLandmark(
+                    x=float(lm.x), y=float(lm.y), z=float(lm.z),
+                    visibility=float(getattr(lm, "visibility", 1.0)),
+                )
+                for lm in result.pose_world_landmarks[best_idx]
+            ]
+
+        return self._make_frame_pose(
+            landmarks, world_landmarks, frame_idx, timestamp_s
+        )

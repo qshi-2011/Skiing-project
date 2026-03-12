@@ -1,0 +1,29 @@
+# Run artifacts (videos, CSVs, JSON summaries) — large binary outputs
+artifacts/
+output/
+
+# Downloaded model weights (auto-downloaded at runtime)
+yolov8n.pt
+yolov8s.pt
+yolov8m.pt
+*.task
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# Video test files (large)
+test_videos/
+sample videos/
+
+# External repos (checked out separately)
+external_repos/
+
+# Frame inspection debug outputs
+artifacts/frame_inspection/
