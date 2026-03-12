@@ -34,6 +34,7 @@ from technique_analysis.common.metrics.scoring import (
     compute_turn_quality,
 )
 from technique_analysis.common.pose.extractor import PoseExtractor
+from technique_analysis.common.pose.vision_extractor import VisionPoseExtractor
 from technique_analysis.common.pose.smoother import (
     LandmarkSmoother,
     compute_jitter_score,
@@ -226,7 +227,12 @@ class TechniqueAnalysisRunner:
         )
         next_analysis_ts = 0.0
 
-        with PoseExtractor(min_visibility=self.config.min_visibility) as extractor:
+        ExtractorClass = (
+            VisionPoseExtractor
+            if self.config.pose_engine == "vision"
+            else PoseExtractor
+        )
+        with ExtractorClass(min_visibility=self.config.min_visibility) as extractor:
             for frame_idx, timestamp_s, frame in iter_frames(
                 video_path,
                 max_fps=None,               # read EVERY frame for ByteTrack
@@ -296,6 +302,7 @@ class TechniqueAnalysisRunner:
                     turns=turns,
                     output_path=run_paths.overlay_path,
                     max_dimension=self.config.render_max_dimension,
+                    show_bbox=self.config.show_bbox,
                 )
             except Exception as exc:
                 quality.warnings.append(f"Overlay rendering failed: {exc}")

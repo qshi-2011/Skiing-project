@@ -88,6 +88,19 @@ class PoseExtractor:
     no person for the current frame.
     """
 
+    # Minimum bbox height as a fraction of analysis frame height.
+    # MediaPipe internally resizes crops to 224px (detector) / 256px (landmarker),
+    # so a person shorter than ~7% of frame height produces an 8×-upscaled crop
+    # with severe blur artefacts.  7% ≈ 75px at 1080p, 34px at 480p.
+    _MIN_BBOX_HEIGHT_FRAC: float = 0.07
+    # Absolute floor — never pass a crop shorter than this regardless of resolution.
+    _MIN_BBOX_HEIGHT_PX: int = 40
+    # After this many consecutive frames with no detection passing the gate,
+    # temporarily halve the height threshold so a distant racer can slip through.
+    # Metrics are still suppressed until pose confidence recovers.
+    _ADAPTIVE_FALLBACK_AFTER: int = 30
+    _ADAPTIVE_HEIGHT_FRAC: float = 0.035   # ~half of normal minimum
+
     def __init__(self, min_visibility: float = 0.5) -> None:
         self._min_visibility = min_visibility
         self._landmarker: Any = None
@@ -96,6 +109,7 @@ class PoseExtractor:
         self._pose_tracker = PersonTracker()     # fallback: tracks hip midpoints
         self._last_timestamp_s: float | None = None
         self._yolo_ok = True   # flips to False on repeated YOLO failures
+        self._frames_since_detection: int = 0  # for adaptive size-gate fallback
 
     # ------------------------------------------------------------------
     # Context manager
@@ -214,14 +228,22 @@ class PoseExtractor:
                 best_bbox = self._detector.detect_primary(frame_bgr)
                 if best_bbox is not None:
                     bx1, by1, bx2, by2, bconf = best_bbox
-                    raw_area = (bx2 - bx1) * (by2 - by1)
+                    bbox_h = by2 - by1
 
-                    # Area gate: skip MediaPipe on tiny distant skiers.
-                    # Pose estimation on a <55×65px person crop is unreliable
-                    # and produces scattered landmarks that look worse than
-                    # nothing.  Let gap-filling carry the last good pose instead.
-                    _MIN_BBOX_AREA_PX = 3500  # ~55×65 pixels
-                    if raw_area < _MIN_BBOX_AREA_PX:
+                    # Resolution-invariant height gate.
+                    # MediaPipe internally resizes crops to 256px; crops shorter
+                    # than ~7% of frame height are upsampled 8× or more, producing
+                    # blur artefacts that make pose estimation unreliable.
+                    # After _ADAPTIVE_FALLBACK_AFTER consecutive missed frames the
+                    # threshold is halved so a distant skier can slip through —
+                    # metrics remain suppressed until pose confidence recovers.
+                    if self._frames_since_detection >= self._ADAPTIVE_FALLBACK_AFTER:
+                        min_h_frac = self._ADAPTIVE_HEIGHT_FRAC
+                    else:
+                        min_h_frac = self._MIN_BBOX_HEIGHT_FRAC
+                    min_h = max(self._MIN_BBOX_HEIGHT_PX, int(h * min_h_frac))
+                    if bbox_h < min_h:
+                        self._frames_since_detection += 1
                         return None
 
                     crop, region = self._detector.crop(frame_bgr, best_bbox)
@@ -256,11 +278,13 @@ class PoseExtractor:
                             for lm in result.pose_world_landmarks[0]
                         ]
 
+                    self._frames_since_detection = 0
                     return self._make_frame_pose(
                         landmarks, world_landmarks, frame_idx, timestamp_s,
                         detection_bbox=(bx1, by1, bx2, by2),
                     )
                 # No primary person found — return None for gap-filling
+                self._frames_since_detection += 1
                 return None
 
             except Exception as e:

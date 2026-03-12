@@ -31,6 +31,10 @@ class TechniqueRunConfig:
     min_visibility: float = 0.5
     write_debug: bool = False
     view: str = "front"
+    # Bbox overlay: hidden by default (skeleton is sufficient; bbox coords are
+    # in analysis-resolution space and look wrong on native-res output).
+    # Pass show_bbox=True or --debug-bbox to re-enable for tracker diagnosis.
+    show_bbox: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         return _jsonable(self)
