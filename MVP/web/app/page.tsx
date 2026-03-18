@@ -77,21 +77,44 @@ export default async function HomePage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const runs = jobs ?? []
-  const latestCompleted = runs.find((j) => j.status === 'done') ?? null
+  const runs = (jobs ?? []) as Job[]
+  const completedRuns = runs.filter((j) => j.status === 'done')
+  const latestCompleted = completedRuns[0] ?? null
 
-  let summary: TechniqueRunSummary | null = null
-  let dashboard: ReturnType<typeof buildTechniqueDashboard> | null = null
-  let score: number | null = null
-  let level: string | null = null
+  // Build scored runs list from stored scores
+  const scoredRuns = completedRuns.filter((j) => j.score != null) as (Job & { score: number })[]
+  const latestScore = scoredRuns[0]?.score ?? null
+  const previousScore = scoredRuns[1]?.score ?? null
+  const scoreDelta = latestScore != null && previousScore != null ? latestScore - previousScore : null
+  const bestRecentScore = scoredRuns.length ? Math.max(...scoredRuns.slice(0, 10).map((j) => j.score)) : null
+  const recentTrend = scoredRuns.slice(0, 5).map((j) => j.score)
+
+  // Fallback: if no stored score, try computing from summary
+  let score = latestScore
+  let level: string | null = latestScore != null ? scoreLabel(latestScore) : null
   let primaryTip: { title: string; explanation: string; evidence: string; severity: string } | null = null
 
-  if (latestCompleted) {
-    summary = await fetchLatestSummary(service, latestCompleted)
+  if (latestCompleted && score == null) {
+    const summary = await fetchLatestSummary(service, latestCompleted)
     if (summary) {
-      dashboard = buildTechniqueDashboard(summary)
+      const dashboard = buildTechniqueDashboard(summary)
       score = dashboard.overview.overallScore
       level = scoreLabel(score)
+      if (dashboard.focusCards.length) {
+        primaryTip = dashboard.focusCards[0]
+      } else if (summary.coaching_tips?.length) {
+        primaryTip = summary.coaching_tips[0]
+      }
+      // Persist score for future
+      if (Number.isFinite(score)) {
+        await service.from('jobs').update({ score }).eq('id', latestCompleted.id)
+      }
+    }
+  } else if (latestCompleted) {
+    // Still need coaching tip from summary
+    const summary = await fetchLatestSummary(service, latestCompleted)
+    if (summary) {
+      const dashboard = buildTechniqueDashboard(summary)
       if (dashboard.focusCards.length) {
         primaryTip = dashboard.focusCards[0]
       } else if (summary.coaching_tips?.length) {
@@ -164,8 +187,19 @@ export default async function HomePage() {
                     </span>
                   </div>
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 flex items-center justify-center gap-2">
                   <span className={levelBadgeClass(level)}>{level}</span>
+                  {scoreDelta != null && (
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={{
+                        color: scoreDelta >= 0 ? 'var(--success)' : 'var(--danger)',
+                        background: scoreDelta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
+                      }}
+                    >
+                      {scoreDelta >= 0 ? '+' : ''}{scoreDelta}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm mt-3" style={{ color: 'var(--ink-soft)' }}>
                   Latest completed run
@@ -197,6 +231,45 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Progression widgets ──────────────────────── */}
+      {scoredRuns.length > 0 && (
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="metric-tile">
+            <p className="metric-value">{latestScore}</p>
+            <p className="metric-label">Latest score</p>
+          </div>
+          <div className="metric-tile">
+            <p className="metric-value" style={{ color: scoreDelta != null && scoreDelta >= 0 ? 'var(--success)' : scoreDelta != null ? 'var(--danger)' : 'var(--ink-strong)' }}>
+              {scoreDelta != null ? `${scoreDelta >= 0 ? '+' : ''}${scoreDelta}` : '—'}
+            </p>
+            <p className="metric-label">Delta vs previous</p>
+          </div>
+          <div className="metric-tile">
+            <p className="metric-value">{bestRecentScore ?? '—'}</p>
+            <p className="metric-label">Best recent run</p>
+          </div>
+          <div className="metric-tile">
+            {recentTrend.length > 1 ? (
+              <div className="flex items-end gap-1 h-8">
+                {[...recentTrend].reverse().map((s, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-sm"
+                    style={{
+                      height: `${Math.max(20, (s / 100) * 100)}%`,
+                      background: i === recentTrend.length - 1 ? 'var(--accent)' : 'rgba(255,255,255,0.12)',
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="metric-value">—</p>
+            )}
+            <p className="metric-label">Recent trend ({recentTrend.length} runs)</p>
+          </div>
+        </section>
+      )}
 
       {/* ── Coaching focus + archive preview ─────────── */}
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
@@ -288,6 +361,11 @@ export default async function HomePage() {
                           {filename}
                         </p>
                       </div>
+                      {job.score != null && (
+                        <span className="text-xs font-bold shrink-0" style={{ color: 'var(--accent)' }}>
+                          {job.score}
+                        </span>
+                      )}
                       <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
                         {STATUS_LABEL[job.status as JobStatus]}
                       </span>

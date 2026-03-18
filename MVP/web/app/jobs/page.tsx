@@ -139,6 +139,12 @@ export default async function ArchivePage() {
                       </p>
                     </div>
 
+                    {job.score != null && (
+                      <span className="text-sm font-bold shrink-0" style={{ color: 'var(--accent)' }}>
+                        {job.score}
+                      </span>
+                    )}
+
                     <span
                       className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full"
                       style={{ background: cfg.pill, color: cfg.dot }}

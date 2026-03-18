@@ -10,6 +10,7 @@ interface JobResponse {
   job: Job
   artifacts: ArtifactWithUrl[]
   summary: TechniqueRunSummary | null
+  previousScore: number | null
 }
 
 type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
@@ -168,7 +169,7 @@ export default function JobDetailPage() {
     )
   }
 
-  const { job, artifacts, summary } = data
+  const { job, artifacts, summary, previousScore } = data
   const statusMeta = STATUS_META[job.status]
   const dashboard = summary ? buildTechniqueDashboard(summary) : null
   const isActive = ACTIVE.has(job.status)
@@ -181,8 +182,9 @@ export default function JobDetailPage() {
   const downloads = signedDownloads(artifacts)
   const headline = coachingHeadline(job, summary)
 
-  const score = dashboard?.overview.overallScore ?? null
+  const score = job.score ?? dashboard?.overview.overallScore ?? null
   const level = score != null ? scoreLabel(score) : null
+  const scoreDelta = score != null && previousScore != null ? score - previousScore : null
 
   return (
     <div className="space-y-6">
@@ -206,6 +208,17 @@ export default function JobDetailPage() {
                   )}
                   {level && (
                     <span className={levelBadgeClass(level)}>{level}</span>
+                  )}
+                  {scoreDelta != null && (
+                    <span
+                      className="text-sm font-bold px-2.5 py-1 rounded-full"
+                      style={{
+                        color: scoreDelta >= 0 ? 'var(--success)' : 'var(--danger)',
+                        background: scoreDelta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
+                      }}
+                    >
+                      {scoreDelta >= 0 ? '+' : ''}{scoreDelta} vs prev
+                    </span>
                   )}
                 </div>
                 <span className="eyebrow">Run recap</span>
