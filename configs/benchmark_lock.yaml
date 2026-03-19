@@ -1,0 +1,7 @@
+# Benchmark lock for curated 26-image test split (2026-02-26)
+# Canonical promotion benchmark — any mismatch is a release blocker.
+data_yaml: data/datasets/final_combined_1class_20260226_curated/data.yaml
+test_images: 26
+test_labels: 26
+default_threshold: 0.35
+baseline_stage1_f1: 0.7671

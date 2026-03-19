@@ -1,0 +1,98 @@
+{
+  "config": "/Users/quan/Documents/personal/Stanford application project/.claude/worktrees/focused-cannon/configs/regression_defaults.yaml",
+  "regression_dir": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos",
+  "settings": {
+    "gate_conf": 0.35,
+    "gate_iou": 0.55,
+    "stabilize": true,
+    "camera_mode": "affine",
+    "projection": "scale",
+    "discipline": "slalom",
+    "skier_conf": 0.25,
+    "gate_search_frames": 150,
+    "gate_search_stride": 5,
+    "gate_track_frames": 120,
+    "gate_track_stride": 3,
+    "gate_track_min_obs": 3,
+    "frame_stride": 1
+  },
+  "videos": [
+    {
+      "video_id": "2907",
+      "path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2907_1765738705(Video in Original Quality).mp4"
+    },
+    {
+      "video_id": "2909",
+      "path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2909_1765738725(Video in Original Quality).mp4"
+    },
+    {
+      "video_id": "2911",
+      "path": "/Users/quan/Documents/personal/Stanford application project/tracks/E_evaluation_ci/regression_videos/2911_1765738746(Video in Original Quality).mp4"
+    }
+  ],
+  "per_video": [
+    {
+      "video_id": "2907",
+      "video_file": "2907_1765738705(Video in Original Quality).mp4",
+      "analysis_json": "stage2_regression/2907_analysis.json",
+      "gates_detected": 3,
+      "trajectory_coverage": 0.9893364928909952,
+      "tracked_frames": 835,
+      "total_frames": 844,
+      "track_id_switches": 0,
+      "p90_speed_kmh": 0.0,
+      "max_speed_kmh": 0.0,
+      "max_g_force": 0.0,
+      "max_jump_m": 0.0,
+      "auto_cal_correction": 1.0,
+      "auto_cal_applied": false,
+      "physics_issue_count": 0
+    },
+    {
+      "video_id": "2909",
+      "video_file": "2909_1765738725(Video in Original Quality).mp4",
+      "analysis_json": "stage2_regression/2909_analysis.json",
+      "gates_detected": 4,
+      "trajectory_coverage": 0.9967069154774972,
+      "tracked_frames": 908,
+      "total_frames": 911,
+      "track_id_switches": 0,
+      "p90_speed_kmh": 0.0,
+      "max_speed_kmh": 0.0,
+      "max_g_force": 0.0,
+      "max_jump_m": 0.0,
+      "auto_cal_correction": 1.0,
+      "auto_cal_applied": false,
+      "physics_issue_count": 0
+    },
+    {
+      "video_id": "2911",
+      "video_file": "2911_1765738746(Video in Original Quality).mp4",
+      "analysis_json": "stage2_regression/2911_analysis.json",
+      "gates_detected": 4,
+      "trajectory_coverage": 0.9678249678249679,
+      "tracked_frames": 752,
+      "total_frames": 777,
+      "track_id_switches": 0,
+      "p90_speed_kmh": 0.0,
+      "max_speed_kmh": 0.0,
+      "max_g_force": 0.0,
+      "max_jump_m": 0.0,
+      "auto_cal_correction": 1.0,
+      "auto_cal_applied": false,
+      "physics_issue_count": 0
+    }
+  ],
+  "aggregate": {
+    "videos": 3,
+    "gates_detected": 3.6666666666666665,
+    "trajectory_coverage": 0.9846227920644868,
+    "track_id_switches": 0.0,
+    "p90_speed_kmh": 0.0,
+    "max_speed_kmh": 0.0,
+    "max_g_force": 0.0,
+    "max_jump_m": 0.0,
+    "auto_cal_correction": 1.0,
+    "physics_issue_count": 0.0
+  }
+}

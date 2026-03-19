@@ -21,6 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.evaluate import parse_thresholds, run_holdout_evaluation  # noqa: E402
+from scripts.evaluation.benchmark_lock import load_benchmark_lock, validate_benchmark_lock  # noqa: E402
 from ski_racing.pipeline import SkiRacingPipeline  # noqa: E402
 
 
@@ -476,8 +477,13 @@ def parse_args():
 
     parser.add_argument(
         "--data",
-        default="data/annotations/final_combined_1class_20260213/test",
+        default="data/datasets/final_combined_1class_20260226_curated/data.yaml",
         help="Holdout split path (or data.yaml)",
+    )
+    parser.add_argument(
+        "--lock",
+        default="configs/benchmark_lock.yaml",
+        help="Benchmark lock config path (fail-fast if test counts mismatch)",
     )
     parser.add_argument(
         "--config",
@@ -529,6 +535,26 @@ def main():
         raise FileNotFoundError(f"Model not found: {model_path}")
 
     data_path = resolve_path(args.data)
+
+    # Benchmark lock validation — fail fast if test-split counts deviate from lock
+    lock_path = resolve_path(args.lock)
+    lock = load_benchmark_lock(lock_path)
+    lock_result = validate_benchmark_lock(lock, data_path)
+    if not lock_result["passed"]:
+        print(f"[ERROR] {lock_result['failure_reason']}", file=sys.stderr)
+        sys.exit(1)
+    print(
+        f"[INFO] Benchmark lock: PASSED "
+        f"(test images={lock_result['actual']['images']}, labels={lock_result['actual']['labels']})"
+    )
+    lock_metadata = {
+        "benchmark_lock_path": str(lock_path),
+        "resolved_test_images_count": lock_result["actual"]["images"],
+        "resolved_test_labels_count": lock_result["actual"]["labels"],
+        "benchmark_lock_passed": lock_result["passed"],
+        "benchmark_lock_expected": lock_result["expected"],
+    }
+
     output_root = resolve_path(args.output_root)
     report_dir = make_output_dir(output_root)
 
@@ -668,6 +694,11 @@ def main():
         "model": str(model_path),
         "git_commit": git_commit,
         "output_dir": str(report_dir),
+        "benchmark_lock_path": lock_metadata["benchmark_lock_path"],
+        "resolved_test_images_count": lock_metadata["resolved_test_images_count"],
+        "resolved_test_labels_count": lock_metadata["resolved_test_labels_count"],
+        "benchmark_lock_passed": lock_metadata["benchmark_lock_passed"],
+        "benchmark_lock_expected": lock_metadata["benchmark_lock_expected"],
         "artifacts": {
             "stage1_holdout": str(stage1_path),
             "stage2_regression": str(stage2_file),
