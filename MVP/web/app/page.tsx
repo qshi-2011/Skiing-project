@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Job, JobStatus } from '@/lib/types'
-import { buildTechniqueDashboard, scoreLabel, type TechniqueRunSummary } from '@/lib/analysis-summary'
+import { buildTechniqueDashboard, scoreLabel, type TechniqueRunSummary, type CoachingTip } from '@/lib/analysis-summary'
+import { buildNextSessionCard } from '@/lib/practice-guidance'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +25,14 @@ const STATUS_LABEL: Record<JobStatus, string> = {
   error: 'Error',
 }
 
+const CATEGORY_ICON: Record<string, string> = {
+  balance: 'Balance',
+  edging: 'Edging',
+  rhythm: 'Rhythm',
+  movement: 'Movement',
+  general: 'General',
+}
+
 function levelBadgeClass(label: string) {
   switch (label) {
     case 'Focus': return 'level-badge level-badge--focus'
@@ -34,9 +43,9 @@ function levelBadgeClass(label: string) {
   }
 }
 
-async function fetchLatestSummary(
+async function fetchSummary(
   service: ReturnType<typeof import('@/lib/supabase/server').createServiceClient>,
-  job: Job
+  job: Job,
 ): Promise<TechniqueRunSummary | null> {
   const { data: artifacts } = await service
     .from('artifacts')
@@ -92,36 +101,49 @@ export default async function HomePage() {
   // Fallback: if no stored score, try computing from summary
   let score = latestScore
   let level: string | null = latestScore != null ? scoreLabel(latestScore) : null
-  let primaryTip: { title: string; explanation: string; evidence: string; severity: string } | null = null
+  let primaryTip: CoachingTip | null = null
 
-  if (latestCompleted && score == null) {
-    const summary = await fetchLatestSummary(service, latestCompleted)
-    if (summary) {
-      const dashboard = buildTechniqueDashboard(summary)
-      score = dashboard.overview.overallScore
-      level = scoreLabel(score)
-      if (dashboard.focusCards.length) {
-        primaryTip = dashboard.focusCards[0]
-      } else if (summary.coaching_tips?.length) {
-        primaryTip = summary.coaching_tips[0]
-      }
-      // Persist score for future
-      if (Number.isFinite(score)) {
-        await service.from('jobs').update({ score }).eq('id', latestCompleted.id)
-      }
-    }
-  } else if (latestCompleted) {
-    // Still need coaching tip from summary
-    const summary = await fetchLatestSummary(service, latestCompleted)
-    if (summary) {
-      const dashboard = buildTechniqueDashboard(summary)
-      if (dashboard.focusCards.length) {
-        primaryTip = dashboard.focusCards[0]
-      } else if (summary.coaching_tips?.length) {
-        primaryTip = summary.coaching_tips[0]
+  // Fetch summaries from last 3 completed runs for coaching patterns
+  const recentCompleted = completedRuns.slice(0, 3)
+  const recentTipSets: CoachingTip[][] = []
+
+  for (const run of recentCompleted) {
+    const summary = await fetchSummary(service, run)
+    if (!summary) continue
+
+    // Collect coaching tips for practice guidance
+    const tips = summary.coaching_tips ?? []
+    if (tips.length) recentTipSets.push(tips)
+
+    // Handle latest run specifically
+    if (run.id === latestCompleted?.id) {
+      if (score == null) {
+        const dashboard = buildTechniqueDashboard(summary)
+        score = dashboard.overview.overallScore
+        level = scoreLabel(score)
+        if (dashboard.focusCards.length) {
+          primaryTip = dashboard.focusCards[0]
+        } else if (tips.length) {
+          primaryTip = tips[0]
+        }
+        // Persist score for future
+        if (Number.isFinite(score)) {
+          await service.from('jobs').update({ score }).eq('id', run.id)
+        }
+      } else {
+        // Already have score, just need the tip
+        const dashboard = buildTechniqueDashboard(summary)
+        if (dashboard.focusCards.length) {
+          primaryTip = dashboard.focusCards[0]
+        } else if (tips.length) {
+          primaryTip = tips[0]
+        }
       }
     }
   }
+
+  // Build next-session coaching card from recurring patterns
+  const nextSession = buildNextSessionCard(recentTipSets)
 
   const recentRuns = runs.slice(0, 5)
 
@@ -271,7 +293,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ── Coaching focus + archive preview ─────────── */}
+      {/* ── Coaching focus + next session ─────────────── */}
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         {/* Primary coaching focus */}
         <section className="surface-card-strong p-6">
@@ -318,68 +340,122 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* Archive preview */}
+        {/* Next session coaching card */}
         <section className="surface-card p-6">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--ink-soft)' }}>Recent runs</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--ink-soft)' }}>What next?</p>
               <h2 className="mt-1 text-2xl font-bold tracking-tight" style={{ color: 'var(--ink-strong)' }}>
-                Archive
+                Next session
               </h2>
             </div>
-            <Link href="/jobs" className="cta-secondary text-sm" style={{ padding: '0.5rem 0.9rem' }}>
-              View all
-            </Link>
+            <span className="status-pill" style={{ color: 'var(--gold)', background: 'var(--gold-dim)' }}>
+              Practice plan
+            </span>
           </div>
 
-          {!recentRuns.length ? (
-            <div className="surface-card-muted p-8 text-center mt-5">
-              <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                Your runs will appear here.
-              </p>
+          <p className="mt-4 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
+            {nextSession.headline}
+          </p>
+
+          {nextSession.drills.length > 0 ? (
+            <div className="mt-5 space-y-3">
+              {nextSession.drills.map((drill) => (
+                <div key={drill.id} className="surface-card-muted p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
+                      {drill.title}
+                    </p>
+                    <span
+                      className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+                      style={{
+                        color: 'var(--accent)',
+                        background: 'var(--accent-dim)',
+                      }}
+                    >
+                      {CATEGORY_ICON[drill.category] ?? drill.category}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
+                    {drill.description}
+                  </p>
+                  {drill.priority > 1 && (
+                    <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--gold)' }}>
+                      Recurring across {drill.priority} recent runs
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
-            <ul className="space-y-2 mt-5">
-              {recentRuns.map((job: Job) => {
-                const filename =
-                  String(job.config?.original_filename ?? '') ||
-                  job.video_object_path?.split('/').pop() ||
-                  job.id.slice(0, 8)
-                return (
-                  <li key={job.id}>
-                    <Link
-                      href={`/jobs/${job.id}`}
-                      className="surface-card-muted flex items-center gap-3 px-4 py-3 group transition-transform hover:-translate-y-0.5"
-                      style={{ display: 'flex' }}
-                    >
-                      <div
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ background: STATUS_DOT[job.status as JobStatus] }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--ink-strong)' }}>
-                          {filename}
-                        </p>
-                      </div>
-                      {job.score != null && (
-                        <span className="text-xs font-bold shrink-0" style={{ color: 'var(--accent)' }}>
-                          {job.score}
-                        </span>
-                      )}
-                      <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
-                        {STATUS_LABEL[job.status as JobStatus]}
-                      </span>
-                      <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
-                        {new Date(job.created_at).toLocaleDateString()}
-                      </span>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
+            <div className="mt-5 surface-card-muted p-6 text-sm" style={{ color: 'var(--ink-soft)' }}>
+              Upload more runs to build your personalised practice plan. We look for patterns across your recent sessions to suggest drills.
+            </div>
           )}
         </section>
       </div>
+
+      {/* ── Archive preview ──────────────────────────── */}
+      <section className="surface-card p-6">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: 'var(--ink-soft)' }}>Recent runs</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight" style={{ color: 'var(--ink-strong)' }}>
+              Archive
+            </h2>
+          </div>
+          <Link href="/jobs" className="cta-secondary text-sm" style={{ padding: '0.5rem 0.9rem' }}>
+            View all
+          </Link>
+        </div>
+
+        {!recentRuns.length ? (
+          <div className="surface-card-muted p-8 text-center mt-5">
+            <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+              Your runs will appear here.
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-2 mt-5">
+            {recentRuns.map((job: Job) => {
+              const filename =
+                String(job.config?.original_filename ?? '') ||
+                job.video_object_path?.split('/').pop() ||
+                job.id.slice(0, 8)
+              return (
+                <li key={job.id}>
+                  <Link
+                    href={`/jobs/${job.id}`}
+                    className="surface-card-muted flex items-center gap-3 px-4 py-3 group transition-transform hover:-translate-y-0.5"
+                    style={{ display: 'flex' }}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: STATUS_DOT[job.status as JobStatus] }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--ink-strong)' }}>
+                        {filename}
+                      </p>
+                    </div>
+                    {job.score != null && (
+                      <span className="text-xs font-bold shrink-0" style={{ color: 'var(--accent)' }}>
+                        {job.score}
+                      </span>
+                    )}
+                    <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
+                      {STATUS_LABEL[job.status as JobStatus]}
+                    </span>
+                    <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
+                      {new Date(job.created_at).toLocaleDateString()}
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }
