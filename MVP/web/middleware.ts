@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const isPublic = pathname === '/' || pathname === '/login' || pathname === '/sample-analysis' || pathname.startsWith('/api/')
+  const isPublic = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/sample-analysis' || pathname.startsWith('/api/')
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
@@ -37,7 +37,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && pathname === '/login') {
+  if (user && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)

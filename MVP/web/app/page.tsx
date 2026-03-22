@@ -84,39 +84,105 @@ function LandingPage() {
   return (
     <>
       <div className="route-bg route-bg--landing" />
-      <div className="space-y-8">
+      <div className="landing-scroll">
 
-        {/* ── Hero: headline left + analysis preview right ── */}
-        <section className="grid gap-6 lg:grid-cols-[1fr_1.3fr] items-center">
-          {/* Left: headline + CTAs */}
-          <div>
-            <h1 className="landing-hero-title--white">
-              Elite analysis<br />for every run.
+        {/* ═══ Section 1: Hero ═══════════════════════════ */}
+        <section className="landing-section" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center' }}>
+          <div className="text-center mx-auto max-w-2xl">
+            <span className="eyebrow" style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}>
+              AI-Powered Ski Coaching
+            </span>
+            <h1 className="landing-hero-title--white mt-6">
+              See what your coach<br />can&apos;t tell you.
             </h1>
-            <p className="mt-4" style={{ fontSize: '1rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)', maxWidth: '28rem' }}>
-              Stop guessing your progress. See exactly what to fix with AI-powered technique analysis used by national teams.
+            <p className="mt-5" style={{ fontSize: '1.1rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)', maxWidth: '32rem', margin: '1.25rem auto 0' }}>
+              Upload a single run. Get biomechanical analysis, personalised coaching, and targeted practice drills — all from your phone camera.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/sample-analysis" className="cta-primary">
-                See Full Analysis
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <Link href="/signup" className="cta-primary" style={{ padding: '1rem 2rem', fontSize: '1rem' }}>
+                Get Started Free
               </Link>
               <Link
-                href="/login"
+                href="/sample-analysis"
                 className="cta-secondary"
-                style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}
+                style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)', padding: '1rem 2rem' }}
               >
-                Get Started
+                See a Sample Analysis
               </Link>
             </div>
           </div>
+        </section>
 
-          {/* Right: sample analysis preview card */}
-          <div className="surface-card-strong p-5 lg:p-6">
-            <p className="section-label">Sample Analysis Preview</p>
+        {/* ═══ Section 2: Value props ════════════════════ */}
+        <section className="landing-section">
+          <div className="text-center mb-8">
+            <p className="section-label">What you get</p>
+            <h2 className="section-title mt-3">Three outputs from every upload.</h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            <div className="surface-card p-7 text-center">
+              <div className="step-number mx-auto" style={{ width: '3rem', height: '3rem', fontSize: '1rem' }}>1</div>
+              <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--ink-strong)' }}>AI Coach Feedback</h3>
+              <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                Personalised coaching written by AI from your biomechanical data. Specific, actionable, and linked to practice drills.
+              </p>
+            </div>
+            <div className="surface-card p-7 text-center">
+              <div className="step-number mx-auto" style={{ width: '3rem', height: '3rem', fontSize: '1rem' }}>2</div>
+              <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--ink-strong)' }}>Technique Metrics</h3>
+              <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                17+ biomechanical markers across balance, edging, rhythm, and movement — scored and visualised per turn.
+              </p>
+            </div>
+            <div className="surface-card p-7 text-center">
+              <div className="step-number mx-auto" style={{ width: '3rem', height: '3rem', fontSize: '1rem' }}>3</div>
+              <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--ink-strong)' }}>Practice Drills</h3>
+              <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                9 curated on-snow drills matched to your weaknesses. Each with video guides so you know exactly what to practise next.
+              </p>
+            </div>
+          </div>
+        </section>
 
-            {/* Autoplay overlay video */}
+        {/* ═══ Section 3: How it works ═══════════════════ */}
+        <section className="landing-section">
+          <div className="surface-card p-8 lg:p-10">
+            <div className="text-center mb-8">
+              <p className="section-label">How it works</p>
+              <h2 className="section-title mt-3">From slope to coaching in minutes.</h2>
+            </div>
+            <div className="grid gap-8 md:grid-cols-3">
+              <div className="how-step">
+                <span className="how-step-number">01</span>
+                <h3>Record your run.</h3>
+                <p>Any smartphone, any angle. Side or behind works best. One continuous clip, one skier in frame.</p>
+              </div>
+              <div className="how-step">
+                <span className="how-step-number">02</span>
+                <h3>Upload &amp; analyse.</h3>
+                <p>Our pipeline tracks 34 body markers, segments every turn, and scores your biomechanics automatically.</p>
+              </div>
+              <div className="how-step">
+                <span className="how-step-number">03</span>
+                <h3>Get your coaching plan.</h3>
+                <p>AI writes personalised feedback, recommends targeted drills, and shows exactly what to work on next session.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ Section 4: Sample preview ═════════════════ */}
+        <section className="landing-section">
+          <div className="text-center mb-6">
+            <p className="section-label">Live preview</p>
+            <h2 className="section-title mt-3">See a real analysis.</h2>
+            <p className="section-copy mt-2 mx-auto max-w-lg">
+              This is an actual run processed by SkiCoach AI. Every upload produces the same depth of analysis.
+            </p>
+          </div>
+          <div className="surface-card-strong p-5 lg:p-6 max-w-3xl mx-auto">
             <div
-              className="mt-3 overflow-hidden"
+              className="overflow-hidden"
               style={{ borderRadius: 'var(--radius-xl)', background: '#0a0f1a', border: '1px solid rgba(255,255,255,0.15)' }}
             >
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
@@ -129,9 +195,7 @@ function LandingPage() {
                 className="w-full aspect-video bg-black"
               />
             </div>
-
-            {/* Score + turns row */}
-            <div className="mt-3 grid gap-3 grid-cols-3">
+            <div className="mt-4 grid gap-3 grid-cols-3">
               <div className="metric-tile metric-tile--high">
                 <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
                 <p className="metric-value" style={{ color: 'var(--accent)', fontSize: '1.6rem' }}>73</p>
@@ -147,52 +211,29 @@ function LandingPage() {
                 <p className="metric-label">Pose confidence</p>
               </div>
             </div>
-
-            {/* Top coaching insight */}
-            <div className="mt-3 surface-card-muted p-4">
-              <p className="section-label" style={{ color: 'var(--amber)' }}>Top Insight</p>
-              <p className="mt-2 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Work on symmetric knee flexion</p>
-              <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-soft)' }}>
-                Average left-right knee flexion asymmetry is 20.8&deg;. Aim for &lt;10&deg; to distribute load evenly.
-              </p>
+            <div className="mt-4 text-center">
+              <Link href="/sample-analysis" className="cta-secondary" style={{ fontSize: '0.88rem' }}>
+                Explore Full Analysis
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* ── How it works ───────────────────────────────── */}
-        <section className="surface-card p-8 lg:p-10">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="how-step">
-              <span className="how-step-number">01</span>
-              <h3>Record your run.</h3>
-              <p>Use any smartphone to capture your technique from the side or behind. No specialized hardware required.</p>
+        {/* ═══ Section 5: Final CTA ══════════════════════ */}
+        <section className="landing-section">
+          <div className="surface-card p-10 lg:p-14 text-center">
+            <h2 className="section-title">Ready to ski smarter?</h2>
+            <p className="section-copy mt-3 mx-auto max-w-lg">
+              Upload your first run and get coaching feedback in minutes. No subscription, no hardware — just your phone and the mountain.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <Link href="/signup" className="cta-primary" style={{ padding: '1rem 2rem', fontSize: '1rem' }}>
+                Get Started Free
+              </Link>
+              <Link href="/sample-analysis" className="cta-secondary" style={{ padding: '1rem 2rem' }}>
+                View Sample Analysis
+              </Link>
             </div>
-            <div className="how-step">
-              <span className="how-step-number">02</span>
-              <h3>Get instant feedback.</h3>
-              <p>Our computer vision engine analyzes 34 biometric markers to identify inefficiencies automatically.</p>
-            </div>
-            <div className="how-step">
-              <span className="how-step-number">03</span>
-              <h3>Track your progress.</h3>
-              <p>Compare runs over time with our performance dashboard and watch your technique score climb.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA block ──────────────────────────────────── */}
-        <section className="surface-card p-8 lg:p-10 text-center">
-          <h2 className="section-title">Ready to transform your skiing?</h2>
-          <p className="section-copy mt-3 mx-auto max-w-lg">
-            Join athletes who use SkiCoach AI to shave seconds off their times and perfect their form.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3 justify-center">
-            <Link href="/login" className="cta-primary">
-              Get Started Free
-            </Link>
-            <Link href="/sample-analysis" className="cta-secondary">
-              View Sample Analysis
-            </Link>
           </div>
         </section>
 
@@ -203,7 +244,7 @@ function LandingPage() {
             <a href="#">Terms of Service</a>
             <a href="#">Technical Docs</a>
           </div>
-          <p className="site-footer-copy">&copy; 2024 SkiCoach AI. All rights reserved.</p>
+          <p className="site-footer-copy">&copy; 2025 SkiCoach AI. All rights reserved.</p>
         </footer>
       </div>
     </>

@@ -22,7 +22,7 @@ export function NavLinks({ isAuthenticated }: { isAuthenticated?: boolean }) {
         >
           Login
         </Link>
-        <Link href="/login" className="cta-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.82rem' }}>
+        <Link href="/signup" className="cta-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.82rem' }}>
           Get Started
         </Link>
       </nav>
@@ -42,6 +42,12 @@ export function NavLinks({ isAuthenticated }: { isAuthenticated?: boolean }) {
         className={`topnav-link ${pathname.startsWith('/jobs') ? 'topnav-link--active' : ''}`}
       >
         Archive
+      </Link>
+      <Link
+        href="/profile"
+        className={`topnav-link ${pathname === '/profile' ? 'topnav-link--active' : ''}`}
+      >
+        Profile
       </Link>
       <LogoutButton />
     </nav>

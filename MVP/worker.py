@@ -48,6 +48,7 @@ R2_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY")
 R2_VIDEOS_BUCKET = os.environ.get("R2_VIDEOS_BUCKET")
 R2_ARTIFACTS_BUCKET = os.environ.get("R2_ARTIFACTS_BUCKET") or R2_VIDEOS_BUCKET
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 # How long (seconds) a job can stay in 'running' without a heartbeat before it
 # is considered stale and re-queued.
@@ -560,7 +561,7 @@ def _upload_artifacts(
     turns = (full_summary or {}).get("turns") if full_summary else None
     if isinstance(turns, list) and turns:
         print(f"  extracting cool-moment frames for {len(turns)} turn(s)...")
-        source_video = overlay_local if overlay_local and overlay_local.exists() else local_video
+        source_video = local_video
         extracted = _extract_cool_moment_photos(
             video_path=source_video,
             turns=turns,
@@ -606,7 +607,7 @@ def process_job(job: dict) -> None:
 
     with tempfile.TemporaryDirectory(prefix="skicoach_") as tmpdir:
         try:
-            _set_progress(job_id, config, "Downloading video...", step=1, total=4, stage="Downloading video")
+            _set_progress(job_id, config, "Downloading video...", step=1, total=5, stage="Downloading video")
             print(f"[{job_id[:8]}] Downloading video from {provider}...")
             video_bytes = _download_video_bytes(video_path_in_storage, provider)
             suffix = Path(video_path_in_storage).suffix or ".mp4"
@@ -615,7 +616,7 @@ def process_job(job: dict) -> None:
             size_mb = len(video_bytes) / 1_048_576
             print(f"[{job_id[:8]}] Downloaded {size_mb:.1f} MB")
 
-            _set_progress(job_id, config, "Running pose analysis...", step=2, total=4, stage="Running pose analysis")
+            _set_progress(job_id, config, "Running pose analysis...", step=2, total=5, stage="Running pose analysis")
             print(f"[{job_id[:8]}] Running technique analysis...")
             run_dir, mvp_summary, full_summary = _run_analysis(
                 local_video,
@@ -630,7 +631,7 @@ def process_job(job: dict) -> None:
 
             _write_heartbeat(job_id, config)
 
-            _set_progress(job_id, config, f"Uploading results ({n_turns} turn(s) found)...", step=3, total=4, stage="Uploading recap artifacts")
+            _set_progress(job_id, config, f"Uploading results ({n_turns} turn(s) found)...", step=3, total=5, stage="Uploading recap artifacts")
             print(f"[{job_id[:8]}] Uploading artifacts...")
             rows = _upload_artifacts(
                 job_id=job_id,
@@ -642,7 +643,38 @@ def process_job(job: dict) -> None:
                 supabase.table("artifacts").insert(rows).execute()
             print(f"[{job_id[:8]}] Uploaded {len(rows)} artifact(s)")
 
-            _set_progress(job_id, config, "Finalizing recap...", step=4, total=4, stage="Finalizing recap")
+            # ── Gemini personalised coaching ──────────────────
+            _set_progress(job_id, config, "Generating coaching feedback...", step=4, total=5, stage="Generating coaching feedback")
+            if full_summary and GEMINI_API_KEY:
+                try:
+                    from gemini_coaching import generate_coaching
+                    print(f"[{job_id[:8]}] Calling Gemini for coaching feedback...")
+                    coaching_result = generate_coaching(full_summary, api_key=GEMINI_API_KEY)
+                    coaching_path = run_dir / "summary" / "gemini_coaching.json"
+                    coaching_path.parent.mkdir(parents=True, exist_ok=True)
+                    coaching_path.write_text(json.dumps(coaching_result, indent=2))
+                    coaching_remote = f"jobs/{job_id}/gemini_coaching.json"
+                    _upload_file(
+                        bucket="artifacts",
+                        remote_path=coaching_remote,
+                        local_path=coaching_path,
+                        content_type="application/json",
+                    )
+                    supabase.table("artifacts").insert(
+                        {
+                            "job_id": job_id,
+                            "kind": "gemini_coaching",
+                            "object_path": coaching_remote,
+                            "meta": {},
+                        }
+                    ).execute()
+                    print(f"[{job_id[:8]}] Gemini coaching saved")
+                except Exception as gemini_err:
+                    print(f"[{job_id[:8]}] [warn] Gemini coaching failed: {gemini_err}", file=sys.stderr)
+            elif not GEMINI_API_KEY:
+                print(f"[{job_id[:8]}] [skip] GEMINI_API_KEY not set — skipping coaching generation")
+
+            _set_progress(job_id, config, "Finalizing recap...", step=5, total=5, stage="Finalizing recap")
 
             config.pop("progress_note", None)
             config.pop("heartbeat_at", None)

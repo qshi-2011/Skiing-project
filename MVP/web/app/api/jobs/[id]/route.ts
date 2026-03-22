@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildTechniqueDashboard, type TechniqueRunSummary } from '@/lib/analysis-summary'
+import { buildTechniqueDashboard, type TechniqueRunSummary, type GeminiCoaching } from '@/lib/analysis-summary'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { createArtifactDownloadUrl, getDefaultR2ArtifactsBucket } from '@/lib/r2'
 
@@ -82,6 +82,22 @@ export async function GET(
     }
   }
 
+  // Fetch Gemini coaching JSON if available
+  let geminiCoaching: GeminiCoaching | null = null
+  const coachingArtifact = (artifacts ?? []).find((artifact) => artifact.kind === 'gemini_coaching')
+  if (coachingArtifact) {
+    const { data: coachingFile } = await service.storage
+      .from('artifacts')
+      .download(coachingArtifact.object_path)
+    if (coachingFile) {
+      try {
+        geminiCoaching = JSON.parse(await coachingFile.text()) as GeminiCoaching
+      } catch (error) {
+        console.error('gemini coaching parse error:', error)
+      }
+    }
+  }
+
   // Persist score if summary exists and job.score is not yet set
   if (summary && job.score == null && job.status === 'done') {
     const dashboard = buildTechniqueDashboard(summary)
@@ -113,5 +129,5 @@ export async function GET(
     }
   }
 
-  return NextResponse.json({ job, artifacts: artifactsWithUrls, summary, previousScore })
+  return NextResponse.json({ job, artifacts: artifactsWithUrls, summary, previousScore, geminiCoaching })
 }

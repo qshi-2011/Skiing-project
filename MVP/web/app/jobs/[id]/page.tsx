@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { buildTechniqueDashboard, scoreLabel, scoreContext, computeReliability, type CoachingTip, type TechniqueRunSummary, type RecapReliability } from '@/lib/analysis-summary'
+import { buildTechniqueDashboard, scoreLabel, scoreContext, computeReliability, generateLimitations, type CoachingTip, type TechniqueRunSummary, type RecapReliability, type GeminiCoaching, type GeminiCoachingPoint } from '@/lib/analysis-summary'
+import { DRILLS, getDrill } from '@/lib/drills'
 import type { ArtifactWithUrl, Job, JobStatus } from '@/lib/types'
 
 interface JobResponse {
@@ -11,6 +12,7 @@ interface JobResponse {
   artifacts: ArtifactWithUrl[]
   summary: TechniqueRunSummary | null
   previousScore: number | null
+  geminiCoaching: GeminiCoaching | null
 }
 
 type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
@@ -147,7 +149,7 @@ export default function JobDetailPage() {
     )
   }
 
-  const { job, artifacts, summary, previousScore } = data
+  const { job, artifacts, summary, previousScore, geminiCoaching } = data
   const statusMeta = STATUS_META[job.status]
   const dashboard = summary ? buildTechniqueDashboard(summary) : null
   const reliability: RecapReliability = dashboard?.reliability ?? (summary ? computeReliability(summary) : 'reliable')
@@ -425,149 +427,319 @@ export default function JobDetailPage() {
               </div>
             )}
 
-            <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
-              {/* Run summary */}
+            {/* ── Coach's Analysis (Gemini) ─────────────── */}
+            {geminiCoaching ? (
               <section className="surface-card p-6">
-                <p className="section-label">Run Summary</p>
-                <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                  What stands out first
-                </h2>
-
-                <p className="mt-4 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
-                  {headline}
-                </p>
-
-                {dashboard ? (
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                    <div className="metric-tile">
-                      <p className="metric-value">{dashboard.overview.bestTurnScore}</p>
-                      <p className="metric-label">Best turn quality</p>
-                    </div>
-                    <div className="metric-tile">
-                      <p className="metric-value">{dashboard.overview.turnsDetected}</p>
-                      <p className="metric-label">Turns in coaching pass</p>
-                    </div>
-                    <div className="metric-tile">
-                      <p className="metric-value">{downloads.length}</p>
-                      <p className="metric-label">Artifacts ready</p>
-                    </div>
-                    <div className="metric-tile">
-                      <p className="metric-value">{coolMomentPhotos.length + peakFrames.length}</p>
-                      <p className="metric-label">Key images</p>
-                    </div>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="section-label" style={{ color: 'var(--accent)' }}>Coach&apos;s Analysis</p>
+                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                      Personalised feedback for this run
+                    </h2>
                   </div>
-                ) : (
-                  <div className="mt-6 surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                    Summary metrics will appear here once the summary artifact is available.
-                  </div>
-                )}
+                  <span className="eyebrow">AI Coach</span>
+                </div>
 
-                {!!dashboard?.warnings.length && (
-                  <div className="mt-6 surface-card-muted p-4">
-                    <p className="section-label">Capture Warnings</p>
-                    <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
-                      {dashboard.warnings.map((w) => <li key={w}>{w}</li>)}
+                {/* Coach summary */}
+                <div className="mt-5 coach-summary">
+                  <p className="text-base leading-7" style={{ color: 'var(--ink-base)' }}>
+                    {geminiCoaching.coach_summary}
+                  </p>
+                </div>
+
+                {/* Coaching points */}
+                <div className="mt-5 space-y-3">
+                  {geminiCoaching.coaching_points.map((point: GeminiCoachingPoint, idx: number) => {
+                    const catColors = CATEGORY_COLORS[point.category] ?? CATEGORY_COLORS.general
+                    const CATEGORY_LABELS: Record<string, string> = {
+                      movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
+                    }
+                    const drill = point.recommended_drill_id ? getDrill(point.recommended_drill_id) : null
+                    return (
+                      <div key={`${point.title}-${idx}`} className={`coaching-card ${catColors.accent}`}>
+                        <div className="flex items-center gap-3 pl-3">
+                          <span className="preflight-number" style={{ width: '1.5rem', height: '1.5rem', fontSize: '0.62rem' }}>
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{point.title}</p>
+                          </div>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
+                            {CATEGORY_LABELS[point.category] ?? point.category}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)' }}>
+                          {point.feedback}
+                        </p>
+                        {drill && (
+                          <div className="mt-3 pl-3">
+                            <div className="drill-card inline-flex items-center gap-3 px-4 py-3">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--ink-muted)' }}>Recommended Drill</p>
+                                <p className="mt-1 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{drill.title}</p>
+                                <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>{drill.description}</p>
+                              </div>
+                              {drill.videoUrl ? (
+                                <a
+                                  href={drill.videoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="cta-primary shrink-0"
+                                  style={{ padding: '0.5rem 1rem', fontSize: '0.78rem' }}
+                                >
+                                  Watch Drill
+                                </a>
+                              ) : (
+                                <span className="text-xs shrink-0 px-3 py-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--ink-muted)' }}>
+                                  Video coming soon
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Additional observations */}
+                {geminiCoaching.additional_observations?.length > 0 && (
+                  <div className="mt-5">
+                    <p className="section-label">Additional Observations</p>
+                    <ul className="mt-3 space-y-2">
+                      {geminiCoaching.additional_observations.map((obs: string, idx: number) => (
+                        <li key={idx} className="text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)', borderLeft: '2px solid rgba(0,0,0,0.08)', paddingLeft: '0.75rem' }}>
+                          {obs}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
               </section>
-
-              {/* Coaching insights */}
-              <section className="surface-card p-6">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div>
-                    <p className="section-label" style={{ color: 'var(--amber)' }}>Coaching Insights</p>
-                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      {reliability === 'insufficient' ? 'Directional suggestions' : 'Top priorities'}
-                    </h2>
-                  </div>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {(() => {
-                    const allTips = dashboard?.allTips ?? dashboard?.focusCards ?? summary?.coaching_tips ?? []
-                    const visibleTips = showAllTips ? allTips : allTips.slice(0, 2)
-                    const CATEGORY_LABELS: Record<string, string> = {
-                      movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
-                    }
-                    return (
-                      <>
-                        {visibleTips.map((tip, idx) => {
-                          const category = tipCategory(tip)
-                          const catColors = CATEGORY_COLORS[category] ?? CATEGORY_COLORS.general
-                          const timeLabel = tip.time_ranges?.length
-                            ? `Most visible around ${tip.time_ranges.map(([s]) => `${s.toFixed(1)}s`).join(' and ')}`
-                            : null
-                          return (
-                            <div key={`${tip.title}-${tip.evidence}`} className={`coaching-card ${catColors.accent}`}>
-                              <div className="flex items-center gap-3 pl-3">
-                                <span className="preflight-number" style={{ width: '1.5rem', height: '1.5rem', fontSize: '0.62rem' }}>
-                                  {String(idx + 1).padStart(2, '0')}
-                                </span>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{tip.title}</p>
-                                </div>
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
-                                  {CATEGORY_LABELS[category]}
-                                </span>
-                              </div>
-                              <p className="mt-2 text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)' }}>
-                                {tip.explanation}
-                              </p>
-                              <p className="mt-2 text-xs pl-3" style={{ color: 'var(--ink-muted)' }}>
-                                {tip.evidence}
-                              </p>
-                              {timeLabel && (
-                                <p className="mt-1 text-xs font-medium pl-3" style={{ color: 'var(--accent)' }}>
-                                  {timeLabel}
-                                </p>
-                              )}
-                              <Link
-                                href="#"
-                                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold pl-3"
-                                style={{ color: 'var(--ink-soft)' }}
-                                onClick={(e) => { e.preventDefault(); setActiveTab('moments') }}
-                              >
-                                View evidence
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                              </Link>
-                            </div>
-                          )
-                        })}
-                        {allTips.length > 2 && !showAllTips && (
-                          <button
-                            type="button"
-                            onClick={() => setShowAllTips(true)}
-                            className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
-                            style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}
-                          >
-                            Show all {allTips.length} areas
-                          </button>
-                        )}
-                        {showAllTips && allTips.length > 2 && (
-                          <button
-                            type="button"
-                            onClick={() => setShowAllTips(false)}
-                            className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
-                            style={{ color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)' }}
-                          >
-                            Show top 2 only
-                          </button>
-                        )}
-                      </>
-                    )
-                  })()}
-
-                  {!summary?.coaching_tips?.length && (
-                    <div className="surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      Coaching insights appear when the summary JSON includes coaching guidance.
+            ) : (
+              /* Fallback: legacy coaching insights when no Gemini data */
+              <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+                <section className="surface-card p-6">
+                  <p className="section-label">Run Summary</p>
+                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                    What stands out first
+                  </h2>
+                  <p className="mt-4 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
+                    {headline}
+                  </p>
+                  {dashboard ? (
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                      <div className="metric-tile">
+                        <p className="metric-value">{dashboard.overview.bestTurnScore}</p>
+                        <p className="metric-label">Best turn quality</p>
+                      </div>
+                      <div className="metric-tile">
+                        <p className="metric-value">{dashboard.overview.turnsDetected}</p>
+                        <p className="metric-label">Turns in coaching pass</p>
+                      </div>
+                      <div className="metric-tile">
+                        <p className="metric-value">{downloads.length}</p>
+                        <p className="metric-label">Artifacts ready</p>
+                      </div>
+                      <div className="metric-tile">
+                        <p className="metric-value">{coolMomentPhotos.length + peakFrames.length}</p>
+                        <p className="metric-label">Key images</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-6 surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
+                      Summary metrics will appear here once the summary artifact is available.
                     </div>
                   )}
+                  {!!dashboard?.warnings.length && (
+                    <div className="mt-6 surface-card-muted p-4">
+                      <p className="section-label">Capture Warnings</p>
+                      <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
+                        {dashboard.warnings.map((w) => <li key={w}>{w}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </section>
+
+                <section className="surface-card p-6">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="section-label" style={{ color: 'var(--amber)' }}>Coaching Insights</p>
+                      <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                        {reliability === 'insufficient' ? 'Directional suggestions' : 'Top priorities'}
+                      </h2>
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-3">
+                    {(() => {
+                      const allTips = dashboard?.allTips ?? dashboard?.focusCards ?? summary?.coaching_tips ?? []
+                      const visibleTips = showAllTips ? allTips : allTips.slice(0, 2)
+                      const CATEGORY_LABELS: Record<string, string> = {
+                        movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
+                      }
+                      return (
+                        <>
+                          {visibleTips.map((tip, idx) => {
+                            const category = tipCategory(tip)
+                            const catColors = CATEGORY_COLORS[category] ?? CATEGORY_COLORS.general
+                            return (
+                              <div key={`${tip.title}-${tip.evidence}`} className={`coaching-card ${catColors.accent}`}>
+                                <div className="flex items-center gap-3 pl-3">
+                                  <span className="preflight-number" style={{ width: '1.5rem', height: '1.5rem', fontSize: '0.62rem' }}>
+                                    {String(idx + 1).padStart(2, '0')}
+                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{tip.title}</p>
+                                  </div>
+                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
+                                    {CATEGORY_LABELS[category]}
+                                  </span>
+                                </div>
+                                <p className="mt-2 text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)' }}>
+                                  {tip.explanation}
+                                </p>
+                                <p className="mt-2 text-xs pl-3" style={{ color: 'var(--ink-muted)' }}>
+                                  {tip.evidence}
+                                </p>
+                              </div>
+                            )
+                          })}
+                          {allTips.length > 2 && !showAllTips && (
+                            <button
+                              type="button"
+                              onClick={() => setShowAllTips(true)}
+                              className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
+                              style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}
+                            >
+                              Show all {allTips.length} areas
+                            </button>
+                          )}
+                          {showAllTips && allTips.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowAllTips(false)}
+                              className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
+                              style={{ color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)' }}
+                            >
+                              Show top 2 only
+                            </button>
+                          )}
+                        </>
+                      )
+                    })()}
+                    {!summary?.coaching_tips?.length && (
+                      <div className="surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
+                        Coaching insights appear when the summary JSON includes coaching guidance.
+                      </div>
+                    )}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {/* ── Recommended Practice (drill summary) ─── */}
+            {geminiCoaching && (() => {
+              const recommendedDrills = geminiCoaching.coaching_points
+                .map((p: GeminiCoachingPoint) => p.recommended_drill_id)
+                .filter((id): id is string => id != null)
+                .map((id) => getDrill(id))
+                .filter((d): d is NonNullable<typeof d> => d != null)
+              const uniqueDrills = [...new Map(recommendedDrills.map((d) => [d.id, d])).values()]
+              if (!uniqueDrills.length) return null
+              return (
+                <section className="surface-card p-6">
+                  <p className="section-label">Recommended Practice</p>
+                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                    Drills for your next session
+                  </h2>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {uniqueDrills.map((drill) => (
+                      <div key={drill.id} className="drill-card p-4">
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          CATEGORY_COLORS[drill.category]?.badge ?? 'category-badge-general'
+                        }`}>
+                          {drill.category.charAt(0).toUpperCase() + drill.category.slice(1)}
+                        </span>
+                        <h3 className="mt-3 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{drill.title}</h3>
+                        <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-soft)' }}>{drill.description}</p>
+                        {drill.videoUrl ? (
+                          <a
+                            href={drill.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="cta-primary mt-3 w-full"
+                            style={{ padding: '0.5rem 1rem', fontSize: '0.78rem' }}
+                          >
+                            Watch Drill
+                          </a>
+                        ) : (
+                          <span className="mt-3 block text-center text-xs py-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--ink-muted)' }}>
+                            Video coming soon
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )
+            })()}
+
+            {/* ── Evidence (metric rails) ──────────────── */}
+            {dashboard && (
+              <section className="surface-card p-6">
+                <p className="section-label">Evidence</p>
+                <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                  Metric breakdown behind the coaching
+                </h2>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  {dashboard.categories.map((category) => (
+                    <div key={category.id} className="surface-card-muted p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{category.title}</p>
+                        <span className="text-sm font-extrabold" style={{ color: 'var(--accent)' }}>{category.score}</span>
+                      </div>
+                      <div className="mt-3 space-y-3">
+                        {category.metrics.map((metric) => (
+                          <div key={`${category.id}-${metric.label}`}>
+                            <div className="flex items-center justify-between text-xs">
+                              <span style={{ color: 'var(--ink-soft)' }}>{metric.label}</span>
+                              <span className="font-mono" style={{ color: 'var(--accent)' }}>{metric.value}</span>
+                            </div>
+                            <div className="mt-1 metric-rail">
+                              <span style={{ width: `${metric.fill}%` }}>
+                                <span className="metric-rail-dot" />
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
-            </div>
+            )}
+
+            {/* ── Model Limitations ────────────────────── */}
+            {summary && (() => {
+              const limitations = generateLimitations(summary)
+              if (!limitations.length) return null
+              return (
+                <section className="surface-card p-6">
+                  <p className="section-label" style={{ color: 'var(--gold)' }}>What the model may get wrong</p>
+                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                    Model limitations for this run
+                  </h2>
+                  <div className="mt-5 space-y-3">
+                    {limitations.map((lim, idx) => (
+                      <div key={idx} className="limitations-card">
+                        <h4>{lim.title}</h4>
+                        <p>{lim.explanation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )
+            })()}
           </div>
         )}
 

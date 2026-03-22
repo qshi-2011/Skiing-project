@@ -128,6 +128,85 @@ export function deduplicateTips(tips: CoachingTip[]): CoachingTip[] {
   return Array.from(seen.values())
 }
 
+// ── Gemini coaching types ─────────────────────────────────
+export interface GeminiCoachingPoint {
+  title: string
+  feedback: string
+  category: 'balance' | 'edging' | 'rhythm' | 'movement'
+  severity: 'action' | 'warn' | 'info'
+  recommended_drill_id: string | null
+}
+
+export interface GeminiCoaching {
+  coach_summary: string
+  coaching_points: GeminiCoachingPoint[]
+  additional_observations: string[]
+}
+
+// ── Model limitations ────────────────────────────────────
+export interface ModelLimitation {
+  title: string
+  explanation: string
+}
+
+export function generateLimitations(summary: TechniqueRunSummary): ModelLimitation[] {
+  const limitations: ModelLimitation[] = []
+  const confidence = summary.quality?.overall_pose_confidence_mean ?? 1
+  const lowFrac = summary.quality?.low_confidence_fraction ?? 0
+  const warnings = (summary.quality?.warnings ?? []) as string[]
+  const segments = summary.segments ?? []
+
+  if (confidence < 0.70) {
+    limitations.push({
+      title: 'Low pose confidence',
+      explanation: `Average pose confidence is ${(confidence * 100).toFixed(0)}%. Joint positions may be inaccurate — edge angles and body alignment readings could be off.`,
+    })
+  }
+
+  if (lowFrac > 0.20) {
+    limitations.push({
+      title: 'Many low-confidence frames',
+      explanation: `${(lowFrac * 100).toFixed(0)}% of frames had low tracking confidence. Metrics from those sections are less reliable.`,
+    })
+  }
+
+  if (segments.length > 1) {
+    limitations.push({
+      title: 'Multiple tracking segments',
+      explanation: 'The video was split into separate tracking segments (possible scene cuts or occlusion). Cross-segment comparisons may not be meaningful.',
+    })
+  }
+
+  if (warnings.some((w) => /occlu/i.test(w))) {
+    limitations.push({
+      title: 'Occlusion detected',
+      explanation: 'Parts of the body were hidden from the camera at times. Metrics during those moments are estimated, not measured.',
+    })
+  }
+
+  if (warnings.some((w) => /camera|angle|perspective/i.test(w))) {
+    limitations.push({
+      title: 'Camera angle limitations',
+      explanation: 'The camera angle may have reduced accuracy for some measurements. Side or behind views give the best results.',
+    })
+  }
+
+  if (warnings.some((w) => /scene.?cut/i.test(w))) {
+    limitations.push({
+      title: 'Scene cuts detected',
+      explanation: 'The video contains cuts or transitions. Metrics may mix data from different runs or angles.',
+    })
+  }
+
+  // Always show this baseline caveat
+  limitations.push({
+    title: 'Model sees numbers, not video',
+    explanation: 'Coaching feedback is generated from biomechanical metrics, not by watching your skiing. Some nuances (snow conditions, terrain, intent) are invisible to the model.',
+  })
+
+  return limitations
+}
+
 export interface DashboardMetric {
   label: string
   value: string
