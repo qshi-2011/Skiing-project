@@ -2,7 +2,7 @@
 """Local MacBook worker — polls Supabase for queued jobs and runs technique analysis.
 
 Setup:
-    pip install supabase python-dotenv
+    pip install supabase python-dotenv boto3
 
     Create MVP/.env.worker (copy .env.worker.example and fill in values).
 
@@ -43,14 +43,21 @@ import os  # noqa: E402
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 POLL_INTERVAL_S = float(os.environ.get("WORKER_POLL_INTERVAL", "10"))
+R2_ACCOUNT_ID = os.environ.get("R2_ACCOUNT_ID")
+R2_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID")
+R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY")
+R2_VIDEOS_BUCKET = os.environ.get("R2_VIDEOS_BUCKET")
+R2_ARTIFACTS_BUCKET = os.environ.get("R2_ARTIFACTS_BUCKET") or R2_VIDEOS_BUCKET
 
 # How long (seconds) a job can stay in 'running' without a heartbeat before it
 # is considered stale and re-queued.
 STALE_THRESHOLD_S = int(os.environ.get("WORKER_STALE_THRESHOLD", "600"))
 
 from supabase import create_client  # noqa: E402
+import boto3  # noqa: E402
 
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+_r2_client = None
 
 # Graceful shutdown
 
@@ -108,6 +115,68 @@ def _write_heartbeat(job_id: str, config: dict) -> None:
     supabase.table("jobs").update(
         {"config": config, "updated_at": _now_iso()}
     ).eq("id", job_id).execute()
+
+
+def _video_storage_provider(config: dict) -> str:
+    return "r2" if config.get("video_storage_provider") == "r2" else "supabase"
+
+
+def _get_r2_client():
+    global _r2_client
+
+    if _r2_client is not None:
+        return _r2_client
+
+    missing = [
+        name
+        for name, value in (
+            ("R2_ACCOUNT_ID", R2_ACCOUNT_ID),
+            ("R2_ACCESS_KEY_ID", R2_ACCESS_KEY_ID),
+            ("R2_SECRET_ACCESS_KEY", R2_SECRET_ACCESS_KEY),
+            ("R2_VIDEOS_BUCKET", R2_VIDEOS_BUCKET),
+        )
+        if not value
+    ]
+    if missing:
+        missing_names = ", ".join(missing)
+        raise RuntimeError(f"Missing required R2 environment variable(s): {missing_names}")
+
+    _r2_client = boto3.client(
+        "s3",
+        endpoint_url=f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+        aws_access_key_id=R2_ACCESS_KEY_ID,
+        aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+        region_name="auto",
+    )
+    return _r2_client
+
+
+def _download_video_bytes(remote_path: str, provider: str) -> bytes:
+    if provider == "r2":
+        response = _get_r2_client().get_object(Bucket=R2_VIDEOS_BUCKET, Key=remote_path)
+        return response["Body"].read()
+
+    return supabase.storage.from_("videos").download(remote_path)
+
+
+def _upload_file_to_r2(
+    *,
+    bucket: str,
+    remote_path: str,
+    local_path: Path,
+    content_type: str | None = None,
+) -> None:
+    guessed, _ = mimetypes.guess_type(str(local_path))
+    size_mb = local_path.stat().st_size / 1_048_576
+    print(f"  -> {local_path.name} ({size_mb:.1f} MB) -> r2://{bucket}/{remote_path}")
+
+    extra_args = {"ContentType": content_type or guessed or "application/octet-stream"}
+    try:
+        _get_r2_client().upload_file(str(local_path), bucket, remote_path, ExtraArgs=extra_args)
+    except Exception as exc:
+        raise RuntimeError(f"Upload to r2://{bucket}/{remote_path} failed: {exc}") from exc
+
+    print(f"  OK {local_path.name} uploaded to R2")
 
 
 # Stale job recovery
@@ -405,7 +474,7 @@ def _upload_artifacts(
     full_summary: dict | None,
     local_video: Path,
 ) -> list[dict]:
-    """Upload artifacts to Supabase Storage and return DB rows."""
+    """Upload artifacts and return DB rows."""
     rows: list[dict] = []
 
     full_summary_local = run_dir / "summary" / "summary.json"
@@ -440,9 +509,12 @@ def _upload_artifacts(
             overlay_local = candidate
 
     if overlay_local and overlay_local.exists():
-        overlay_remote = f"jobs/{job_id}/overlay{overlay_local.suffix or '.mp4'}"
-        _upload_file(
-            bucket="artifacts",
+        overlay_remote = f"artifacts/jobs/{job_id}/overlay{overlay_local.suffix or '.mp4'}"
+        overlay_bucket = R2_ARTIFACTS_BUCKET
+        if not overlay_bucket:
+            raise RuntimeError("R2 artifact bucket is not configured")
+        _upload_file_to_r2(
+            bucket=overlay_bucket,
             remote_path=overlay_remote,
             local_path=overlay_local,
             content_type="video/mp4",
@@ -452,7 +524,10 @@ def _upload_artifacts(
                 "job_id": job_id,
                 "kind": "video_overlay",
                 "object_path": overlay_remote,
-                "meta": {},
+                "meta": {
+                    "storage_provider": "r2",
+                    "storage_bucket": overlay_bucket,
+                },
             }
         )
     else:
@@ -521,8 +596,9 @@ def process_job(job: dict) -> None:
     job_id: str = job["id"]
     video_path_in_storage: str | None = job.get("video_object_path")
     config: dict = dict(job.get("config") or {})
+    provider = _video_storage_provider(config)
 
-    print(f"[{job_id[:8]}] Starting job (video: {video_path_in_storage})")
+    print(f"[{job_id[:8]}] Starting job (provider: {provider}, video: {video_path_in_storage})")
 
     if not video_path_in_storage:
         _set_status(job_id, "error", error="video_object_path is empty")
@@ -531,8 +607,8 @@ def process_job(job: dict) -> None:
     with tempfile.TemporaryDirectory(prefix="skicoach_") as tmpdir:
         try:
             _set_progress(job_id, config, "Downloading video...", step=1, total=4, stage="Downloading video")
-            print(f"[{job_id[:8]}] Downloading video from Storage...")
-            video_bytes: bytes = supabase.storage.from_("videos").download(video_path_in_storage)
+            print(f"[{job_id[:8]}] Downloading video from {provider}...")
+            video_bytes = _download_video_bytes(video_path_in_storage, provider)
             suffix = Path(video_path_in_storage).suffix or ".mp4"
             local_video = Path(tmpdir) / f"video{suffix}"
             local_video.write_bytes(video_bytes)
@@ -609,6 +685,12 @@ def main() -> int:
 
     print(f"[worker] Starting — polling {SUPABASE_URL}")
     print(f"[worker] Using {RUN_SCRIPT}")
+    if all((R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_VIDEOS_BUCKET)):
+        print(f"[worker] R2 video bucket configured: {R2_VIDEOS_BUCKET}")
+        if R2_ARTIFACTS_BUCKET:
+            print(f"[worker] R2 artifact bucket configured: {R2_ARTIFACTS_BUCKET}")
+    else:
+        print("[worker] R2 video bucket not configured — only Supabase-backed jobs can be downloaded")
 
     n = recover_stale_jobs()
     if n:

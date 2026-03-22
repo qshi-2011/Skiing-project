@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { videoObjectExists } from '@/lib/r2'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
   // Confirm ownership and current state before mutating
   const { data: job } = await service
     .from('jobs')
-    .select('id, user_id, status, video_object_path')
+    .select('id, user_id, status, video_object_path, config')
     .eq('id', jobId)
     .single()
 
@@ -41,18 +42,31 @@ export async function POST(req: NextRequest) {
 
   // Verify the video object actually exists in storage
   if (job.video_object_path) {
-    const { data: objects, error: listError } = await service.storage
-      .from('videos')
-      .list(job.video_object_path.split('/').slice(0, -1).join('/'), {
-        search: job.video_object_path.split('/').pop(),
-        limit: 1,
-      })
+    const config = (job.config ?? {}) as Record<string, unknown>
+    const provider = config.video_storage_provider === 'r2' ? 'r2' : 'supabase'
 
-    if (listError || !objects?.length) {
-      return NextResponse.json(
-        { error: 'Video file not found in storage. Upload may have failed.' },
-        { status: 400 }
-      )
+    if (provider === 'r2') {
+      const exists = await videoObjectExists(job.video_object_path)
+      if (!exists) {
+        return NextResponse.json(
+          { error: 'Video file not found in R2. Upload may have failed.' },
+          { status: 400 }
+        )
+      }
+    } else {
+      const { data: objects, error: listError } = await service.storage
+        .from('videos')
+        .list(job.video_object_path.split('/').slice(0, -1).join('/'), {
+          search: job.video_object_path.split('/').pop(),
+          limit: 1,
+        })
+
+      if (listError || !objects?.length) {
+        return NextResponse.json(
+          { error: 'Video file not found in storage. Upload may have failed.' },
+          { status: 400 }
+        )
+      }
     }
   }
 

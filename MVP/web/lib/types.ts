@@ -22,6 +22,8 @@ export interface Artifact {
     turn_idx?: number
     side?: string
     timestamp_s?: number
+    storage_provider?: 'supabase' | 'r2'
+    storage_bucket?: string
     [key: string]: unknown
   }
   created_at: string

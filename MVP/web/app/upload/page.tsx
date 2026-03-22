@@ -2,9 +2,21 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 type Step = 'idle' | 'creating' | 'uploading' | 'finalizing' | 'done' | 'error'
+type UploadedPart = { ETag: string; PartNumber: number }
+type CreateJobResponse = {
+  jobId: string
+  path: string
+  uploadId: string
+  contentType: string
+  partSizeBytes: number
+  totalParts: number
+  maxConcurrency: number
+}
+type MultipartActionResponse = { uploadUrl?: string; ok?: boolean; error?: string }
+const PART_UPLOAD_RETRIES = 3
+const PART_RETRY_DELAY_MS = 1200
 
 const PROGRESS: Record<Step, number> = {
   idle: 0,
@@ -53,20 +65,152 @@ export default function UploadPage() {
   const [dragOver, setDragOver] = useState(false)
   const [cameraPerspective, setCameraPerspective] = useState('')
   const [sessionType, setSessionType] = useState('')
+  const [uploadProgressPct, setUploadProgressPct] = useState(0)
+
+  async function wait(ms: number) {
+    await new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  async function postMultipartAction(body: Record<string, unknown>): Promise<MultipartActionResponse> {
+    const response = await fetch('/api/jobs/upload-multipart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+
+    const json = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const message = typeof json?.error === 'string' ? json.error : 'Multipart upload request failed'
+      throw new Error(message)
+    }
+
+    return json as MultipartActionResponse
+  }
+
+  async function uploadPart(
+    path: string,
+    uploadId: string,
+    partNumber: number,
+    chunk: Blob,
+  ) {
+    const { uploadUrl } = await postMultipartAction({
+      action: 'sign-part',
+      path,
+      uploadId,
+      partNumber,
+    })
+
+    if (!uploadUrl) {
+      throw new Error('Missing signed upload URL for multipart part')
+    }
+
+    const res = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: chunk,
+    })
+
+    if (!res.ok) {
+      throw new Error(`Part ${partNumber} upload failed with status ${res.status}`)
+    }
+
+    const eTag = res.headers.get('etag')
+    if (!eTag) {
+      throw new Error(`Part ${partNumber} upload succeeded but no ETag was returned`)
+    }
+
+    return eTag
+  }
+
+  async function uploadPartWithRetry(
+    path: string,
+    uploadId: string,
+    partNumber: number,
+    chunk: Blob,
+  ) {
+    let lastError: unknown = null
+
+    for (let attempt = 1; attempt <= PART_UPLOAD_RETRIES; attempt += 1) {
+      try {
+        return await uploadPart(path, uploadId, partNumber, chunk)
+      } catch (error) {
+        lastError = error
+        if (attempt < PART_UPLOAD_RETRIES) {
+          await wait(PART_RETRY_DELAY_MS * attempt)
+        }
+      }
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error(`Part ${partNumber} upload failed after ${PART_UPLOAD_RETRIES} attempts`)
+  }
+
+  async function uploadMultipartFile(file: File, upload: CreateJobResponse) {
+    const { path, uploadId, partSizeBytes } = upload
+    const totalParts = Math.max(1, Math.ceil(file.size / partSizeBytes))
+    const maxConcurrency = Math.max(1, Math.min(upload.maxConcurrency || 3, totalParts))
+    const parts: UploadedPart[] = []
+    let nextPartNumber = 1
+    let uploadedBytes = 0
+
+    const markChunkComplete = (chunkSize: number) => {
+      uploadedBytes += chunkSize
+      setUploadProgressPct(Math.min(100, Math.round((uploadedBytes / file.size) * 100)))
+    }
+
+    const runWorker = async () => {
+      while (true) {
+        const currentPartNumber = nextPartNumber
+        nextPartNumber += 1
+        if (currentPartNumber > totalParts) {
+          return
+        }
+
+        const start = (currentPartNumber - 1) * partSizeBytes
+        const end = Math.min(file.size, start + partSizeBytes)
+        const chunk = file.slice(start, end)
+        const eTag = await uploadPartWithRetry(path, uploadId, currentPartNumber, chunk)
+        parts.push({ ETag: eTag, PartNumber: currentPartNumber })
+        markChunkComplete(chunk.size)
+      }
+    }
+
+    try {
+      await Promise.all(Array.from({ length: maxConcurrency }, () => runWorker()))
+      parts.sort((a, b) => a.PartNumber - b.PartNumber)
+      await postMultipartAction({
+        action: 'complete',
+        path,
+        uploadId,
+        parts,
+      })
+      setUploadProgressPct(100)
+    } catch (error) {
+      await postMultipartAction({
+        action: 'abort',
+        path,
+        uploadId,
+      }).catch(() => {})
+      throw error
+    }
+  }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
     if (!file) return
     setError(null)
+    setUploadProgressPct(0)
 
     try {
-      const supabase = createClient()
       setStep('creating')
+      const contentType = file.type || 'application/octet-stream'
       const createRes = await fetch('/api/jobs/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename: file.name,
+          contentType,
+          fileSize: file.size,
           cameraPerspective: cameraPerspective || undefined,
           sessionType: sessionType || undefined,
         }),
@@ -75,19 +219,16 @@ export default function UploadPage() {
         const { error: msg } = await createRes.json()
         throw new Error(msg ?? 'Failed to create job')
       }
-      const { jobId, path, token } = await createRes.json()
+      const upload = await createRes.json() as CreateJobResponse
 
       setStep('uploading')
-      const { error: uploadError } = await supabase.storage
-        .from('videos')
-        .uploadToSignedUrl(path, token, file)
-      if (uploadError) throw uploadError
+      await uploadMultipartFile(file, upload)
 
       setStep('finalizing')
       const markRes = await fetch('/api/jobs/mark-uploaded', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId }),
+        body: JSON.stringify({ jobId: upload.jobId }),
       })
       if (!markRes.ok) {
         const { error: msg } = await markRes.json()
@@ -95,7 +236,7 @@ export default function UploadPage() {
       }
 
       setStep('done')
-      setTimeout(() => router.push(`/jobs/${jobId}`), 800)
+      setTimeout(() => router.push(`/jobs/${upload.jobId}`), 800)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
       setStep('error')
@@ -104,19 +245,10 @@ export default function UploadPage() {
 
   function handleFilePick(f: File | null) {
     if (!f) return
-    if (f.size > 50 * 1024 * 1024) {
-      setError(
-        `File is ${(f.size / 1024 / 1024).toFixed(0)} MB — max 50 MB. ` +
-        `Compress with iMovie (File → Share → File, lower quality) or Handbrake first.`
-      )
-      setFile(null)
-      setStep('idle')
-      if (fileRef.current) fileRef.current.value = ''
-      return
-    }
     setFile(f)
     setStep('idle')
     setError(null)
+    setUploadProgressPct(0)
   }
 
   const busy = step !== 'idle' && step !== 'done' && step !== 'error'
@@ -125,6 +257,13 @@ export default function UploadPage() {
     'We queue overlay render, peak moments, and summary artifacts.',
     'Open the run recap to review feedback and next priorities.',
   ]
+
+  const progressWidth = step === 'uploading'
+    ? Math.max(PROGRESS.creating, Math.min(85, 15 + uploadProgressPct * 0.7))
+    : PROGRESS[step]
+  const progressLabel = step === 'uploading'
+    ? `${LABEL.uploading} ${uploadProgressPct}%`
+    : LABEL[step]
 
   return (
     <>
@@ -152,8 +291,8 @@ export default function UploadPage() {
               <p className="metric-label">Continuous clip for the cleanest recap.</p>
             </div>
             <div className="metric-tile">
-              <p className="metric-value">50MB</p>
-              <p className="metric-label">Recommended upload ceiling for a fast handoff.</p>
+              <p className="metric-value">R2</p>
+              <p className="metric-label">Direct cloud upload for longer training clips.</p>
             </div>
             <div className="metric-tile">
               <p className="metric-value">3</p>
@@ -312,9 +451,9 @@ export default function UploadPage() {
             {(busy || step === 'done') && (
               <div className="space-y-2">
                 <div className="progress-track">
-                  <div className="progress-fill transition-all duration-500" style={{ width: `${PROGRESS[step]}%` }} />
+                  <div className="progress-fill transition-all duration-500" style={{ width: `${progressWidth}%` }} />
                 </div>
-                <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{LABEL[step]}</p>
+                <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
               </div>
             )}
 

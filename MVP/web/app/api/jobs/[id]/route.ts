@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { buildTechniqueDashboard, type TechniqueRunSummary } from '@/lib/analysis-summary'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createArtifactDownloadUrl, getDefaultR2ArtifactsBucket } from '@/lib/r2'
+
+function artifactStorageProvider(artifact: { meta?: Record<string, unknown> }) {
+  return artifact.meta?.storage_provider === 'r2' ? 'r2' : 'supabase'
+}
+
+function artifactStorageBucket(artifact: { meta?: Record<string, unknown> }) {
+  const metaBucket = artifact.meta?.storage_bucket
+  return typeof metaBucket === 'string' && metaBucket ? metaBucket : getDefaultR2ArtifactsBucket()
+}
 
 export async function GET(
   _req: NextRequest,
@@ -40,6 +50,14 @@ export async function GET(
   // Generate 1-hour signed download URLs for each artifact
   const artifactsWithUrls = await Promise.all(
     (artifacts ?? []).map(async (artifact) => {
+      if (artifactStorageProvider(artifact as { meta?: Record<string, unknown> }) === 'r2') {
+        const url = await createArtifactDownloadUrl(
+          artifact.object_path,
+          artifactStorageBucket(artifact as { meta?: Record<string, unknown> })
+        )
+        return { ...artifact, url }
+      }
+
       const { data } = await service.storage
         .from('artifacts')
         .createSignedUrl(artifact.object_path, 3600)

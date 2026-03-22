@@ -18,6 +18,7 @@ Pipeline:
 from __future__ import annotations
 
 import math
+import platform
 
 import numpy as np
 
@@ -114,6 +115,7 @@ class PersonDetector:
         self._conf = conf
         self._pad_frac = pad_frac
         self._model = None
+        self._device: str | None = None
 
         # --- Committed-phase state ---
         self._committed_id: int | None = None
@@ -153,7 +155,33 @@ class PersonDetector:
     def _ensure_loaded(self) -> None:
         if self._model is None:
             from ultralytics import YOLO
+            self._device = self._select_device()
             self._model = YOLO(self._model_name)
+            if self._device:
+                print(f"[pose] YOLO device: {self._device}")
+
+    def _select_device(self) -> str | None:
+        """Prefer Apple MPS on Apple Silicon when the runtime exposes it."""
+        try:
+            import torch
+        except Exception:
+            return None
+
+        if platform.system() != "Darwin":
+            return None
+
+        try:
+            if torch.backends.mps.is_built() and torch.backends.mps.is_available():
+                return "mps"
+        except Exception:
+            return None
+
+        return None
+
+    def _inference_kwargs(self) -> dict[str, str]:
+        if self._device:
+            return {"device": self._device}
+        return {}
 
     # ------------------------------------------------------------------
     # Internal: per-track score
@@ -302,6 +330,7 @@ class PersonDetector:
             conf=self._conf,
             classes=[_PERSON_CLASS],
             verbose=False,
+            **self._inference_kwargs(),
         )
 
         frame_h, frame_w = frame_bgr.shape[:2]
@@ -398,6 +427,7 @@ class PersonDetector:
         self._ensure_loaded()
         results = self._model(
             frame_bgr, conf=self._conf, classes=[_PERSON_CLASS], verbose=False,
+            **self._inference_kwargs(),
         )
         boxes: list[tuple[int, int, int, int, float]] = []
         for r in results:
