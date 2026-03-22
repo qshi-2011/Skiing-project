@@ -11,7 +11,7 @@ import numpy as np
 from technique_analysis.common.contracts.models import FrameMetrics, TurnSummary
 
 _CONF_MIN = 0.4   # frames below this are not scored
-_IDEAL_KNEE = 105.0  # degrees — optimal knee flexion for alpine skiing
+_IDEAL_KNEE = 120.0  # degrees — optimal knee flexion for dynamic carving
 
 
 # ---------------------------------------------------------------------------
@@ -59,28 +59,28 @@ def compute_frame_score(m: FrameMetrics) -> tuple[float | None, str | None]:
     scores: dict[str, float] = {}
     weights: dict[str, float] = {}
 
-    # Knee angle (30 %) — prefer 3D
+    # Knee angle (35 %) — prefer 3D
     knee = m.knee_angle_3d
     if knee is None and m.knee_flexion_L is not None and m.knee_flexion_R is not None:
         knee = (m.knee_flexion_L + m.knee_flexion_R) / 2
     if knee is not None:
-        scores["knee"] = max(0.0, 100.0 - abs(knee - _IDEAL_KNEE) * 1.5)
-        weights["knee"] = 0.30
+        scores["knee"] = max(0.0, 100.0 - abs(knee - _IDEAL_KNEE) * 1.0)
+        weights["knee"] = 0.35
 
-    # Symmetry (25 %)
+    # Symmetry (35 %)
     if m.knee_flexion_diff is not None:
-        scores["symmetry"] = max(0.0, 100.0 - m.knee_flexion_diff * 4.0)
-        weights["symmetry"] = 0.25
+        scores["symmetry"] = max(0.0, 100.0 - m.knee_flexion_diff * 2.0)
+        weights["symmetry"] = 0.35
 
-    # Balance / CoM control (25 %)
+    # Balance / CoM control (30 %)
     if m.com_shift_3d is not None:
-        scores["balance"] = max(0.0, 100.0 - m.com_shift_3d * 300.0)
-        weights["balance"] = 0.25
-
-    # Torso stability (20 %) — lean_angle: ideal ~10°, penalise above 15°
-    if m.lean_angle_deg is not None:
-        scores["torso"] = max(0.0, 100.0 - max(0.0, m.lean_angle_deg - 10.0) * 3.5)
-        weights["torso"] = 0.20
+        if 0.05 <= m.com_shift_3d <= 0.45:
+            scores["balance"] = 100.0
+        elif m.com_shift_3d < 0.05:
+            scores["balance"] = (m.com_shift_3d / 0.05) * 100.0
+        else:
+            scores["balance"] = max(0.0, 100.0 - (m.com_shift_3d - 0.45) * 200.0)
+        weights["balance"] = 0.30
 
     if not scores:
         return None, None
@@ -103,47 +103,57 @@ def compute_turn_quality(
     """Return (quality_score, smoothness_score, peak_lateral_shift) for a turn.
 
     All inputs are high-confidence frames that fall within the turn's time window.
+
+    Scoring uses 3 components (smoothness removed — too noise-sensitive):
+      - Knee angle proximity to ideal     (35 %)
+      - Left/right knee symmetry           (35 %)
+      - Balance — moderate CoM shift       (30 %)
     """
     scores: dict[str, float] = {}
     weights: dict[str, float] = {}
 
-    # 1. Knee angle proximity to ideal (30 %)
+    # 1. Knee angle proximity to ideal (35 %)
+    #    _IDEAL_KNEE = 120°.  Penalty: 1.0 pt per degree off (gentler than 1.5).
+    #    Acceptable range ~95–145° still scores 75+.
     knee: float | None = None
     if turn.avg_knee_flexion_L is not None and turn.avg_knee_flexion_R is not None:
         knee = (turn.avg_knee_flexion_L + turn.avg_knee_flexion_R) / 2
     if knee is not None:
-        scores["knee"] = max(0.0, 100.0 - abs(knee - _IDEAL_KNEE) * 1.5)
-        weights["knee"] = 0.30
+        scores["knee"] = max(0.0, 100.0 - abs(knee - _IDEAL_KNEE) * 1.0)
+        weights["knee"] = 0.35
 
-    # 2. Symmetry (25 %)
+    # 2. Symmetry (35 %)
+    #    Penalty: 2.0 pts per degree of L/R diff (was 4.0).
+    #    10° diff → 80/100;  20° diff → 60/100;  >50° → 0.
     if turn.avg_knee_flexion_diff is not None:
-        scores["symmetry"] = max(0.0, 100.0 - turn.avg_knee_flexion_diff * 4.0)
-        weights["symmetry"] = 0.25
+        scores["symmetry"] = max(0.0, 100.0 - turn.avg_knee_flexion_diff * 2.0)
+        weights["symmetry"] = 0.35
 
-    # 3. Smoothness (25 %) — inverse of lateral acceleration std
+    # 3. Balance — CoM shift should be moderate (30 %)
+    #    Sweet spot widened: 0.05–0.45 m (5–45 cm) covers recreational to racing.
+    #    Beyond 0.45 m penalty is 200 pts/m (gentler than 500).
     com_vals = [m.com_shift_x for m in metrics_in_turn if m.com_shift_x is not None]
     smoothness_score: float | None = None
-    if len(com_vals) >= 4:
-        accels = np.diff(np.diff(np.array(com_vals, dtype=float)))
-        raw_smooth = float(1.0 / (1.0 + np.std(accels) * 10.0))
-        smoothness_score = round(raw_smooth * 100.0, 1)
-        scores["smoothness"] = smoothness_score
-        weights["smoothness"] = 0.25
-
-    # 4. Balance — CoM shift should be moderate, not zero and not excessive (20 %)
     peak_lateral_shift: float | None = None
     if com_vals:
         abs_vals = [abs(v) for v in com_vals]
         peak_lateral_shift = round(float(max(abs_vals)), 4)
         shift = turn.avg_com_shift_3d if turn.avg_com_shift_3d is not None else peak_lateral_shift
-        if 0.02 < shift < 0.12:
+        if 0.05 <= shift <= 0.45:
             bal = 100.0
-        elif shift <= 0.02:
-            bal = shift / 0.02 * 100.0
+        elif shift < 0.05:
+            bal = (shift / 0.05) * 100.0
         else:
-            bal = max(0.0, 100.0 - (shift - 0.12) * 500.0)
+            bal = max(0.0, 100.0 - (shift - 0.45) * 200.0)
         scores["balance"] = bal
-        weights["balance"] = 0.20
+        weights["balance"] = 0.30
+
+    # Legacy: still compute smoothness for the summary field, but it no longer
+    # contributes to quality_score.
+    if len(com_vals) >= 4:
+        accels = np.diff(np.diff(np.array(com_vals, dtype=float)))
+        raw_smooth = float(1.0 / (1.0 + np.std(accels) * 10.0))
+        smoothness_score = round(raw_smooth * 100.0, 1)
 
     if not scores:
         return None, smoothness_score, peak_lateral_shift

@@ -84,105 +84,103 @@ function LandingPage() {
   return (
     <>
       <div className="route-bg route-bg--landing" />
-      <div className="space-y-12">
-        {/* Hero section */}
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start">
+      <div className="space-y-8">
+
+        {/* ── Hero: headline left + analysis preview right ── */}
+        <section className="grid gap-6 lg:grid-cols-[1fr_1.3fr] items-center">
           {/* Left: headline + CTAs */}
-          <div className="surface-card p-8 lg:p-10">
-            <span className="eyebrow">V2.0 Core Engine Live</span>
-            <h1 className="landing-hero-title mt-6">
+          <div>
+            <h1 className="landing-hero-title--white">
               Elite analysis<br />for every run.
             </h1>
-            <p className="section-copy mt-4 max-w-lg">
+            <p className="mt-4" style={{ fontSize: '1rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)', maxWidth: '28rem' }}>
               Stop guessing your progress. See exactly what to fix with AI-powered technique analysis used by national teams.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/sample-analysis" className="cta-primary">
-                See Sample Analysis
+                See Full Analysis
               </Link>
-              <Link href="/login" className="cta-secondary">
+              <Link
+                href="/login"
+                className="cta-secondary"
+                style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}
+              >
                 Get Started
               </Link>
             </div>
           </div>
 
-          {/* Right: sample analysis preview card (placeholder) */}
-          <div className="surface-card-strong p-6 lg:p-8">
+          {/* Right: sample analysis preview card */}
+          <div className="surface-card-strong p-5 lg:p-6">
             <p className="section-label">Sample Analysis Preview</p>
 
-            {/* Video / overlay placeholder */}
-            <div className="sample-placeholder mt-4" style={{ aspectRatio: '16 / 10' }}>
-              <div className="sample-placeholder-label">
-                <p>Sample overlay video</p>
-                <p>Real analysis output will appear here</p>
+            {/* Autoplay overlay video */}
+            <div
+              className="mt-3 overflow-hidden"
+              style={{ borderRadius: 'var(--radius-xl)', background: '#0a0f1a', border: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <video
+                src="/sample/overlay.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full aspect-video bg-black"
+              />
+            </div>
+
+            {/* Score + turns row */}
+            <div className="mt-3 grid gap-3 grid-cols-3">
+              <div className="metric-tile metric-tile--high">
+                <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
+                <p className="metric-value" style={{ color: 'var(--accent)', fontSize: '1.6rem' }}>73</p>
+                <p className="metric-label">Technique score</p>
+              </div>
+              <div className="metric-tile">
+                <p className="metric-value" style={{ fontSize: '1.6rem' }}>4</p>
+                <p className="metric-label">Turns detected</p>
+              </div>
+              <div className="metric-tile metric-tile--high">
+                <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
+                <p className="metric-value" style={{ color: 'var(--accent)', fontSize: '1.6rem' }}>94%</p>
+                <p className="metric-label">Pose confidence</p>
               </div>
             </div>
 
-            {/* Score + insight placeholder row */}
-            <div className="mt-4 grid gap-3 grid-cols-2">
-              <div className="metric-tile">
-                <div className="sample-placeholder" style={{ width: '3rem', height: '2.5rem', borderRadius: 'var(--radius-md)' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--ink-muted)' }}>Score</span>
-                </div>
-                <p className="metric-label">Performance score</p>
-              </div>
-              <div className="metric-tile">
-                <div className="sample-placeholder" style={{ width: '3rem', height: '2.5rem', borderRadius: 'var(--radius-md)' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--ink-muted)' }}>Tip</span>
-                </div>
-                <p className="metric-label">Coaching insight</p>
-              </div>
-            </div>
-
-            {/* Technique marker placeholder */}
-            <div className="mt-4 surface-card-muted p-4">
-              <p className="section-label">Technique Markers</p>
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span style={{ color: 'var(--ink-soft)' }}>Edge Angle</span>
-                  <span className="sample-placeholder" style={{ width: '3.5rem', height: '1rem', borderRadius: '0.25rem', border: '1px dashed rgba(0,0,0,0.08)' }} />
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span style={{ color: 'var(--ink-soft)' }}>Turn Rhythm</span>
-                  <span className="sample-placeholder" style={{ width: '3.5rem', height: '1rem', borderRadius: '0.25rem', border: '1px dashed rgba(0,0,0,0.08)' }} />
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span style={{ color: 'var(--ink-soft)' }}>Balance</span>
-                  <span className="sample-placeholder" style={{ width: '3.5rem', height: '1rem', borderRadius: '0.25rem', border: '1px dashed rgba(0,0,0,0.08)' }} />
-                </div>
-              </div>
+            {/* Top coaching insight */}
+            <div className="mt-3 surface-card-muted p-4">
+              <p className="section-label" style={{ color: 'var(--amber)' }}>Top Insight</p>
+              <p className="mt-2 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Work on symmetric knee flexion</p>
+              <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-soft)' }}>
+                Average left-right knee flexion asymmetry is 20.8&deg;. Aim for &lt;10&deg; to distribute load evenly.
+              </p>
             </div>
           </div>
         </section>
 
-        {/* How it works — 3-step strip */}
+        {/* ── How it works ───────────────────────────────── */}
         <section className="surface-card p-8 lg:p-10">
           <div className="grid gap-8 md:grid-cols-3">
             <div className="how-step">
               <span className="how-step-number">01</span>
               <h3>Record your run.</h3>
-              <p>
-                Use any smartphone to capture your technique from the side or behind. No specialized hardware required.
-              </p>
+              <p>Use any smartphone to capture your technique from the side or behind. No specialized hardware required.</p>
             </div>
             <div className="how-step">
               <span className="how-step-number">02</span>
               <h3>Get instant feedback.</h3>
-              <p>
-                Our computer vision engine analyzes 34 biometric markers to identify inefficiencies in real-time.
-              </p>
+              <p>Our computer vision engine analyzes 34 biometric markers to identify inefficiencies automatically.</p>
             </div>
             <div className="how-step">
               <span className="how-step-number">03</span>
               <h3>Track your progress.</h3>
-              <p>
-                Compare runs over time with our performance dashboard and watch your technique score climb.
-              </p>
+              <p>Compare runs over time with our performance dashboard and watch your technique score climb.</p>
             </div>
           </div>
         </section>
 
-        {/* CTA block */}
+        {/* ── CTA block ──────────────────────────────────── */}
         <section className="surface-card p-8 lg:p-10 text-center">
           <h2 className="section-title">Ready to transform your skiing?</h2>
           <p className="section-copy mt-3 mx-auto max-w-lg">
@@ -198,7 +196,7 @@ function LandingPage() {
           </div>
         </section>
 
-        {/* Footer */}
+        {/* ── Footer ─────────────────────────────────────── */}
         <footer className="site-footer">
           <div className="site-footer-links">
             <a href="#">Privacy Policy</a>
@@ -288,154 +286,80 @@ async function Dashboard() {
     <>
       <div className="route-bg route-bg--dashboard" />
       <div className="space-y-6">
-        {/* ── Welcome + Sample preview / Upload card ──── */}
-        <section className="surface-card p-8 lg:p-10">
-          <h1 style={{ fontSize: 'clamp(1.6rem, 2.8vw, 2.4rem)', fontWeight: 800, lineHeight: 1.15, letterSpacing: '-0.03em', color: 'var(--ink-strong)' }}>
-            Welcome back, <span style={{ color: 'var(--accent)' }}>{displayName}</span>.
-          </h1>
-          <p className="section-copy mt-2">
-            {completedRuns.length > 0
-              ? 'Your coaching hub is ready. Review your latest recap or upload a new run.'
-              : 'Ready for your first session?'}
-          </p>
-        </section>
 
-        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          {/* Left: main content area */}
+        {/* ══ ROW 1: Welcome | Upload | Preflight ══════════ */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Welcome */}
+          <section className="surface-card p-8">
+            <h1 style={{ fontSize: 'clamp(1.5rem, 2.4vw, 2.2rem)', fontWeight: 800, lineHeight: 1.15, letterSpacing: '-0.03em', color: 'var(--ink-strong)' }}>
+              Welcome back, <span style={{ color: 'var(--accent)' }}>{displayName}</span>.
+            </h1>
+            <p className="section-copy mt-2">
+              {completedRuns.length > 0
+                ? 'Your coaching hub is ready. Review your latest recap or upload a new run.'
+                : 'Ready for your first session?'}
+            </p>
+          </section>
+
+          {/* Upload */}
+          <Link href="/upload" className="upload-card">
+            <div className="upload-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+              </svg>
+            </div>
+            <h3>Upload Your {completedRuns.length > 0 ? 'Next' : 'First'} Run</h3>
+            <p>Supported formats: MP4, MOV (Up to 4K)</p>
+          </Link>
+
+          {/* Preflight checklist */}
+          <section className="surface-card-strong p-6">
+            <p className="section-label">Preflight Checklist</p>
+            <div className="mt-4 space-y-3">
+              <div className="preflight-item">
+                <span className="preflight-number">01</span>
+                <div>
+                  <h4>One skier in frame</h4>
+                  <p>AI tracking requires a clear focus on a single subject.</p>
+                </div>
+              </div>
+              <div className="preflight-item">
+                <span className="preflight-number">02</span>
+                <div>
+                  <h4>One continuous run</h4>
+                  <p>Avoid cuts or montage editing for accurate telemetry.</p>
+                </div>
+              </div>
+              <div className="preflight-item">
+                <span className="preflight-number">03</span>
+                <div>
+                  <h4>Side or behind angle</h4>
+                  <p>Optimal for detecting hip placement and edge angles.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* ══ ROW 2: Metrics+Runs | Coaching Insight | Practice ══ */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left: Metric tiles + Recent runs */}
           <div className="space-y-6">
-            {/* Sample preview or latest insight */}
-            <section className="surface-card p-6 lg:p-8">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <p className="section-label">
-                  {completedRuns.length > 0 ? 'Latest Coaching Insight' : 'Preview: Initial Calibration'}
-                </p>
-                {completedRuns.length === 0 && (
-                  <span className="eyebrow" style={{ fontSize: '0.62rem', padding: '0.3rem 0.6rem' }}>Sample Data</span>
-                )}
+            {/* Metric tiles */}
+            <div className="grid gap-3 grid-cols-3">
+              <div className="metric-tile">
+                <p className="metric-value">{score ?? '—'}</p>
+                <p className="metric-label">Technique score</p>
               </div>
-
-              {completedRuns.length > 0 ? (
-                <>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    {primaryTip
-                      ? primaryTip.title
-                      : 'Your latest analysis is ready.'}
-                  </h2>
-                  {primaryTip && (
-                    <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
-                      {primaryTip.explanation}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Placeholder for sample video/image */}
-                  <div className="sample-placeholder" style={{ aspectRatio: '16 / 9' }}>
-                    <div className="sample-placeholder-label">
-                      <p>Sample analysis preview</p>
-                      <p>This is what your analysis will look like. Upload a run to see real results.</p>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Metric tiles */}
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="metric-tile">
-                  <p className="metric-value">{score ?? '—'}</p>
-                  <p className="metric-label">Technique score</p>
-                </div>
-                <div className="metric-tile">
-                  <p className="metric-value">{scoredRuns.length > 0 ? scoredRuns.length : '—'}</p>
-                  <p className="metric-label">Scored runs</p>
-                </div>
-                <div className="metric-tile">
-                  <p className="metric-value">{bestRecentScore ?? '—'}</p>
-                  <p className="metric-label">Best recent</p>
-                </div>
+              <div className="metric-tile">
+                <p className="metric-value">{scoredRuns.length > 0 ? scoredRuns.length : '—'}</p>
+                <p className="metric-label">Scored runs</p>
               </div>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/upload" className="cta-primary">
-                  Analyse a new run
-                </Link>
-                {latestCompleted && (
-                  <Link href={`/jobs/${latestCompleted.id}`} className="cta-secondary">
-                    Open full run recap
-                  </Link>
-                )}
+              <div className="metric-tile">
+                <p className="metric-value">{bestRecentScore ?? '—'}</p>
+                <p className="metric-label">Best recent</p>
               </div>
-            </section>
-
-            {/* Progression section */}
-            {scoredRuns.length > 0 && (
-              <section className="surface-card p-6">
-                <div className="flex items-center gap-6">
-                  <div className="score-ring" style={{ width: '7.5rem', height: '7.5rem', flexShrink: 0 }}>
-                    <div className="score-ring-glow" />
-                    <svg width="120" height="120" viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="6" />
-                      <circle
-                        cx="60" cy="60" r="50"
-                        fill="none"
-                        stroke="url(#scoreGradHome)"
-                        strokeWidth="6"
-                        strokeLinecap="round"
-                        strokeDasharray="314.16"
-                        strokeDashoffset={314.16 - ((score ?? 0) / 100) * 314.16}
-                      />
-                      <defs>
-                        <linearGradient id="scoreGradHome" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#0084d4" />
-                          <stop offset="100%" stopColor="#c79a44" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="score-ring-label">
-                      <span className="font-extrabold tracking-tight" style={{ fontSize: '1.8rem', color: 'var(--ink-strong)' }}>
-                        {score}
-                      </span>
-                      <span style={{ fontSize: '0.62rem', color: 'var(--ink-soft)' }}>technique</span>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="section-label">Progression</p>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                      <div className="metric-tile">
-                        <p className="metric-value" style={{ fontSize: '1.5rem' }}>{latestScore}</p>
-                        <p className="metric-label">Latest</p>
-                      </div>
-                      <div className="metric-tile">
-                        <p className="metric-value" style={{ fontSize: '1.5rem', color: scoreDelta != null && scoreDelta >= 0 ? 'var(--success)' : scoreDelta != null ? 'var(--danger)' : 'var(--ink-strong)' }}>
-                          {scoreDelta != null ? `${scoreDelta >= 0 ? '+' : ''}${scoreDelta}` : '—'}
-                        </p>
-                        <p className="metric-label">Delta</p>
-                      </div>
-                      <div className="metric-tile">
-                        <p className="metric-value" style={{ fontSize: '1.5rem' }}>{completedRuns.length}</p>
-                        <p className="metric-label">Recaps</p>
-                      </div>
-                    </div>
-                    {level && (
-                      <div className="mt-3">
-                        <span className={levelBadgeClass(level)}>{level}</span>
-                        {scoreDelta != null && (
-                          <span
-                            className="text-xs font-bold px-2 py-0.5 rounded-full ml-2"
-                            style={{
-                              color: scoreDelta >= 0 ? 'var(--success)' : 'var(--danger)',
-                              background: scoreDelta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
-                            }}
-                          >
-                            {scoreDelta >= 0 ? '+' : ''}{scoreDelta}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </section>
-            )}
+            </div>
 
             {/* Recent runs */}
             <section className="surface-card p-6">
@@ -495,48 +419,35 @@ async function Dashboard() {
             </section>
           </div>
 
-          {/* Right column: Preflight checklist + Upload card + Practice cards */}
-          <div className="space-y-6 self-start">
-            {/* Preflight checklist */}
-            <section className="surface-card-strong p-6 lg:p-8">
-              <p className="section-label">Preflight Checklist</p>
-              <div className="mt-5 space-y-3">
-                <div className="preflight-item">
-                  <span className="preflight-number">01</span>
-                  <div>
-                    <h4>One skier in frame</h4>
-                    <p>AI tracking requires a clear focus on a single subject.</p>
-                  </div>
-                </div>
-                <div className="preflight-item">
-                  <span className="preflight-number">02</span>
-                  <div>
-                    <h4>One continuous run</h4>
-                    <p>Avoid cuts or montage editing for accurate telemetry.</p>
-                  </div>
-                </div>
-                <div className="preflight-item">
-                  <span className="preflight-number">03</span>
-                  <div>
-                    <h4>Side or behind angle</h4>
-                    <p>Optimal for detecting hip placement and edge angles.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
+          {/* Middle: Latest coaching insight */}
+          <section className="surface-card p-6">
+            <p className="section-label">Latest Coaching Insight</p>
+            <h2 className="mt-3" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+              {primaryTip
+                ? primaryTip.title
+                : completedRuns.length > 0
+                  ? 'Your latest analysis is ready.'
+                  : 'Upload a run to get started.'}
+            </h2>
+            {primaryTip && (
+              <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
+                {primaryTip.explanation}
+              </p>
+            )}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/upload" className="cta-primary" style={{ padding: '0.75rem 1.2rem', fontSize: '0.88rem' }}>
+                Analyse a new run
+              </Link>
+              {latestCompleted && (
+                <Link href={`/jobs/${latestCompleted.id}`} className="cta-secondary" style={{ padding: '0.75rem 1.2rem', fontSize: '0.88rem' }}>
+                  Open full run recap
+                </Link>
+              )}
+            </div>
+          </section>
 
-            {/* Upload card */}
-            <Link href="/upload" className="upload-card">
-              <div className="upload-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-                </svg>
-              </div>
-              <h3>Upload Your {completedRuns.length > 0 ? 'Next' : 'First'} Run</h3>
-              <p>Supported formats: MP4, MOV (Up to 4K)</p>
-            </Link>
-
-            {/* Practice cards */}
+          {/* Right: Practice focus */}
+          <div className="space-y-6">
             {(nextSession.drills.length > 0 || primaryTip) && (
               <section className="surface-card p-6">
                 <p className="section-label">Practice Focus</p>
@@ -571,21 +482,6 @@ async function Dashboard() {
                 </div>
               </section>
             )}
-
-            {/* Clip quality explainer */}
-            <div className="text-center py-2">
-              <Link
-                href="/upload"
-                className="clip-quality-toggle"
-                style={{ display: 'inline-flex' }}
-              >
-                What happens with a low-quality clip?
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
-                </svg>
-              </Link>
-            </div>
           </div>
         </div>
       </div>
