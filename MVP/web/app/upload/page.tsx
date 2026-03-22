@@ -66,6 +66,7 @@ export default function UploadPage() {
   const [cameraPerspective, setCameraPerspective] = useState('')
   const [sessionType, setSessionType] = useState('')
   const [uploadProgressPct, setUploadProgressPct] = useState(0)
+  const [showQualityInfo, setShowQualityInfo] = useState(false)
 
   async function wait(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms))
@@ -252,11 +253,6 @@ export default function UploadPage() {
   }
 
   const busy = step !== 'idle' && step !== 'done' && step !== 'error'
-  const flow = [
-    'Upload a clean clip from one continuous run.',
-    'We queue overlay render, peak moments, and summary artifacts.',
-    'Open the run recap to review feedback and next priorities.',
-  ]
 
   const progressWidth = step === 'uploading'
     ? Math.max(PROGRESS.creating, Math.min(85, 15 + uploadProgressPct * 0.7))
@@ -268,213 +264,276 @@ export default function UploadPage() {
   return (
     <>
       <div className="route-bg route-bg--upload" />
-      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        {/* Info panel */}
-        <section className="surface-card p-8 lg:p-10">
-          <span className="eyebrow">Upload analysis</span>
-          <h1 className="section-title mt-6">Turn a raw clip into a sharper practice session.</h1>
-          <p className="section-copy mt-4 max-w-xl">
-            One upload creates a job, queues the worker, and opens a run-detail page with overlay video, key moments, and recap-ready artifacts.
+      <div className="space-y-6">
+        {/* ── Preflight checklist (top) ──────────────── */}
+        <section className="surface-card-strong p-6 lg:p-8">
+          <p className="section-label">Preflight Checklist</p>
+          <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
+            Check these before uploading for the best analysis quality.
           </p>
-
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/alpine/hero-powder.jpg"
-            alt="Fresh powder tracks"
-            className="hero-photo mt-6"
-            style={{ height: '200px' }}
-          />
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <div className="metric-tile">
-              <p className="metric-value">1</p>
-              <p className="metric-label">Continuous clip for the cleanest recap.</p>
-            </div>
-            <div className="metric-tile">
-              <p className="metric-value">R2</p>
-              <p className="metric-label">Direct cloud upload for longer training clips.</p>
-            </div>
-            <div className="metric-tile">
-              <p className="metric-value">3</p>
-              <p className="metric-label">Outputs to review: overlay, moments, and summary.</p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-3">
-            {flow.map((stepLabel, index) => (
-              <div
-                key={stepLabel}
-                className="surface-card-muted px-4 py-4 flex items-start gap-4"
-              >
-                <span className="step-number">
-                  0{index + 1}
-                </span>
-                <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                  {stepLabel}
-                </p>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="preflight-item">
+              <span className="preflight-number">01</span>
+              <div>
+                <h4>One skier in frame</h4>
+                <p>AI tracking requires a clear focus on a single subject.</p>
               </div>
-            ))}
+            </div>
+            <div className="preflight-item">
+              <span className="preflight-number">02</span>
+              <div>
+                <h4>One continuous run</h4>
+                <p>Avoid cuts or montage editing for accurate telemetry.</p>
+              </div>
+            </div>
+            <div className="preflight-item">
+              <span className="preflight-number">03</span>
+              <div>
+                <h4>Side or behind angle</h4>
+                <p>Optimal for detecting hip placement and edge angles.</p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Intake panel */}
-        <section className="surface-card-strong p-6 lg:p-8">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Run intake</p>
-              <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                Drop your next video
-              </h2>
+        {/* ── Upload form ────────────────────────────── */}
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          {/* Drop zone + form */}
+          <section className="surface-card-strong p-6 lg:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="eyebrow">Upload analysis</span>
+                <h1 className="mt-3" style={{ fontSize: 'clamp(1.4rem, 2.4vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--ink-strong)' }}>
+                  Drop your next video
+                </h1>
+              </div>
+              <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
+                Worker queue
+              </span>
             </div>
-            <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
-              Worker queue
-            </span>
-          </div>
 
-          <form onSubmit={handleUpload} className="mt-6 space-y-5">
-            <div
-              onClick={() => !busy && fileRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={e => {
-                e.preventDefault()
-                setDragOver(false)
-                handleFilePick(e.dataTransfer.files?.[0] ?? null)
-              }}
-              className="relative rounded-[var(--radius-xl)] p-10 text-center cursor-pointer select-none"
-              style={{
-                border: dragOver
-                  ? '2px solid var(--accent)'
-                  : file
-                    ? '2px dashed rgba(0,132,212,0.3)'
-                    : '2px dashed rgba(0,0,0,0.12)',
-                background: dragOver
-                  ? 'rgba(0,132,212,0.06)'
-                  : file
-                    ? 'rgba(0,132,212,0.04)'
-                    : 'rgba(0,0,0,0.02)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {file ? (
-                <div className="space-y-2">
-                  <div className="flex justify-center mb-2">
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                      style={{ background: 'var(--accent-dim)' }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <p className="text-base font-semibold px-4 break-all" style={{ color: 'var(--ink-strong)' }}>{file.name}</p>
-                  <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                    {(file.size / 1024 / 1024).toFixed(1)} MB selected
-                  </p>
-                  <button
-                    type="button"
-                    onClick={e => { e.stopPropagation(); setFile(null); setStep('idle'); if (fileRef.current) fileRef.current.value = '' }}
-                    className="cta-secondary mt-2"
-                  >
-                    Change file
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <div
-                      className={`w-16 h-16 rounded-[var(--radius-lg)] flex items-center justify-center ${dragOver ? 'drop-zone-icon-pulse' : ''}`}
-                      style={{
-                        background: 'rgba(0,0,0,0.03)',
-                        border: '1px solid rgba(0,0,0,0.06)',
-                      }}
-                    >
-                      <svg
-                        width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke={dragOver ? 'var(--accent)' : 'var(--ink-muted)'}
-                        strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-                        style={{ opacity: dragOver ? 1 : 0.5, transition: 'opacity 0.2s ease' }}
+            <form onSubmit={handleUpload} className="mt-6 space-y-5">
+              <div
+                onClick={() => !busy && fileRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => {
+                  e.preventDefault()
+                  setDragOver(false)
+                  handleFilePick(e.dataTransfer.files?.[0] ?? null)
+                }}
+                className="relative rounded-[var(--radius-xl)] p-10 text-center cursor-pointer select-none"
+                style={{
+                  border: dragOver
+                    ? '2px solid var(--accent)'
+                    : file
+                      ? '2px dashed rgba(0,132,212,0.3)'
+                      : '2px dashed rgba(0,0,0,0.12)',
+                  background: dragOver
+                    ? 'rgba(0,132,212,0.06)'
+                    : file
+                      ? 'rgba(0,132,212,0.04)'
+                      : 'rgba(0,0,0,0.02)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {file ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-center mb-2">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                        style={{ background: 'var(--accent-dim)' }}
                       >
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                      </svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-base font-semibold px-4 break-all" style={{ color: 'var(--ink-strong)' }}>{file.name}</p>
+                    <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+                      {(file.size / 1024 / 1024).toFixed(1)} MB selected
+                    </p>
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); setFile(null); setStep('idle'); if (fileRef.current) fileRef.current.value = '' }}
+                      className="cta-secondary mt-2"
+                    >
+                      Change file
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <div
+                        className={`w-16 h-16 rounded-[var(--radius-lg)] flex items-center justify-center ${dragOver ? 'drop-zone-icon-pulse' : ''}`}
+                        style={{
+                          background: 'rgba(0,0,0,0.03)',
+                          border: '1px solid rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        <svg
+                          width="28" height="28" viewBox="0 0 24 24" fill="none"
+                          stroke={dragOver ? 'var(--accent)' : 'var(--ink-muted)'}
+                          strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+                          style={{ opacity: dragOver ? 1 : 0.5, transition: 'opacity 0.2s ease' }}
+                        >
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>Drop your video here</p>
+                      <p className="text-sm mt-1" style={{ color: 'var(--ink-soft)' }}>
+                        MP4, MOV, or AVI — best with one skier and one continuous run
+                      </p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>Drop your video here</p>
-                    <p className="text-sm mt-1" style={{ color: 'var(--ink-soft)' }}>
-                      MP4, MOV, or AVI - best with one skier and one continuous run
-                    </p>
+                )}
+
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={e => handleFilePick(e.target.files?.[0] ?? null)}
+                />
+              </div>
+
+              {/* Camera perspective & session type */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">Camera perspective</label>
+                  <select
+                    value={cameraPerspective}
+                    onChange={e => setCameraPerspective(e.target.value)}
+                    className="select-input"
+                    disabled={busy}
+                  >
+                    {CAMERA_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Session type</label>
+                  <select
+                    value={sessionType}
+                    onChange={e => setSessionType(e.target.value)}
+                    className="select-input"
+                    disabled={busy}
+                  >
+                    {SESSION_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {(busy || step === 'done') && (
+                <div className="space-y-2">
+                  <div className="progress-track">
+                    <div className="progress-fill transition-all duration-500" style={{ width: `${progressWidth}%` }} />
                   </div>
+                  <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
                 </div>
               )}
 
-              <input
-                ref={fileRef}
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={e => handleFilePick(e.target.files?.[0] ?? null)}
-              />
-            </div>
-
-            {/* Camera perspective & session type */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="field-label">Camera perspective</label>
-                <select
-                  value={cameraPerspective}
-                  onChange={e => setCameraPerspective(e.target.value)}
-                  className="select-input"
-                  disabled={busy}
+              {error && (
+                <div
+                  className="rounded-2xl px-4 py-3 text-sm"
+                  style={{ background: 'var(--danger-dim)', color: 'var(--danger)', border: '1px solid rgba(209,67,67,0.2)' }}
                 >
-                  {CAMERA_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="field-label">Session type</label>
-                <select
-                  value={sessionType}
-                  onChange={e => setSessionType(e.target.value)}
-                  className="select-input"
-                  disabled={busy}
-                >
-                  {SESSION_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {(busy || step === 'done') && (
-              <div className="space-y-2">
-                <div className="progress-track">
-                  <div className="progress-fill transition-all duration-500" style={{ width: `${progressWidth}%` }} />
+                  {error}
                 </div>
-                <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
-              </div>
-            )}
+              )}
 
-            {error && (
-              <div
-                className="rounded-2xl px-4 py-3 text-sm"
-                style={{ background: 'var(--danger-dim)', color: 'var(--danger)', border: '1px solid rgba(209,67,67,0.2)' }}
+              <button
+                type="submit"
+                disabled={!file || busy || step === 'done'}
+                className="cta-primary w-full"
               >
-                {error}
-              </div>
-            )}
+                {busy ? LABEL[step] : 'Start analysis'}
+              </button>
+            </form>
+          </section>
 
-            <button
-              type="submit"
-              disabled={!file || busy || step === 'done'}
-              className="cta-primary w-full"
-            >
-              {busy ? LABEL[step] : 'Start analysis'}
-            </button>
-          </form>
-        </section>
+          {/* Info panel */}
+          <section className="surface-card p-6 lg:p-8 self-start space-y-6">
+            <div>
+              <h2 className="section-title" style={{ fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)' }}>
+                Turn a raw clip into a sharper practice session.
+              </h2>
+              <p className="section-copy mt-3">
+                One upload creates a job, queues the worker, and opens a run-detail page with overlay video, key moments, and recap-ready artifacts.
+              </p>
+            </div>
+
+            {/* What you get */}
+            <div className="grid gap-3">
+              <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
+                <span className="step-number">01</span>
+                <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
+                  Upload a clean clip from one continuous run.
+                </p>
+              </div>
+              <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
+                <span className="step-number">02</span>
+                <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
+                  We queue overlay render, peak moments, and summary artifacts.
+                </p>
+              </div>
+              <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
+                <span className="step-number">03</span>
+                <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
+                  Open the run recap to review feedback and next priorities.
+                </p>
+              </div>
+            </div>
+
+            {/* Clip quality explainer */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowQualityInfo(!showQualityInfo)}
+                className="clip-quality-toggle"
+              >
+                What happens with a low-quality clip?
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
+                </svg>
+              </button>
+              {showQualityInfo && (
+                <div
+                  className="mt-3 rounded-[var(--radius-lg)] px-4 py-4 text-sm leading-6"
+                  style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--ink-base)' }}
+                >
+                  <p>
+                    <strong>Low-quality clips</strong> (shaky footage, multiple skiers, scene cuts, bad angles) will still produce results, but the analysis will be marked as <em>limited review</em>.
+                  </p>
+                  <p className="mt-2">
+                    The score may be hidden and coaching tips will be flagged as directional rather than definitive. For the best results, follow the preflight checklist above.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="metric-tile">
+                <p className="metric-value">1</p>
+                <p className="metric-label">Continuous clip</p>
+              </div>
+              <div className="metric-tile">
+                <p className="metric-value">R2</p>
+                <p className="metric-label">Direct cloud upload</p>
+              </div>
+              <div className="metric-tile">
+                <p className="metric-value">3</p>
+                <p className="metric-label">Output artifacts</p>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </>
   )

@@ -727,6 +727,243 @@
     flex-shrink: 0;
   }
 
+  /* ── Landing page background ───────────────────────── */
+  .route-bg--landing {
+    background-image: url('/alpine/dashboard-bg.jpg');
+  }
+
+  .route-bg--landing::after {
+    background: linear-gradient(180deg, rgba(0,10,30,0.35) 0%, rgba(0,10,30,0.55) 100%);
+  }
+
+  /* ── Sample placeholder ─────────────────────────────── */
+  .sample-placeholder {
+    position: relative;
+    border-radius: var(--radius-xl);
+    background: rgba(0, 0, 0, 0.03);
+    border: 2px dashed rgba(0, 0, 0, 0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .sample-placeholder-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-muted);
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .sample-placeholder-label p:first-child {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .sample-placeholder-label p:last-child {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  /* ── Preflight checklist ────────────────────────────── */
+  .preflight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+  }
+
+  .preflight-number {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .preflight-item h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink-strong);
+    letter-spacing: -0.01em;
+  }
+
+  .preflight-item p {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  /* ── Section label ──────────────────────────────────── */
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+  }
+
+  /* ── Landing hero heading ────────────────────────────── */
+  .landing-hero-title {
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--ink-strong);
+  }
+
+  /* ── Upload card (prominent) ────────────────────────── */
+  .upload-card {
+    border-radius: var(--radius-xl);
+    background: var(--accent);
+    color: #ffffff;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 150ms, box-shadow 150ms;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .upload-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 132, 212, 0.35);
+  }
+
+  .upload-card-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .upload-card h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .upload-card p {
+    font-size: 0.82rem;
+    opacity: 0.85;
+  }
+
+  /* ── Footer ─────────────────────────────────────────── */
+  .site-footer {
+    margin-top: 4rem;
+    padding: 2rem 0 1.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    text-align: center;
+  }
+
+  .site-footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .site-footer-links a {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    transition: color 150ms;
+  }
+
+  .site-footer-links a:hover {
+    color: var(--ink-soft);
+  }
+
+  .site-footer-copy {
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── How-it-works step (landing) ────────────────────── */
+  .how-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .how-step-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: rgba(0, 132, 212, 0.15);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .how-step h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--ink-strong);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .how-step p {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    max-width: 22rem;
+  }
+
+  /* ── Clip quality explainer ─────────────────────────── */
+  .clip-quality-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    transition: color 150ms;
+  }
+
+  .clip-quality-toggle:hover {
+    color: var(--ink-soft);
+  }
+
+  .clip-quality-toggle svg {
+    width: 1rem;
+    height: 1rem;
+    opacity: 0.5;
+  }
+
   /* ── Responsive ───────────────────────────────────── */
   @media (max-width: 900px) {
     .site-shell {

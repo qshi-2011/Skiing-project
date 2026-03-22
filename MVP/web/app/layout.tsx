@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Manrope } from 'next/font/google'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 import { NavLinks } from '@/components/nav-links'
 import './globals.css'
 
@@ -15,7 +16,14 @@ export const metadata: Metadata = {
   description: 'Video-based ski coaching with alpine run recaps, moments, and progress tracking.',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const isAuthenticated = !!user
+
   return (
     <html lang="en" className={manrope.variable}>
       <body>
@@ -32,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Alpine Coach
             </span>
 
-            <NavLinks />
+            <NavLinks isAuthenticated={isAuthenticated} />
           </header>
 
           <main className="page-shell">{children}</main>

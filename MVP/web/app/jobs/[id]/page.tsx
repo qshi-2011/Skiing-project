@@ -18,48 +18,12 @@ type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
 const ACTIVE: Set<JobStatus> = new Set(['created', 'uploaded', 'queued', 'running'])
 
 const STATUS_META: Record<JobStatus, { label: string; color: string; background: string; helper: string }> = {
-  created: {
-    label: 'Job created',
-    color: 'var(--ink-soft)',
-    background: 'rgba(0,0,0,0.04)',
-    helper: 'Your upload slot is ready.',
-  },
-  uploaded: {
-    label: 'Video uploaded',
-    color: 'var(--accent)',
-    background: 'var(--accent-dim)',
-    helper: 'The worker can pick up the clip now.',
-  },
-  queued: {
-    label: 'Waiting in queue',
-    color: 'var(--gold)',
-    background: 'var(--gold-dim)',
-    helper: 'The recap deck is staged next.',
-  },
-  running: {
-    label: 'Analysing run',
-    color: 'var(--accent)',
-    background: 'var(--accent-dim)',
-    helper: 'Overlay video and summary artifacts are being prepared.',
-  },
-  done: {
-    label: 'Analysis complete',
-    color: 'var(--success)',
-    background: 'var(--success-dim)',
-    helper: 'Your recap deck is ready to review.',
-  },
-  error: {
-    label: 'Analysis failed',
-    color: 'var(--danger)',
-    background: 'var(--danger-dim)',
-    helper: 'Retry with a cleaner single-run clip.',
-  },
-}
-
-const TIP_META: Record<CoachingTip['severity'], { label: string; color: string; background: string }> = {
-  action: { label: 'Action', color: 'var(--gold)', background: 'var(--gold-dim)' },
-  warn: { label: 'Watch', color: 'var(--accent)', background: 'var(--accent-dim)' },
-  info: { label: 'Note', color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)' },
+  created: { label: 'Job created', color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)', helper: 'Your upload slot is ready.' },
+  uploaded: { label: 'Video uploaded', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'The worker can pick up the clip now.' },
+  queued: { label: 'Waiting in queue', color: 'var(--gold)', background: 'var(--gold-dim)', helper: 'The recap deck is staged next.' },
+  running: { label: 'Analysing run', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'Overlay video and summary artifacts are being prepared.' },
+  done: { label: 'Analysis complete', color: 'var(--success)', background: 'var(--success-dim)', helper: 'Your recap deck is ready to review.' },
+  error: { label: 'Analysis failed', color: 'var(--danger)', background: 'var(--danger-dim)', helper: 'Retry with a cleaner single-run clip.' },
 }
 
 const TABS: Array<{ id: Tab; label: string }> = [
@@ -88,10 +52,10 @@ function tipCategory(tip: CoachingTip): string {
 
 function signedDownloads(artifacts: ArtifactWithUrl[]) {
   return [
-    { label: 'Overlay video', artifact: artifacts.find((artifact) => artifact.kind === 'video_overlay') },
-    { label: 'Summary JSON', artifact: artifacts.find((artifact) => artifact.kind === 'summary_json') },
-    { label: 'Metrics CSV', artifact: artifacts.find((artifact) => artifact.kind === 'metrics_csv') },
-  ].filter((entry): entry is { label: string; artifact: ArtifactWithUrl } => Boolean(entry.artifact?.url))
+    { label: 'Overlay video', artifact: artifacts.find((a) => a.kind === 'video_overlay') },
+    { label: 'Summary JSON', artifact: artifacts.find((a) => a.kind === 'summary_json') },
+    { label: 'Metrics CSV', artifact: artifacts.find((a) => a.kind === 'metrics_csv') },
+  ].filter((e): e is { label: string; artifact: ArtifactWithUrl } => Boolean(e.artifact?.url))
 }
 
 function levelBadgeClass(label: string) {
@@ -108,15 +72,9 @@ function coachingHeadline(job: Job, summary: TechniqueRunSummary | null, reliabi
   if (reliability === 'insufficient' && summary?.coaching_tips?.length) {
     return 'Analysis quality is limited for this clip. The suggestions below are directional — a cleaner recording will unlock a full score and detailed coaching.'
   }
-  if (summary?.coaching_tips?.length) {
-    return summary.coaching_tips[0].explanation
-  }
-  if (job.status === 'done') {
-    return 'Great work getting out there. Review the overlay, key frames, and summary artifacts below.'
-  }
-  if (job.status === 'error') {
-    return 'This run did not complete. A cleaner single-athlete clip usually gets the recap back on track.'
-  }
+  if (summary?.coaching_tips?.length) return summary.coaching_tips[0].explanation
+  if (job.status === 'done') return 'Great work getting out there. Review the overlay, key frames, and summary artifacts below.'
+  if (job.status === 'error') return 'This run did not complete. A cleaner single-athlete clip usually gets the recap back on track.'
   return 'Your run is progressing through the queue. The recap will refresh automatically.'
 }
 
@@ -147,9 +105,7 @@ export default function JobDetailPage() {
         }
         return json.job.status
       } catch (error) {
-        if (!cancelled) {
-          setFetchError(error instanceof Error ? error.message : 'Failed to load run')
-        }
+        if (!cancelled) setFetchError(error instanceof Error ? error.message : 'Failed to load run')
         return null
       }
     }
@@ -162,11 +118,7 @@ export default function JobDetailPage() {
     }
 
     poll()
-
-    return () => {
-      cancelled = true
-      if (timer) clearTimeout(timer)
-    }
+    return () => { cancelled = true; if (timer) clearTimeout(timer) }
   }, [id])
 
   if (fetchError && !data) {
@@ -174,15 +126,10 @@ export default function JobDetailPage() {
       <>
         <div className="route-bg route-bg--detail" />
         <div className="space-y-4">
-          <div
-            className="surface-card-strong p-6"
-            style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}
-          >
+          <div className="surface-card-strong p-6" style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}>
             {fetchError}
           </div>
-          <Link href="/jobs" className="cta-secondary">
-            Back to archive
-          </Link>
+          <Link href="/jobs" className="cta-secondary">Back to archive</Link>
         </div>
       </>
     )
@@ -206,11 +153,9 @@ export default function JobDetailPage() {
   const reliability: RecapReliability = dashboard?.reliability ?? (summary ? computeReliability(summary) : 'reliable')
   const isActive = ACTIVE.has(job.status)
   const progressNote = typeof job.config?.progress_note === 'string' ? job.config.progress_note : null
-  const overlayArtifact = artifacts.find((artifact) => artifact.kind === 'video_overlay')
-  const coolMomentPhotos = artifacts.filter((artifact) => artifact.kind === 'cool_moment_photo')
-  const peakFrames = artifacts.filter(
-    (artifact) => artifact.kind === 'peak_pressure_frame' || artifact.kind === 'peak_pressure_frame_enhanced',
-  )
+  const overlayArtifact = artifacts.find((a) => a.kind === 'video_overlay')
+  const coolMomentPhotos = artifacts.filter((a) => a.kind === 'cool_moment_photo')
+  const peakFrames = artifacts.filter((a) => a.kind === 'peak_pressure_frame' || a.kind === 'peak_pressure_frame_enhanced')
   const downloads = signedDownloads(artifacts)
   const headline = coachingHeadline(job, summary, reliability)
 
@@ -227,100 +172,112 @@ export default function JobDetailPage() {
     <>
       <div className="route-bg route-bg--detail" />
       <div className="space-y-6">
+        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
           <Link href="/jobs" className="hover:underline">Archive</Link>
           <span>/</span>
           <span className="font-mono" style={{ color: 'var(--ink-strong)' }}>{breadcrumbName}</span>
         </div>
 
-        {/* ── Score-first hero ─────────────────────────── */}
+        {/* ── Run Recap hero ──────────────────────────── */}
         <section className="surface-card p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.16fr_0.84fr]">
+            {/* Left: video + score */}
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 flex-wrap">
-                    {score != null && reliability !== 'insufficient' && (
-                      <div className="score-ring" style={{ width: '11.25rem', height: '11.25rem' }}>
-                        <div className="score-ring-glow" />
-                        <svg width="180" height="180" viewBox="0 0 180 180">
-                          <circle cx="90" cy="90" r="76" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="8" />
-                          <circle
-                            cx="90" cy="90" r="76"
-                            fill="none"
-                            stroke="url(#scoreGradDetail)"
-                            strokeWidth="8"
-                            strokeLinecap="round"
-                            strokeDasharray="477.52"
-                            strokeDashoffset={477.52 - (score / 100) * 477.52}
-                          />
-                          <defs>
-                            <linearGradient id="scoreGradDetail" x1="0" y1="0" x2="1" y2="1">
-                              <stop offset="0%" stopColor="#0084d4" />
-                              <stop offset="100%" stopColor="#c79a44" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="score-ring-label">
-                          <span
-                            className="font-extrabold tracking-tight"
-                            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: 'var(--ink-strong)' }}
-                          >
-                            {score}
-                          </span>
-                          <span className="text-xs mt-1" style={{ color: 'var(--ink-soft)' }}>
-                            {reliability === 'limited' ? 'tentative' : 'technique'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {reliability === 'insufficient' && (
-                      <div
-                        className="flex items-center justify-center rounded-full"
-                        style={{ width: '11.25rem', height: '11.25rem', background: 'rgba(0,0,0,0.04)', border: '2px dashed rgba(0,0,0,0.12)' }}
-                      >
-                        <div className="text-center px-4">
-                          <p className="text-sm font-bold" style={{ color: 'var(--ink-soft)' }}>Limited review</p>
-                          <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>Score hidden</p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      {level && reliability !== 'insufficient' && (
-                        <span className={levelBadgeClass(level)}>
-                          {reliability === 'limited' ? `${level} (tentative)` : level}
-                        </span>
-                      )}
-                      {scoreDelta != null && reliability !== 'insufficient' && (
-                        <span
-                          className="text-sm font-bold px-2.5 py-1 rounded-full block w-fit"
-                          style={{
-                            color: scoreDelta >= 0 ? 'var(--success)' : 'var(--danger)',
-                            background: scoreDelta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
-                          }}
-                        >
-                          {scoreDelta >= 0 ? '+' : ''}{scoreDelta} vs prev
-                        </span>
-                      )}
-                      {score != null && reliability !== 'insufficient' && (
-                        <p className="text-xs leading-snug max-w-[14rem]" style={{ color: 'var(--ink-soft)' }}>
-                          {scoreContext(score)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <span className="eyebrow">Run recap</span>
-                  <h1 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--ink-strong)' }}>
-                    {reliability === 'insufficient'
-                      ? 'Limited review — consider re-recording.'
-                      : score != null ? headline.slice(0, 80) : 'Review how this run moved.'}
-                  </h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="eyebrow">Run Recap</span>
+                  {reliability !== 'reliable' && (
+                    <span
+                      className="text-xs font-bold px-2.5 py-1 rounded-full"
+                      style={{
+                        color: reliability === 'insufficient' ? 'var(--gold)' : 'var(--accent)',
+                        background: reliability === 'insufficient' ? 'var(--gold-dim)' : 'var(--accent-dim)',
+                      }}
+                    >
+                      {reliability === 'insufficient' ? 'Limited Review' : 'Tentative'}
+                    </span>
+                  )}
                 </div>
                 <span className="status-pill" style={{ color: statusMeta.color, background: statusMeta.background }}>
                   {statusMeta.label}
                 </span>
               </div>
 
+              {/* Score + headline row */}
+              <div className="flex items-start gap-5">
+                {score != null && reliability !== 'insufficient' && (
+                  <div className="score-ring shrink-0" style={{ width: '6.5rem', height: '6.5rem' }}>
+                    <div className="score-ring-glow" />
+                    <svg width="104" height="104" viewBox="0 0 104 104">
+                      <circle cx="52" cy="52" r="44" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="6" />
+                      <circle
+                        cx="52" cy="52" r="44"
+                        fill="none"
+                        stroke="url(#scoreGradDetail)"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                        strokeDasharray="276.46"
+                        strokeDashoffset={276.46 - (score / 100) * 276.46}
+                      />
+                      <defs>
+                        <linearGradient id="scoreGradDetail" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#0084d4" />
+                          <stop offset="100%" stopColor="#c79a44" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="score-ring-label">
+                      <span className="font-extrabold tracking-tight" style={{ fontSize: '1.6rem', color: 'var(--ink-strong)' }}>
+                        {score}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {reliability === 'insufficient' && (
+                  <div
+                    className="flex items-center justify-center rounded-full shrink-0"
+                    style={{ width: '6.5rem', height: '6.5rem', background: 'rgba(0,0,0,0.04)', border: '2px dashed rgba(0,0,0,0.12)' }}
+                  >
+                    <div className="text-center px-2">
+                      <p className="text-xs font-bold" style={{ color: 'var(--ink-soft)' }}>Limited</p>
+                      <p style={{ fontSize: '0.62rem', color: 'var(--ink-muted)' }}>Score hidden</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h1 style={{ fontSize: 'clamp(1.3rem, 2.4vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2, color: 'var(--ink-strong)' }}>
+                    {reliability === 'insufficient'
+                      ? 'Limited review — consider re-recording.'
+                      : score != null ? headline.slice(0, 80) : 'Review how this run moved.'}
+                  </h1>
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    {level && reliability !== 'insufficient' && (
+                      <span className={levelBadgeClass(level)}>
+                        {reliability === 'limited' ? `${level} (tentative)` : level}
+                      </span>
+                    )}
+                    {scoreDelta != null && reliability !== 'insufficient' && (
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{
+                          color: scoreDelta >= 0 ? 'var(--success)' : 'var(--danger)',
+                          background: scoreDelta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
+                        }}
+                      >
+                        {scoreDelta >= 0 ? '+' : ''}{scoreDelta} vs prev
+                      </span>
+                    )}
+                    {score != null && reliability !== 'insufficient' && (
+                      <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+                        {scoreContext(score)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Video */}
               {overlayArtifact?.url ? (
                 <div
                   className="overflow-hidden"
@@ -338,16 +295,12 @@ export default function JobDetailPage() {
               )}
             </div>
 
+            {/* Right sidebar: metrics + context */}
             <aside className="space-y-4">
+              {/* Quick metrics */}
               <div className="surface-card-muted p-5">
-                <p className="text-xs uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--ink-muted)' }}>
-                  Coaching headline
-                </p>
-                <p className="mt-3 text-base leading-7 font-semibold" style={{ color: 'var(--ink-strong)' }}>
-                  {headline}
-                </p>
-
-                <div className="mt-5 grid grid-cols-2 gap-3">
+                <p className="section-label">Technique Summary</p>
+                <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className={dashboard && dashboard.overview.overallScore > 60 ? 'metric-tile metric-tile--high' : dashboard ? 'metric-tile metric-tile--low' : 'metric-tile'}>
                     <div className="metric-tile-dot" style={{ background: dashboard ? metricDotColor(dashboard.overview.overallScore, 60) : 'var(--ink-muted)' }} />
                     <p className="metric-value" style={{ color: dashboard && dashboard.overview.overallScore > 60 ? 'var(--accent)' : 'var(--gold)' }}>
@@ -361,7 +314,7 @@ export default function JobDetailPage() {
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard ? `${dashboard.overview.edgeAngle.toFixed(0)}°` : '—'}</p>
-                    <p className="metric-label">Average edge angle</p>
+                    <p className="metric-label">Edge angle</p>
                   </div>
                   <div className={dashboard && dashboard.overview.poseConfidence > 70 ? 'metric-tile metric-tile--high' : dashboard ? 'metric-tile metric-tile--low' : 'metric-tile'}>
                     <div className="metric-tile-dot" style={{ background: dashboard ? metricDotColor(dashboard.overview.poseConfidence, 70) : 'var(--ink-muted)' }} />
@@ -373,10 +326,9 @@ export default function JobDetailPage() {
                 </div>
               </div>
 
+              {/* Run context */}
               <div className="surface-card-muted p-5">
-                <p className="text-xs uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--ink-muted)' }}>
-                  Run context
-                </p>
+                <p className="section-label">Run Context</p>
                 <div className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
                   <p>
                     <span style={{ color: 'var(--ink-muted)' }}>Uploaded:</span>{' '}
@@ -393,43 +345,33 @@ export default function JobDetailPage() {
                 </div>
               </div>
 
+              {/* Processing progress */}
               {isActive && (() => {
                 const step = typeof job.config?.progress_step === 'number' ? job.config.progress_step : null
                 const total = typeof job.config?.progress_total === 'number' ? job.config.progress_total : null
                 const stage = typeof job.config?.progress_stage === 'string' ? job.config.progress_stage : null
                 const pct = step != null && total
                   ? Math.min(Math.round((step / total) * 100), 95)
-                  : job.status === 'created' ? 10
-                  : job.status === 'uploaded' ? 20
-                  : job.status === 'queued' ? 30
-                  : 55
+                  : job.status === 'created' ? 10 : job.status === 'uploaded' ? 20 : job.status === 'queued' ? 30 : 55
                 const label = stage
                   ? `Step ${step} of ${total}: ${stage}`
                   : progressNote ?? statusMeta.helper
                 return (
                   <div className="surface-card-muted p-5">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Processing progress</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Processing</p>
                       <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>Auto refresh</span>
                     </div>
                     <div className="mt-3 progress-track">
-                      <div
-                        className="progress-fill transition-all duration-700"
-                        style={{ width: `${pct}%` }}
-                      />
+                      <div className="progress-fill transition-all duration-700" style={{ width: `${pct}%` }} />
                     </div>
-                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      {label}
-                    </p>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{label}</p>
                   </div>
                 )
               })()}
 
               {job.error && (
-                <div
-                  className="surface-card-muted p-5 text-sm"
-                  style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}
-                >
+                <div className="surface-card-muted p-5 text-sm" style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}>
                   {job.error}
                 </div>
               )}
@@ -437,6 +379,7 @@ export default function JobDetailPage() {
           </div>
         </section>
 
+        {/* ── Tab navigation ──────────────────────────── */}
         <section className="surface-card-strong p-3 flex flex-wrap gap-2">
           {TABS.map((tab) => (
             <button
@@ -455,19 +398,15 @@ export default function JobDetailPage() {
           ))}
         </section>
 
+        {/* ── Recap tab ───────────────────────────────── */}
         {activeTab === 'recap' && (
           <div className="space-y-6">
-            {/* ── Reliability banner ──────────────────────── */}
+            {/* Reliability banners */}
             {reliability === 'insufficient' && (
-              <div
-                className="surface-card p-5 flex items-start gap-3"
-                style={{ background: 'var(--gold-dim)', border: '1px solid rgba(199,154,68,0.25)' }}
-              >
+              <div className="surface-card p-5 flex items-start gap-3" style={{ background: 'var(--gold-dim)', border: '1px solid rgba(199,154,68,0.25)' }}>
                 <span style={{ fontSize: '1.25rem' }}>&#9888;</span>
                 <div>
-                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>
-                    Limited analysis quality
-                  </p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Limited analysis quality</p>
                   <p className="mt-1 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
                     This clip contains multiple tracking segments, scene cuts, or very low pose confidence.
                     Treat the suggestions below as tentative. For a reliable score, try trimming to a single
@@ -477,10 +416,7 @@ export default function JobDetailPage() {
               </div>
             )}
             {reliability === 'limited' && (
-              <div
-                className="surface-card p-4 flex items-start gap-3"
-                style={{ background: 'rgba(0,132,212,0.06)', border: '1px solid rgba(0,132,212,0.15)' }}
-              >
+              <div className="surface-card p-4 flex items-start gap-3" style={{ background: 'rgba(0,132,212,0.06)', border: '1px solid rgba(0,132,212,0.15)' }}>
                 <span style={{ fontSize: '1rem' }}>&#8505;</span>
                 <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
                   Some capture warnings were detected. The score is marked <strong>tentative</strong> — treat
@@ -490,42 +426,34 @@ export default function JobDetailPage() {
             )}
 
             <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+              {/* Run summary */}
               <section className="surface-card p-6">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Run recap</p>
-                    <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      What stands out first
-                    </h2>
-                  </div>
-                  {dashboard?.overview.smoothnessScore != null && (
-                    <span className="status-pill" style={{ color: 'var(--success)', background: 'var(--success-dim)' }}>
-                      Smoothness {dashboard.overview.smoothnessScore}
-                    </span>
-                  )}
-                </div>
+                <p className="section-label">Run Summary</p>
+                <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                  What stands out first
+                </h2>
 
                 <p className="mt-4 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
                   {headline}
                 </p>
 
                 {dashboard ? (
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
                     <div className="metric-tile">
                       <p className="metric-value">{dashboard.overview.bestTurnScore}</p>
-                      <p className="metric-label">Best single-turn quality score</p>
+                      <p className="metric-label">Best turn quality</p>
                     </div>
                     <div className="metric-tile">
                       <p className="metric-value">{dashboard.overview.turnsDetected}</p>
-                      <p className="metric-label">Turns included in the coaching pass</p>
+                      <p className="metric-label">Turns in coaching pass</p>
                     </div>
                     <div className="metric-tile">
                       <p className="metric-value">{downloads.length}</p>
-                      <p className="metric-label">Artifacts ready to inspect or export</p>
+                      <p className="metric-label">Artifacts ready</p>
                     </div>
                     <div className="metric-tile">
                       <p className="metric-value">{coolMomentPhotos.length + peakFrames.length}</p>
-                      <p className="metric-label">Key images surfaced from the run</p>
+                      <p className="metric-label">Key images</p>
                     </div>
                   </div>
                 ) : (
@@ -536,29 +464,23 @@ export default function JobDetailPage() {
 
                 {!!dashboard?.warnings.length && (
                   <div className="mt-6 surface-card-muted p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--ink-muted)' }}>
-                      Capture warnings
-                    </p>
+                    <p className="section-label">Capture Warnings</p>
                     <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
-                      {dashboard.warnings.map((warning) => (
-                        <li key={warning}>{warning}</li>
-                      ))}
+                      {dashboard.warnings.map((w) => <li key={w}>{w}</li>)}
                     </ul>
                   </div>
                 )}
               </section>
 
+              {/* Coaching insights */}
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Next focus</p>
-                    <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      {reliability === 'insufficient' ? 'Directional suggestions' : 'Top 2 priorities'}
+                    <p className="section-label" style={{ color: 'var(--amber)' }}>Coaching Insights</p>
+                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                      {reliability === 'insufficient' ? 'Directional suggestions' : 'Top priorities'}
                     </h2>
                   </div>
-                  <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
-                    Coaching tips
-                  </span>
                 </div>
 
                 <div className="mt-5 space-y-3">
@@ -570,7 +492,7 @@ export default function JobDetailPage() {
                     }
                     return (
                       <>
-                        {visibleTips.map((tip) => {
+                        {visibleTips.map((tip, idx) => {
                           const category = tipCategory(tip)
                           const catColors = CATEGORY_COLORS[category] ?? CATEGORY_COLORS.general
                           const timeLabel = tip.time_ranges?.length
@@ -578,8 +500,13 @@ export default function JobDetailPage() {
                             : null
                           return (
                             <div key={`${tip.title}-${tip.evidence}`} className={`coaching-card ${catColors.accent}`}>
-                              <div className="flex items-center justify-between gap-3 pl-3">
-                                <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{tip.title}</p>
+                              <div className="flex items-center gap-3 pl-3">
+                                <span className="preflight-number" style={{ width: '1.5rem', height: '1.5rem', fontSize: '0.62rem' }}>
+                                  {String(idx + 1).padStart(2, '0')}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{tip.title}</p>
+                                </div>
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
                                   {CATEGORY_LABELS[category]}
                                 </span>
@@ -635,7 +562,7 @@ export default function JobDetailPage() {
 
                   {!summary?.coaching_tips?.length && (
                     <div className="surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      Tip cards appear when the summary JSON includes coaching guidance.
+                      Coaching insights appear when the summary JSON includes coaching guidance.
                     </div>
                   )}
                 </div>
@@ -644,6 +571,7 @@ export default function JobDetailPage() {
           </div>
         )}
 
+        {/* ── Metrics tab (Technique Markers) ─────────── */}
         {activeTab === 'metrics' && (
           <div className="space-y-6">
             <section className="grid gap-4 lg:grid-cols-2">
@@ -651,19 +579,19 @@ export default function JobDetailPage() {
                 <article key={category.id} className="surface-card p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-soft)' }}>{category.title}</p>
+                      <p className="section-label">{category.title}</p>
                       <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
                         Current pipeline metrics mapped into a coaching-friendly bucket.
                       </p>
                     </div>
                     <div className="text-center">
                       <div
-                        className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-extrabold"
+                        className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-extrabold"
                         style={{ background: 'var(--accent-dim)', color: 'var(--ink-strong)' }}
                       >
                         {category.score}
                       </div>
-                      <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--ink-muted)' }}>
+                      <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-muted)' }}>
                         {category.status}
                       </p>
                     </div>
@@ -692,7 +620,7 @@ export default function JobDetailPage() {
                 </article>
               )) ?? (
                 <article className="surface-card p-6 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                  Metrics will appear here once a summary artifact is attached.
+                  Technique markers will appear here once a summary artifact is attached.
                 </article>
               )}
             </section>
@@ -701,8 +629,8 @@ export default function JobDetailPage() {
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Turn highlights</p>
-                    <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                    <p className="section-label">Turn Highlights</p>
+                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
                       Best turns in this pass
                     </h2>
                   </div>
@@ -727,36 +655,28 @@ export default function JobDetailPage() {
           </div>
         )}
 
+        {/* ── Moments tab ─────────────────────────────── */}
         {activeTab === 'moments' && (
           <div className="space-y-6">
             <section className="surface-card p-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Key moments</p>
-                  <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                  <p className="section-label">Key Moments</p>
+                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
                     Review the strongest still frames
                   </h2>
                 </div>
                 <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
-                  Motion gallery
+                  {coolMomentPhotos.length} photos
                 </span>
               </div>
 
               {coolMomentPhotos.length ? (
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {coolMomentPhotos.map((photo) => (
-                    <a
-                      key={photo.id}
-                      href={photo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="moment-card"
-                    >
-                      <img
-                        src={photo.url}
-                        alt={`Turn ${(photo.meta.turn_idx ?? 0) + 1}`}
-                        className="w-full aspect-[4/3] object-cover"
-                      />
+                    <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer" className="moment-card">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.url} alt={`Turn ${(photo.meta.turn_idx ?? 0) + 1}`} className="w-full aspect-[4/3] object-cover" />
                       <div className="moment-card-overlay">
                         <p className="text-xs font-mono text-white">
                           Turn {(photo.meta.turn_idx ?? 0) + 1}
@@ -777,8 +697,8 @@ export default function JobDetailPage() {
             <section className="surface-card p-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Peak pressure frames</p>
-                  <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                  <p className="section-label">Peak Pressure Frames</p>
+                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
                     Pressure snapshots across turns
                   </h2>
                 </div>
@@ -790,18 +710,9 @@ export default function JobDetailPage() {
               {peakFrames.length ? (
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {peakFrames.map((frame) => (
-                    <a
-                      key={frame.id}
-                      href={frame.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="moment-card"
-                    >
-                      <img
-                        src={frame.url}
-                        alt={`Turn ${(frame.meta.turn_idx ?? 0) + 1}`}
-                        className="w-full aspect-[4/3] object-cover"
-                      />
+                    <a key={frame.id} href={frame.url} target="_blank" rel="noopener noreferrer" className="moment-card">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={frame.url} alt={`Turn ${(frame.meta.turn_idx ?? 0) + 1}`} className="w-full aspect-[4/3] object-cover" />
                       <div className="moment-card-overlay">
                         <p className="text-xs font-mono text-white">
                           Turn {(frame.meta.turn_idx ?? 0) + 1}
@@ -821,15 +732,14 @@ export default function JobDetailPage() {
           </div>
         )}
 
+        {/* ── Downloads tab ───────────────────────────── */}
         {activeTab === 'downloads' && (
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
             <section className="surface-card p-6">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Exports</p>
-                <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                  Raw files from this run
-                </h2>
-              </div>
+              <p className="section-label">Exports</p>
+              <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                Raw files from this run
+              </h2>
 
               <div className="mt-5 space-y-3">
                 {downloads.length ? downloads.map(({ label, artifact }) => (
@@ -859,37 +769,33 @@ export default function JobDetailPage() {
             </section>
 
             <section className="surface-card p-6">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>Artifacts summary</p>
-                <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                  What this run produced
-                </h2>
-              </div>
+              <p className="section-label">Artifacts Summary</p>
+              <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                What this run produced
+              </h2>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="metric-tile">
                   <p className="metric-value">{artifacts.length}</p>
-                  <p className="metric-label">Signed artifacts attached to the run.</p>
+                  <p className="metric-label">Total artifacts</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{downloads.length}</p>
-                  <p className="metric-label">Immediate exports available from this page.</p>
+                  <p className="metric-label">Downloadable exports</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{coolMomentPhotos.length}</p>
-                  <p className="metric-label">Cool-moment photos surfaced by the pipeline.</p>
+                  <p className="metric-label">Moment photos</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{peakFrames.length}</p>
-                  <p className="metric-label">Peak pressure frames available for review.</p>
+                  <p className="metric-label">Pressure frames</p>
                 </div>
               </div>
 
               {summary?.coaching_tips?.length ? (
                 <div className="mt-6 surface-card-muted p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--ink-muted)' }}>
-                    Summary notes
-                  </p>
+                  <p className="section-label">Summary Note</p>
                   <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
                     {summary.coaching_tips[0].explanation}
                   </p>
