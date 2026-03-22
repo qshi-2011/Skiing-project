@@ -142,20 +142,45 @@ def _get_r2_client():
         missing_names = ", ".join(missing)
         raise RuntimeError(f"Missing required R2 environment variable(s): {missing_names}")
 
+    from botocore.config import Config as BotoConfig
+
     _r2_client = boto3.client(
         "s3",
         endpoint_url=f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
         aws_access_key_id=R2_ACCESS_KEY_ID,
         aws_secret_access_key=R2_SECRET_ACCESS_KEY,
         region_name="auto",
+        config=BotoConfig(
+            read_timeout=300,
+            connect_timeout=30,
+            retries={"max_attempts": 3, "mode": "adaptive"},
+        ),
     )
     return _r2_client
 
 
-def _download_video_bytes(remote_path: str, provider: str) -> bytes:
+def _download_video_bytes(remote_path: str, provider: str, *, max_retries: int = 3) -> bytes:
     if provider == "r2":
-        response = _get_r2_client().get_object(Bucket=R2_VIDEOS_BUCKET, Key=remote_path)
-        return response["Body"].read()
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = _get_r2_client().get_object(Bucket=R2_VIDEOS_BUCKET, Key=remote_path)
+                # Stream in 1 MB chunks instead of a single .read()
+                chunks: list[bytes] = []
+                body = response["Body"]
+                while True:
+                    chunk = body.read(1_048_576)  # 1 MB
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                body.close()
+                return b"".join(chunks)
+            except Exception as exc:
+                if attempt < max_retries:
+                    wait = 2 ** attempt
+                    print(f"  [retry] download attempt {attempt} failed: {exc} — retrying in {wait}s", file=sys.stderr)
+                    time.sleep(wait)
+                else:
+                    raise
 
     return supabase.storage.from_("videos").download(remote_path)
 
