@@ -1,0 +1,30 @@
+{
+  "coach_summary": "这是一次很有潜力的滑行，整体流畅度不错，但膝盖左右弯曲不对称（平均差值约21度）和上半身过度倾斜（平均33度）是主要问题。我们需要先解决这些平衡和姿态问题，才能进一步提升你的转弯控制力。",
+  "coaching_points": [
+    {
+      "title": "改善左右膝盖对称性",
+      "feedback": "数据显示你左右膝盖弯曲角度差值在21度左右（例如第0个弯道为39度），这会导致受力不均。请在练习时专注于让双膝同步弯曲，目标是将不对称性控制在10度以内。",
+      "category": "balance",
+      "severity": "action",
+      "recommended_drill_id": "traverse-outside-ski"
+    },
+    {
+      "title": "控制上半身倾斜角度",
+      "feedback": "你的整体倾斜角平均达到33度，超过了25度的安全范围。请尝试保持上半身更直立，用髋部去引导转弯，而不是单纯靠身体大幅倾斜来维持平衡。",
+      "category": "balance",
+      "severity": "warn",
+      "recommended_drill_id": "hold-finish-pause"
+    },
+    {
+      "title": "保持上半身稳定",
+      "feedback": "观察到你上半身的旋转和晃动较为明显，这消耗了过多能量。在转弯过程中，请刻意保持核心静止，让下半身负责驱动动作。",
+      "category": "movement",
+      "severity": "warn",
+      "recommended_drill_id": "hands-forward-quiet-poles"
+    }
+  ],
+  "additional_observations": [
+    "虽然整体姿态存在上述问题，但你的平滑度评分（76.2-84.6）还不错，说明滑行节奏感是有的。",
+    "注意第0个弯道和第2个弯道的膝盖不对称特别严重，建议重点复习这两个时段的动作。"
+  ]
+}

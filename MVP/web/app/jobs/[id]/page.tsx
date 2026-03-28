@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { buildTechniqueDashboard, scoreLabel, scoreContext, computeReliability, buildReliabilityMessage, generateLimitations, type TechniqueRunSummary, type RecapReliability, type AiCoaching, type AiCoachingPoint } from '@/lib/analysis-summary'
-import { getDrill } from '@/lib/drills'
+import { buildTechniqueDashboard, scoreLabel, computeReliability, buildReliabilityMessage, generateLimitations, type TechniqueRunSummary, type RecapReliability, type AiCoaching, type AiCoachingPoint } from '@/lib/analysis-summary'
+import { getDrill, localizeDrill } from '@/lib/drills'
 import type { ArtifactWithUrl, Job, JobStatus } from '@/lib/types'
 import { getJobDisplayName, getJobUserNote } from '@/lib/job-ui'
 import { RunMetadataEditor } from '@/components/run-metadata-editor'
 import { JobRetryAction } from '@/components/job-retry-action'
+import { useLanguage } from '@/components/language-provider'
+import { createClient as createBrowserClient } from '@/lib/supabase/client'
+import { formatDateTime, reliabilityCopy, scoreContextForLang, translateKnownText } from '@/lib/i18n'
 
 interface JobPresentationResponse {
   label: string
@@ -72,42 +75,57 @@ function levelBadgeClass(label: string) {
   }
 }
 
-function confidenceMeta(reliability: RecapReliability, reliabilityMessage: ReturnType<typeof buildReliabilityMessage> | null) {
+function confidenceMeta(
+  reliability: RecapReliability,
+  reliabilityMessage: ReturnType<typeof buildReliabilityMessage> | null,
+  lang: 'en' | 'zh',
+) {
+  const localized = reliabilityCopy(reliability, lang)
+
   if (reliability === 'insufficient') {
     return {
-      label: 'Score unavailable',
+      label: localized.badge,
       color: 'var(--gold)',
       background: 'var(--gold-dim)',
-      helper: reliabilityMessage?.hideScoreReason ?? 'This clip was not clear enough for a dependable score.',
+      helper: localized.helper,
     }
   }
 
   if (reliability === 'limited') {
     return {
-      label: 'Limited review',
+      label: localized.badge,
       color: 'var(--gold)',
       background: 'var(--gold-dim)',
-      helper: reliabilityMessage?.explanation ?? 'Some parts of the run were harder to read, so this is directional.',
+      helper: localized.helper,
     }
   }
 
   return {
-    label: 'Reliable review',
+    label: localized.badge,
     color: 'var(--success)',
     background: 'var(--success-dim)',
-    helper: 'The clip was clear enough for a direct read of the run.',
+    helper: localized.helper,
   }
 }
 
-function coachingHeadline(job: Job, aiCoaching: AiCoaching | null, reliability: RecapReliability) {
+function coachingHeadline(
+  job: Job,
+  aiCoaching: AiCoaching | null,
+  reliability: RecapReliability,
+  lang: 'en' | 'zh',
+) {
   if (reliability === 'insufficient') {
-    return 'Analysis quality is limited for this clip.'
+    return lang === 'zh' ? '这段视频的分析质量有限。' : 'Analysis quality is limited for this clip.'
   }
   if (aiCoaching?.coaching_points?.[0]?.title) return aiCoaching.coaching_points[0].title
   if (aiCoaching?.coach_summary) return aiCoaching.coach_summary
-  if (job.status === 'done') return 'Your run recap is ready.'
-  if (job.status === 'error') return 'This run did not complete. A cleaner single-athlete clip usually gets the recap back on track.'
-  return 'We are finishing the coach feedback for this run.'
+  if (job.status === 'done') return lang === 'zh' ? '你的滑行复盘已经准备好了。' : 'Your run recap is ready.'
+  if (job.status === 'error') {
+    return lang === 'zh'
+      ? '这趟滑行没有顺利完成分析。通常换一段更清晰、只包含一名滑雪者的视频就能恢复正常。'
+      : 'This run did not complete. A cleaner single-athlete clip usually gets the recap back on track.'
+  }
+  return lang === 'zh' ? '我们正在完成这趟滑行的教练反馈。' : 'We are finishing the coach feedback for this run.'
 }
 
 function metricDotColor(value: number, threshold: number): string {
@@ -149,6 +167,7 @@ function progressWindow(job: Job) {
 }
 
 export default function JobDetailPage() {
+  const { lang, dict } = useLanguage()
   const { id } = useParams<{ id: string }>()
   const searchParams = useSearchParams()
 
@@ -156,6 +175,13 @@ export default function JobDetailPage() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('recap')
   const [displayProgress, setDisplayProgress] = useState(0)
+  const [isAnonymous, setIsAnonymous] = useState(false)
+
+  useEffect(() => {
+    createBrowserClient().auth.getUser().then(({ data: { user } }) => {
+      if (user?.is_anonymous) setIsAnonymous(true)
+    })
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -228,7 +254,7 @@ export default function JobDetailPage() {
           <div className="surface-card-strong p-6" style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}>
             {fetchError}
           </div>
-          <Link href="/jobs" className="cta-secondary">Back to archive</Link>
+          <Link href="/jobs" className="cta-secondary">{dict.job.backToArchive}</Link>
         </div>
       </>
     )
@@ -250,7 +276,8 @@ export default function JobDetailPage() {
   const dashboard = summary ? buildTechniqueDashboard(summary) : null
   const reliability: RecapReliability = dashboard?.reliability ?? (summary ? computeReliability(summary) : 'reliable')
   const reliabilityMessage = summary ? buildReliabilityMessage(summary) : null
-  const confidence = confidenceMeta(reliability, reliabilityMessage)
+  const confidence = confidenceMeta(reliability, reliabilityMessage, lang)
+  const reliabilityUi = reliabilityCopy(reliability, lang)
   const isActive = ACTIVE.has(job.status)
   const fromUpload = searchParams.get('fromUpload') === '1'
   const progressNote = typeof job.config?.progress_note === 'string' ? job.config.progress_note : null
@@ -258,7 +285,7 @@ export default function JobDetailPage() {
   const coolMomentPhotos = artifacts.filter((artifact) => artifact.kind === 'cool_moment_photo')
   const peakFrames = artifacts.filter((artifact) => artifact.kind === 'peak_pressure_frame' || artifact.kind === 'peak_pressure_frame_enhanced')
   const downloads = signedDownloads(artifacts)
-  const headline = coachingHeadline(job, aiCoaching, reliability)
+  const headline = coachingHeadline(job, aiCoaching, reliability, lang)
   const score = job.score ?? dashboard?.overview.overallScore ?? null
   const level = score != null ? scoreLabel(score) : null
   const scoreDelta = score != null && previousScore != null ? score - previousScore : null
@@ -272,7 +299,7 @@ export default function JobDetailPage() {
       <div className="space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 px-1 sm:px-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
-          <Link href="/jobs" className="hover:underline">Archive</Link>
+          <Link href="/jobs" className="hover:underline">{dict.job.archive}</Link>
           <span>/</span>
           <span className="font-mono" style={{ color: 'var(--ink-strong)' }}>{breadcrumbName}</span>
         </div>
@@ -280,10 +307,10 @@ export default function JobDetailPage() {
         {fromUpload && isActive && (
           <section className="surface-card p-4" style={{ background: 'rgba(0,132,212,0.06)', border: '1px solid rgba(0,132,212,0.15)' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
-              Upload complete. We&apos;re analyzing your run now.
+              {dict.job.uploadBannerTitle}
             </p>
             <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>
-              Stay on this page to watch the recap fill in automatically.
+              {dict.job.uploadBannerBody}
             </p>
           </section>
         )}
@@ -295,7 +322,7 @@ export default function JobDetailPage() {
             <div className="space-y-5">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="eyebrow">Run Recap</span>
+                  <span className="eyebrow">{dict.job.runRecap}</span>
                   <span
                     className="status-pill"
                     style={{ color: confidence.color, background: confidence.background }}
@@ -307,12 +334,12 @@ export default function JobDetailPage() {
                       className="text-xs font-bold px-2.5 py-1 rounded-full"
                       style={{ color: 'var(--ink-soft)', background: 'rgba(17,17,17,0.04)', border: '1px solid rgba(17,17,17,0.08)' }}
                     >
-                      Review confidence
+                      {dict.job.reviewConfidence}
                     </span>
                   )}
                 </div>
                 <span className="status-pill" style={{ color: presentation?.dot ?? statusMeta.color, background: presentation?.pill ?? statusMeta.background }}>
-                  {presentation?.label ?? statusMeta.label}
+                  {translateKnownText(presentation?.label ?? statusMeta.label, lang)}
                 </span>
               </div>
 
@@ -352,19 +379,19 @@ export default function JobDetailPage() {
                     style={{ width: '8.8rem', height: '8.8rem', background: 'rgba(255,255,255,0.9)', border: '2px dashed rgba(17,17,17,0.12)' }}
                   >
                     <div className="text-center px-2">
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-soft)' }}>No score</p>
-                      <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>for this clip</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-soft)' }}>{dict.job.noScore}</p>
+                      <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>{dict.job.forThisClip}</p>
                     </div>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--ink-muted)' }}>
-                    Current score
+                    {dict.job.currentScore}
                   </p>
                   <h1 style={{ fontSize: 'clamp(1.9rem, 3.6vw, 3rem)', fontWeight: 800, letterSpacing: '-0.05em', lineHeight: 1.05, color: 'var(--ink-strong)' }}>
                     {reliability === 'insufficient'
-                      ? (reliabilityMessage?.title ?? 'Score unavailable for this clip')
-                      : score != null ? headline : 'Review how this run moved.'}
+                      ? reliabilityUi.title
+                      : score != null ? headline : dict.job.reviewMovement}
                   </h1>
                   <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)', maxWidth: '40rem' }}>
                     {confidence.helper}
@@ -372,7 +399,9 @@ export default function JobDetailPage() {
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {level && reliability !== 'insufficient' && (
                       <span className={levelBadgeClass(level)}>
-                        {reliability === 'limited' ? `${level} (tentative)` : level}
+                        {reliability === 'limited'
+                          ? `${translateKnownText(level, lang)}${lang === 'zh' ? '（参考）' : ' (tentative)'}`
+                          : translateKnownText(level, lang)}
                       </span>
                     )}
                     {scoreDelta != null && reliability !== 'insufficient' && (
@@ -383,23 +412,23 @@ export default function JobDetailPage() {
                           background: scoreDelta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
                         }}
                       >
-                        {scoreDelta >= 0 ? '+' : ''}{scoreDelta} vs prev
+                        {scoreDelta >= 0 ? '+' : ''}{scoreDelta} {dict.job.vsPrev}
                       </span>
                     )}
                     {score != null && reliability !== 'insufficient' && (
                       <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                        {scoreContext(score)}
+                        {scoreContextForLang(score, lang)}
                       </span>
                     )}
                   </div>
                   {reliability === 'insufficient' && reliabilityMessage && (
                     <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
-                      {reliabilityMessage.hideScoreReason}
+                      {reliabilityUi.explanation}
                     </p>
                   )}
                   {userNote && (
                     <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                      Note: {userNote}
+                      {dict.job.notePrefix} {userNote}
                     </p>
                   )}
                 </div>
@@ -418,7 +447,7 @@ export default function JobDetailPage() {
                   className="aspect-video flex items-center justify-center text-center p-8"
                   style={{ borderRadius: 'var(--radius-xl)', background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(17,17,17,0.08)', color: 'var(--ink-soft)' }}
                 >
-                  The recap video will appear after the coach feedback finishes and the full recap is published.
+                  {dict.job.videoPending}
                 </div>
               )}
             </div>
@@ -433,66 +462,66 @@ export default function JobDetailPage() {
                 return (
                   <div className="surface-card-muted p-5">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Processing</p>
-                      <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>Auto refresh</span>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{dict.job.processing}</p>
+                      <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>{dict.job.autoRefresh}</span>
                     </div>
                     <div className="mt-3 progress-track">
                       <div className="progress-fill transition-all duration-700" style={{ width: `${displayProgress}%` }} />
                     </div>
-                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-base)' }}>{label}</p>
-                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>Most runs finish in 1-2 minutes once the video is uploaded.</p>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-base)' }}>{translateKnownText(label, lang)}</p>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{dict.job.processingEta}</p>
                   </div>
                 )
               })()}
 
               {/* Quick metrics */}
               <div className="surface-card-muted p-5">
-                <p className="section-label">Technique Summary</p>
+                <p className="section-label">{dict.job.techniqueSummary}</p>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className={dashboard && dashboard.overview.overallScore > 60 ? 'metric-tile metric-tile--high' : dashboard ? 'metric-tile metric-tile--low' : 'metric-tile'}>
                     <div className="metric-tile-dot" style={{ background: dashboard ? metricDotColor(dashboard.overview.overallScore, 60) : 'var(--ink-muted)' }} />
                     <p className="metric-value" style={{ color: dashboard && dashboard.overview.overallScore > 60 ? 'var(--accent)' : 'var(--gold)' }}>
                       {dashboard ? dashboard.overview.overallScore : '—'}
                     </p>
-                    <p className="metric-label">Technique score</p>
+                    <p className="metric-label">{dict.sample.techniqueScore}</p>
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard ? dashboard.overview.turnsDetected : artifacts.length}</p>
-                    <p className="metric-label">{dashboard ? 'Turns detected' : 'Files ready'}</p>
+                    <p className="metric-label">{dashboard ? dict.sample.turnsDetected : dict.job.filesReady}</p>
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard ? `${dashboard.overview.edgeAngle.toFixed(0)}°` : '—'}</p>
-                    <p className="metric-label">Edge angle</p>
+                    <p className="metric-label">{dict.job.edgeAngle}</p>
                   </div>
                   <div className={dashboard && reliability === 'reliable' ? 'metric-tile metric-tile--high' : dashboard ? 'metric-tile metric-tile--low' : 'metric-tile'}>
                     <div className="metric-tile-dot" style={{ background: dashboard && reliability === 'reliable' ? 'var(--accent)' : 'var(--gold)' }} />
                     <p className="metric-value" style={{ color: dashboard && reliability === 'reliable' ? 'var(--accent)' : 'var(--gold)' }}>
-                      {dashboard ? dashboard.overview.clipQualityLabel : '—'}
+                      {dashboard ? translateKnownText(dashboard.overview.clipQualityLabel, lang) : '—'}
                     </p>
-                    <p className="metric-label">Clip quality</p>
+                    <p className="metric-label">{dict.job.clipQuality}</p>
                   </div>
                 </div>
               </div>
 
               {/* Run context */}
               <div className="surface-card-muted p-5">
-                <p className="section-label">Run Context</p>
+                <p className="section-label">{dict.job.runContext}</p>
                 <div className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
                   <p>
-                    <span style={{ color: 'var(--ink-muted)' }}>Run title:</span>{' '}
+                    <span style={{ color: 'var(--ink-muted)' }}>{dict.job.runTitle}:</span>{' '}
                     {displayName}
                   </p>
                   <p>
-                    <span style={{ color: 'var(--ink-muted)' }}>Uploaded:</span>{' '}
-                    {new Date(job.created_at).toLocaleString()}
+                    <span style={{ color: 'var(--ink-muted)' }}>{dict.job.uploaded}:</span>{' '}
+                    {formatDateTime(job.created_at, lang)}
                   </p>
                   <p>
-                    <span style={{ color: 'var(--ink-muted)' }}>Updated:</span>{' '}
-                    {new Date(job.updated_at).toLocaleString()}
+                    <span style={{ color: 'var(--ink-muted)' }}>{dict.job.updated}:</span>{' '}
+                    {formatDateTime(job.updated_at, lang)}
                   </p>
                   <p>
-                    <span style={{ color: 'var(--ink-muted)' }}>Status:</span>{' '}
-                    {presentation?.helper ?? progressNote ?? statusMeta.helper}
+                    <span style={{ color: 'var(--ink-muted)' }}>{dict.job.status}:</span>{' '}
+                    {translateKnownText(presentation?.helper ?? progressNote ?? statusMeta.helper, lang)}
                   </p>
                 </div>
               </div>
@@ -500,9 +529,9 @@ export default function JobDetailPage() {
               <div className="surface-card-muted p-5">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="section-label">Run details</p>
+                    <p className="section-label">{dict.job.runDetails}</p>
                     <p className="mt-2 text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
-                      Rename this run or leave yourself context for later.
+                      {dict.job.runDetailsBody}
                     </p>
                   </div>
                   <JobRetryAction
@@ -543,7 +572,13 @@ export default function JobDetailPage() {
                 border: activeTab === tab.id ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent',
               }}
             >
-              {tab.label}
+              {tab.id === 'recap'
+                ? dict.job.recap
+                : tab.id === 'metrics'
+                  ? dict.job.metrics
+                  : tab.id === 'moments'
+                    ? dict.job.moments
+                    : dict.job.downloads}
             </button>
           ))}
         </section>
@@ -557,14 +592,14 @@ export default function JobDetailPage() {
                 background: reliability === 'insufficient' ? 'var(--gold-dim)' : 'rgba(0,132,212,0.06)',
                 border: reliability === 'insufficient' ? '1px solid rgba(199,154,68,0.25)' : '1px solid rgba(0,132,212,0.15)',
               }}>
-                <span style={{ fontSize: '1.25rem' }}>{reliability === 'insufficient' ? '\u26A0' : '\u2139'}</span>
+                  <span style={{ fontSize: '1.25rem' }}>{reliability === 'insufficient' ? '\u26A0' : '\u2139'}</span>
                 <div>
-                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{reliabilityMessage.title}</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{reliabilityUi.title}</p>
                   <p className="mt-1 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                    {reliabilityMessage.explanation}
+                    {reliabilityUi.explanation}
                   </p>
                   <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
-                    {reliabilityMessage.nextStep}
+                    {reliabilityUi.nextStep}
                   </p>
                 </div>
               </div>
@@ -575,12 +610,12 @@ export default function JobDetailPage() {
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="section-label" style={{ color: 'var(--accent)' }}>Coach&apos;s Analysis</p>
+                    <p className="section-label" style={{ color: 'var(--accent)' }}>{dict.job.coachAnalysis}</p>
                     <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      Personalised feedback for this run
+                      {dict.job.coachAnalysisTitle}
                     </h2>
                   </div>
-                  <span className="eyebrow">AI Coach</span>
+                  <span className="eyebrow">{dict.job.aiCoach}</span>
                 </div>
 
                 {/* Coach summary */}
@@ -598,6 +633,7 @@ export default function JobDetailPage() {
                       movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
                     }
                     const drill = point.recommended_drill_id ? getDrill(point.recommended_drill_id) : null
+                    const localizedDrill = drill ? localizeDrill(drill, lang) : null
                     return (
                       <div key={`${point.title}-${idx}`} className={`coaching-card ${catColors.accent}`}>
                         <div className="flex items-center gap-3 pl-3">
@@ -608,29 +644,29 @@ export default function JobDetailPage() {
                             <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{point.title}</p>
                           </div>
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
-                            {CATEGORY_LABELS[point.category] ?? point.category}
+                            {translateKnownText(CATEGORY_LABELS[point.category] ?? point.category, lang)}
                           </span>
                         </div>
                         <p className="mt-2 text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)' }}>
                           {point.feedback}
                         </p>
-                        {drill && (
+                        {localizedDrill && (
                           <div className="mt-3 pl-3">
                             <div className="drill-card inline-flex items-center gap-3 px-4 py-3">
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--ink-muted)' }}>Recommended Drill</p>
-                                <p className="mt-1 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{drill.title}</p>
-                                <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>{drill.description}</p>
+                                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--ink-muted)' }}>{dict.job.recommendedDrill}</p>
+                                <p className="mt-1 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{localizedDrill.title}</p>
+                                <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>{localizedDrill.description}</p>
                               </div>
-                              {drill.videoUrl && (
+                              {localizedDrill.videoUrl && (
                                 <a
-                                  href={drill.videoUrl}
+                                  href={localizedDrill.videoUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="cta-primary shrink-0"
                                   style={{ padding: '0.5rem 1rem', fontSize: '0.78rem' }}
                                 >
-                                  Watch Drill
+                                  {dict.job.watchDrill}
                                 </a>
                               )}
                             </div>
@@ -644,7 +680,7 @@ export default function JobDetailPage() {
                 {/* Additional observations */}
                 {aiCoaching.additional_observations?.length > 0 && (
                   <div className="mt-5">
-                    <p className="section-label">Additional Observations</p>
+                    <p className="section-label">{dict.job.additional}</p>
                     <ul className="mt-3 space-y-2">
                       {aiCoaching.additional_observations.map((obs: string, idx: number) => (
                         <li key={idx} className="text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)', borderLeft: '2px solid rgba(0,0,0,0.08)', paddingLeft: '0.75rem' }}>
@@ -659,17 +695,17 @@ export default function JobDetailPage() {
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="section-label" style={{ color: 'var(--accent)' }}>Coach&apos;s Analysis</p>
+                    <p className="section-label" style={{ color: 'var(--accent)' }}>{dict.job.coachAnalysis}</p>
                     <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      {isActive ? 'Your coach is still writing this recap' : 'Coach feedback is not ready yet'}
+                      {isActive ? dict.job.coachWriting : dict.job.coachNotReady}
                     </h2>
                   </div>
-                  <span className="eyebrow">AI Coach</span>
+                  <span className="eyebrow">{dict.job.aiCoach}</span>
                 </div>
                 <p className="mt-5 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
                   {isActive
-                    ? 'We only publish the coaching section once the local LLM finishes writing it. The page will refresh automatically as soon as that feedback is ready.'
-                    : 'This run does not have LLM coach feedback attached yet. Re-run the analysis if you want a complete coach-written recap.'}
+                    ? dict.job.coachWritingBody
+                    : dict.job.coachMissingBody}
                 </p>
               </section>
             )}
@@ -685,33 +721,35 @@ export default function JobDetailPage() {
               if (!uniqueDrills.length) return null
               return (
                 <section className="surface-card p-6">
-                  <p className="section-label">Recommended Practice</p>
+                  <p className="section-label">{dict.job.practice}</p>
                   <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    Drills for your next session
+                    {dict.job.practiceTitle}
                   </h2>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {uniqueDrills.map((drill) => (
+                    {uniqueDrills.map((drill) => {
+                      const localizedDrill = localizeDrill(drill, lang)
+                      return (
                       <div key={drill.id} className="drill-card p-4">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                           CATEGORY_COLORS[drill.category]?.badge ?? 'category-badge-general'
                         }`}>
-                          {drill.category.charAt(0).toUpperCase() + drill.category.slice(1)}
+                          {translateKnownText(drill.category.charAt(0).toUpperCase() + drill.category.slice(1), lang)}
                         </span>
-                        <h3 className="mt-3 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{drill.title}</h3>
-                        <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-soft)' }}>{drill.description}</p>
-                              {drill.videoUrl && (
+                        <h3 className="mt-3 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{localizedDrill.title}</h3>
+                        <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-soft)' }}>{localizedDrill.description}</p>
+                              {localizedDrill.videoUrl && (
                           <a
-                            href={drill.videoUrl}
+                            href={localizedDrill.videoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="cta-primary mt-3 w-full"
                             style={{ padding: '0.5rem 1rem', fontSize: '0.78rem' }}
                           >
-                            Watch Drill
+                            {dict.job.watchDrill}
                           </a>
                         )}
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </section>
               )
@@ -723,15 +761,15 @@ export default function JobDetailPage() {
               if (!limitations.length) return null
               return (
                 <section className="surface-card p-6">
-                  <p className="section-label" style={{ color: 'var(--gold)' }}>Keep in mind</p>
+                  <p className="section-label" style={{ color: 'var(--gold)' }}>{dict.job.keepInMind}</p>
                   <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    Limits of this review
+                    {dict.job.limitations}
                   </h2>
                   <div className="mt-5 space-y-3">
                     {limitations.map((lim, idx) => (
                       <div key={idx} className="limitations-card">
-                        <h4>{lim.title}</h4>
-                        <p>{lim.explanation}</p>
+                        <h4>{translateKnownText(lim.title, lang)}</h4>
+                        <p>{translateKnownText(lim.explanation, lang)}</p>
                       </div>
                     ))}
                   </div>
@@ -749,9 +787,9 @@ export default function JobDetailPage() {
                 <article key={category.id} className="surface-card p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="section-label">{category.title}</p>
+                      <p className="section-label">{translateKnownText(category.title, lang)}</p>
                       <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                        These checks roll up the strongest movement patterns from your run.
+                        {lang === 'zh' ? '这些指标汇总了你这趟滑行里最关键的动作模式。' : 'These checks roll up the strongest movement patterns from your run.'}
                       </p>
                     </div>
                     <div className="text-center">
@@ -762,7 +800,7 @@ export default function JobDetailPage() {
                         {category.score}
                       </div>
                       <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-muted)' }}>
-                        {category.status}
+                        {translateKnownText(category.status, lang)}
                       </p>
                     </div>
                   </div>
@@ -771,18 +809,18 @@ export default function JobDetailPage() {
                     {category.metrics.map((metric) => (
                       <div key={`${category.id}-${metric.label}`}>
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{metric.label}</p>
+                          <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{translateKnownText(metric.label, lang)}</p>
                           <p className="font-mono text-xs" style={{ color: 'var(--accent)' }}>{metric.value}</p>
                         </div>
-                        <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>{metric.helper}</p>
+                        <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>{translateKnownText(metric.helper, lang)}</p>
                         <div className="mt-3 metric-rail">
                           <span style={{ width: `${metric.fill}%` }}>
                             <span className="metric-rail-dot" />
                           </span>
                         </div>
                         <div className="mt-1 flex items-center justify-between text-xs" style={{ color: 'var(--ink-muted)' }}>
-                          <span>{metric.leftLabel}</span>
-                          <span>{metric.rightLabel}</span>
+                          <span>{translateKnownText(metric.leftLabel, lang)}</span>
+                          <span>{translateKnownText(metric.rightLabel, lang)}</span>
                         </div>
                       </div>
                     ))}
@@ -790,7 +828,7 @@ export default function JobDetailPage() {
                 </article>
               )) ?? (
                 <article className="surface-card p-6 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                  Detailed metrics will appear here once your recap is ready.
+                  {dict.job.metricsFallback}
                 </article>
               )}
             </section>
@@ -799,24 +837,24 @@ export default function JobDetailPage() {
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="section-label">Turn Highlights</p>
+                    <p className="section-label">{dict.job.turnHighlights}</p>
                     <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      Best turns in this pass
+                      {dict.job.bestTurns}
                     </h2>
                   </div>
                   <span className="status-pill" style={{ color: 'var(--success)', background: 'var(--success-dim)' }}>
-                    Technique scores
+                    {dict.job.techniqueScores}
                   </span>
                 </div>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {dashboard.turnHighlights.map((turn) => (
                     <div key={turn.title} className="surface-card-muted p-4">
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{turn.title}</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{translateKnownText(turn.title, lang)}</p>
                       <p className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: 'var(--ink-strong)', fontVariantNumeric: 'tabular-nums' }}>
                         {turn.score}
                       </p>
-                      <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{turn.detail}</p>
+                      <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{translateKnownText(turn.detail, lang)}</p>
                     </div>
                   ))}
                 </div>
@@ -830,28 +868,29 @@ export default function JobDetailPage() {
           <div className="space-y-6">
             <section className="surface-card p-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <p className="section-label">Key Moments</p>
-                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    Review the strongest still frames
-                  </h2>
+                  <div>
+                    <p className="section-label">{dict.job.keyMoments}</p>
+                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                      {dict.job.strongestFrames}
+                    </h2>
+                  </div>
+                  <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
+                    {coolMomentPhotos.length} {dict.job.photos}
+                  </span>
                 </div>
-                <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
-                  {coolMomentPhotos.length} photos
-                </span>
-              </div>
 
               {coolMomentPhotos.length ? (
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {coolMomentPhotos.map((photo) => (
                     <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer" className="moment-card">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.url} alt={`Turn ${(photo.meta.turn_idx ?? 0) + 1}`} className="w-full aspect-[4/3] object-cover" />
+                      <img src={photo.url} alt={translateKnownText(`Turn ${(photo.meta.turn_idx ?? 0) + 1}`, lang)} className="w-full aspect-[4/3] object-cover" />
                       <div className="moment-card-overlay">
                         <p className="text-xs font-mono text-white">
-                          Turn {(photo.meta.turn_idx ?? 0) + 1}
-                          {photo.meta.side ? ` · ${photo.meta.side}` : ''}
-                          {photo.meta.timestamp_s != null ? ` · ${Number(photo.meta.timestamp_s).toFixed(1)}s` : ''}
+                          {translateKnownText(
+                            `Turn ${(photo.meta.turn_idx ?? 0) + 1}${photo.meta.side ? ` · ${photo.meta.side}` : ''}${photo.meta.timestamp_s != null ? ` · ${Number(photo.meta.timestamp_s).toFixed(1)}s` : ''}`,
+                            lang,
+                          )}
                         </p>
                       </div>
                     </a>
@@ -859,35 +898,36 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 <div className="mt-5 surface-card-muted p-6 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                  No cool-moment photos were attached to this run.
+                  {dict.job.noMoments}
                 </div>
               )}
             </section>
 
             <section className="surface-card p-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <p className="section-label">Peak Pressure Frames</p>
-                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    Pressure snapshots across turns
-                  </h2>
+                  <div>
+                    <p className="section-label">{dict.job.peakFrames}</p>
+                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                      {dict.job.pressureSnapshots}
+                    </h2>
+                  </div>
+                  <span className="status-pill" style={{ color: 'var(--gold)', background: 'var(--gold-dim)' }}>
+                    {peakFrames.length} {dict.job.frames}
+                  </span>
                 </div>
-                <span className="status-pill" style={{ color: 'var(--gold)', background: 'var(--gold-dim)' }}>
-                  {peakFrames.length} frames
-                </span>
-              </div>
 
               {peakFrames.length ? (
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {peakFrames.map((frame) => (
                     <a key={frame.id} href={frame.url} target="_blank" rel="noopener noreferrer" className="moment-card">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={frame.url} alt={`Turn ${(frame.meta.turn_idx ?? 0) + 1}`} className="w-full aspect-[4/3] object-cover" />
+                      <img src={frame.url} alt={translateKnownText(`Turn ${(frame.meta.turn_idx ?? 0) + 1}`, lang)} className="w-full aspect-[4/3] object-cover" />
                       <div className="moment-card-overlay">
                         <p className="text-xs font-mono text-white">
-                          Turn {(frame.meta.turn_idx ?? 0) + 1}
-                          {frame.meta.side ? ` · ${frame.meta.side}` : ''}
-                          {frame.meta.timestamp_s != null ? ` · ${Number(frame.meta.timestamp_s).toFixed(1)}s` : ''}
+                          {translateKnownText(
+                            `Turn ${(frame.meta.turn_idx ?? 0) + 1}${frame.meta.side ? ` · ${frame.meta.side}` : ''}${frame.meta.timestamp_s != null ? ` · ${Number(frame.meta.timestamp_s).toFixed(1)}s` : ''}`,
+                            lang,
+                          )}
                         </p>
                       </div>
                     </a>
@@ -895,7 +935,7 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 <div className="mt-5 surface-card-muted p-6 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                  Peak pressure frames have not been attached to this run yet.
+                  {dict.job.noPeakFrames}
                 </div>
               )}
             </section>
@@ -906,9 +946,9 @@ export default function JobDetailPage() {
         {activeTab === 'downloads' && (
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
             <section className="surface-card p-6">
-              <p className="section-label">Exports</p>
+              <p className="section-label">{dict.job.exports}</p>
               <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                Files you can keep
+                {dict.job.filesKeep}
               </h2>
 
               <div className="mt-5 space-y-3">
@@ -921,9 +961,9 @@ export default function JobDetailPage() {
                     className="surface-card-muted px-4 py-4 flex items-center justify-between gap-4"
                   >
                     <div>
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{label}</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{translateKnownText(label, lang)}</p>
                       <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>
-                        Open this file in a new tab.
+                        {dict.job.openFile}
                       </p>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--ink-soft)' }}>
@@ -932,40 +972,40 @@ export default function JobDetailPage() {
                   </a>
                 )) : (
                   <div className="surface-card-muted p-5 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                    No export files are ready yet.
+                    {dict.job.noDownloads}
                   </div>
                 )}
               </div>
             </section>
 
             <section className="surface-card p-6">
-              <p className="section-label">Run Assets</p>
+              <p className="section-label">{dict.job.assets}</p>
               <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                What is included
+                {dict.job.included}
               </h2>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="metric-tile">
                   <p className="metric-value">{overlayArtifact ? 1 : 0}</p>
-                  <p className="metric-label">Video recap</p>
+                  <p className="metric-label">{dict.job.videoRecap}</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{downloads.length}</p>
-                  <p className="metric-label">Downloads ready</p>
+                  <p className="metric-label">{dict.job.downloadsReady}</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{coolMomentPhotos.length}</p>
-                  <p className="metric-label">Highlight photos</p>
+                  <p className="metric-label">{dict.job.highlightPhotos}</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{peakFrames.length}</p>
-                  <p className="metric-label">Action stills</p>
+                  <p className="metric-label">{dict.job.actionStills}</p>
                 </div>
               </div>
 
               {aiCoaching?.coach_summary ? (
                 <div className="mt-6 surface-card-muted p-4">
-                  <p className="section-label">Coach Note</p>
+                  <p className="section-label">{dict.job.coachNote}</p>
                   <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
                     {aiCoaching.coach_summary}
                   </p>
@@ -973,6 +1013,30 @@ export default function JobDetailPage() {
               ) : null}
             </section>
           </div>
+        )}
+        {isAnonymous && (
+          <section
+            className="surface-card p-5"
+            style={{ background: 'rgba(0,132,212,0.06)', border: '1px solid rgba(0,132,212,0.15)' }}
+          >
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
+                  {dict.guest.bannerTitle}
+                </p>
+                <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>
+                  {dict.guest.bannerBody}
+                </p>
+              </div>
+              <Link
+                href="/signup"
+                className="cta-primary shrink-0"
+                style={{ padding: '0.6rem 1.1rem', fontSize: '0.85rem' }}
+              >
+                {dict.guest.bannerCta}
+              </Link>
+            </div>
+          </section>
         )}
       </div>
     </>

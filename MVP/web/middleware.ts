@@ -37,7 +37,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && (pathname === '/login' || pathname === '/signup')) {
+  // Anonymous (guest) users can upload and view their own job results,
+  // but cannot access the archive list or profile page.
+  if (user?.is_anonymous && (pathname === '/jobs' || pathname === '/profile')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/upload'
+    return NextResponse.redirect(url)
+  }
+
+  // Redirect authenticated (non-anonymous) users away from login/signup.
+  // Anonymous users can still visit /signup to convert their account.
+  if (user && !user.is_anonymous && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)

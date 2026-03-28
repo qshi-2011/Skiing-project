@@ -8,10 +8,14 @@ import { getJobDisplayName, getJobUserNote, getJobOriginalFilename } from '@/lib
 import { ScoreTrendCard } from '@/components/score-trend-card'
 import { RunMetadataEditor } from '@/components/run-metadata-editor'
 import { JobRetryAction } from '@/components/job-retry-action'
+import { formatDate, formatDateTime, getDictionary, translateKnownText } from '@/lib/i18n'
+import { readLanguage } from '@/lib/i18n-server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage() {
+  const lang = readLanguage()
+  const dict = getDictionary(lang)
   const supabase = createClient()
   const {
     data: { user },
@@ -40,7 +44,7 @@ export default async function ProfilePage() {
 
   const displayName = user.email?.split('@')[0] ?? 'Athlete'
   const initials = displayName.slice(0, 2).toUpperCase()
-  const memberSince = new Date(user.created_at).toLocaleDateString('en-US', {
+  const memberSince = formatDate(user.created_at, lang, {
     month: 'long',
     year: 'numeric',
   })
@@ -67,7 +71,7 @@ export default async function ProfilePage() {
             {initials}
           </div>
           <div>
-            <p className="section-label">Profile</p>
+            <p className="section-label">{dict.profile.label}</p>
             <h1 className="mt-2" style={{ fontSize: 'clamp(1.5rem, 2.4vw, 2.2rem)', fontWeight: 800, color: 'var(--ink-strong)', letterSpacing: '-0.03em' }}>
               {displayName}
             </h1>
@@ -75,11 +79,11 @@ export default async function ProfilePage() {
               {user.email}
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>
-              Member since {memberSince}
+              {dict.profile.memberSince} {memberSince}
             </p>
           </div>
           <Link href="/upload" className="cta-primary" style={{ padding: '0.75rem 1.1rem', fontSize: '0.85rem' }}>
-            Upload new run
+            {dict.profile.uploadNew}
           </Link>
         </div>
       </section>
@@ -87,46 +91,47 @@ export default async function ProfilePage() {
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <div className="metric-tile">
           <p className="metric-value">{runs.length}</p>
-          <p className="metric-label">Total runs</p>
+          <p className="metric-label">{dict.profile.totalRuns}</p>
         </div>
         <div className="metric-tile">
           <p className="metric-value">{completedRuns.length}</p>
-          <p className="metric-label">Completed recaps</p>
+          <p className="metric-label">{dict.profile.completed}</p>
         </div>
         <div className="metric-tile">
           <p className="metric-value">{avgScore ?? '—'}</p>
-          <p className="metric-label">Average score</p>
+          <p className="metric-label">{dict.profile.averageScore}</p>
         </div>
         <div className="metric-tile metric-tile--high">
           <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
           <p className="metric-value" style={{ color: 'var(--accent)' }}>{bestScore ?? '—'}</p>
-          <p className="metric-label">Best score</p>
+          <p className="metric-label">{dict.profile.bestScore}</p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <ScoreTrendCard
           runs={scoredRuns}
-          title="Progress over time"
-          subtitle="Track your last 10 scored runs and look for steady gains, not just one standout day."
+          title={dict.profile.trendTitle}
+          subtitle={dict.profile.trendSubtitle}
+          lang={lang}
         />
 
         <section className="surface-card p-6">
-          <p className="section-label">Personal summary</p>
+          <p className="section-label">{dict.profile.summary}</p>
           <div className="mt-4 space-y-4">
             <div className="surface-card-muted p-4">
               <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-muted)' }}>
-                Latest completed run
+                {dict.profile.latestRun}
               </p>
               <p className="mt-2 text-base font-semibold" style={{ color: 'var(--ink-strong)' }}>
-                {latestCompleted ? getJobDisplayName(latestCompleted) : 'No completed runs yet'}
+                {latestCompleted ? getJobDisplayName(latestCompleted) : dict.profile.noCompleted}
               </p>
               {latestCompleted && (
                 <div className="mt-2 space-y-3">
                   <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
                     {latestCompleted.score != null
-                      ? `Scored ${latestCompleted.score} and ready to compare against your next session.`
-                      : 'Ready to review in the run archive.'}
+                      ? dict.profile.latestScored.replace('{score}', String(latestCompleted.score))
+                      : dict.profile.latestReview}
                   </p>
                   <RunMetadataEditor
                     jobId={latestCompleted.id}
@@ -138,14 +143,14 @@ export default async function ProfilePage() {
             </div>
             <div className="surface-card-muted p-4">
               <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-muted)' }}>
-                Best run so far
+                {dict.profile.bestRun}
               </p>
               <p className="mt-2 text-base font-semibold" style={{ color: 'var(--ink-strong)' }}>
-                {bestRun ? getJobDisplayName(bestRun) : 'No scored runs yet'}
+                {bestRun ? getJobDisplayName(bestRun) : dict.profile.noScored}
               </p>
               {bestRun && (
                 <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                  Peak score {bestRun.score} · {scoreLabel(bestRun.score)}
+                  {dict.profile.peakScore} {bestRun.score} · {translateKnownText(scoreLabel(bestRun.score), lang)}
                 </p>
               )}
             </div>
@@ -156,20 +161,20 @@ export default async function ProfilePage() {
       <section className="surface-card p-6 lg:p-8">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <p className="section-label">Run history</p>
+            <p className="section-label">{dict.profile.runHistory}</p>
             <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-              Recent sessions
+              {dict.profile.recentSessions}
             </h2>
           </div>
           <Link href="/jobs" className="cta-secondary" style={{ padding: '0.6rem 1rem', fontSize: '0.82rem' }}>
-            Open archive
+            {dict.profile.openArchive}
           </Link>
         </div>
 
         {!recentRuns.length ? (
           <div className="mt-5 surface-card-muted p-8 text-center">
             <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-              No runs yet. Upload your first ski video to get started.
+              {dict.profile.noRuns}
             </p>
           </div>
         ) : (
@@ -209,11 +214,11 @@ export default async function ProfilePage() {
                             className="text-xs font-semibold px-2.5 py-1 rounded-full"
                             style={{ color: presentation.dot, background: presentation.pill }}
                           >
-                            {presentation.label}
+                            {translateKnownText(presentation.label, lang)}
                           </span>
                         </div>
                         <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>
-                          {new Date(job.created_at).toLocaleDateString()} at {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatDateTime(job.created_at, lang, { dateStyle: 'medium', timeStyle: 'short' })}
                           {originalFilename && originalFilename !== displayNameForRun ? ` · ${originalFilename}` : ''}
                         </p>
                         {userNote && (
@@ -231,7 +236,7 @@ export default async function ProfilePage() {
                             {job.score}
                           </p>
                           <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
-                            {scoreLabel(job.score)}
+                            {translateKnownText(scoreLabel(job.score), lang)}
                           </p>
                         </div>
                       )}

@@ -1,0 +1,23 @@
+{
+  "coach_summary": "Great job on the smoothness and flow of this run! Your upper body remained remarkably quiet with low rotation variance, which is excellent for stability. However, there are two key technical areas to focus on: fixing your significant knee flexion asymmetry (averaging 20.8°) and reducing your overall body lean angle from 33° down to under 25°. Let's work on loading both legs evenly and keeping your hips stacked over your feet.",
+  "coaching_points": [
+    {
+      "title": "Fix knee flexion asymmetry",
+      "feedback": "Your left-right knee flexion difference averaged 20.8°, which is too high for balanced edging. You are likely favoring one leg, causing uneven load distribution. Aim to get this under 10° by consciously bending both knees equally during the turn initiation.",
+      "category": "balance",
+      "severity": "action",
+      "recommended_drill_id": "traverse-outside-ski"
+    },
+    {
+      "title": "Reduce excessive body lean",
+      "feedback": "Your average full-body lean angle was 33°, which risks losing balance and control. Try to keep your upper body more upright by leading with your hips rather than leaning back or forward excessively.",
+      "category": "balance",
+      "severity": "warn",
+      "recommended_drill_id": "inside-ski-lift"
+    }
+  ],
+  "additional_observations": [
+    "Your upper body quietness is a real strength; keep that stillness while you fix the lower body alignment.",
+    "The data quality is high (mean pose confidence 0.94), so these observations are reliable."
+  ]
+}

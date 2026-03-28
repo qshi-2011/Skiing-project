@@ -7,29 +7,18 @@ import { backfillMissingScores, loadPreviewUrlsForJobIds, resolveJobPresentation
 import { getJobDisplayName, getJobUserNote, getJobOriginalFilename, getJobSearchText } from '@/lib/job-ui'
 import { RunMetadataEditor } from '@/components/run-metadata-editor'
 import { ArchiveRunsClient, type ArchiveRunItem } from '@/components/archive-runs-client'
+import { formatDate, getDictionary, getSessionTypeLabel, translateKnownText } from '@/lib/i18n'
+import { readLanguage } from '@/lib/i18n-server'
 
 export const dynamic = 'force-dynamic'
-
-function sessionTypeLabel(value: unknown) {
-  if (typeof value !== 'string' || !value) return null
-
-  const labels: Record<string, string> = {
-    free_skiing: 'Free skiing',
-    slalom: 'Slalom',
-    giant_slalom: 'Giant slalom',
-    super_g: 'Super-G',
-    training_drill: 'Training drill',
-    other: 'Other',
-  }
-
-  return labels[value] ?? value.replace(/_/g, ' ')
-}
 
 export default async function ArchivePage({
   searchParams,
 }: {
   searchParams?: { edit?: string | string[] }
 }) {
+  const lang = readLanguage()
+  const dict = getDictionary(lang)
   const supabase = createClient()
   const {
     data: { user },
@@ -65,7 +54,7 @@ export default async function ArchivePage({
 
   const archiveRuns: ArchiveRunItem[] = runs.map((job) => {
     const date = new Date(job.created_at)
-    const sessionType = sessionTypeLabel(job.config?.session_type)
+    const sessionType = getSessionTypeLabel(job.config?.session_type, lang)
     const displayName = getJobDisplayName(job)
     const presentation = resolveJobPresentation(job)
 
@@ -73,17 +62,17 @@ export default async function ArchivePage({
       id: job.id,
       created_at: job.created_at,
       status: job.status,
-      statusLabel: presentation.label,
-      statusHelper: presentation.helper,
+      statusLabel: translateKnownText(presentation.label, lang),
+      statusHelper: translateKnownText(presentation.helper, lang),
       statusTone: presentation.tone,
       statusDot: presentation.dot,
       statusPill: presentation.pill,
       canRetry: presentation.retryable,
-      actionLabel: presentation.actionLabel,
+      actionLabel: translateKnownText(presentation.actionLabel, lang),
       displayName,
       originalFilename: getJobOriginalFilename(job),
       userNote: getJobUserNote(job),
-      subtitle: `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${sessionType ? ` · ${sessionType}` : ''}`,
+      subtitle: `${formatDate(date, lang, { dateStyle: 'medium' })}${lang === 'en' ? ` at ${formatDate(date, lang, { hour: '2-digit', minute: '2-digit' })}` : ` ${formatDate(date, lang, { hour: '2-digit', minute: '2-digit' })}`}${sessionType ? ` · ${sessionType}` : ''}`,
       score: job.score,
       previewUrl: previewUrlByJob.get(job.id) ?? null,
       sessionType,
@@ -96,18 +85,18 @@ export default async function ArchivePage({
         <section className="surface-card p-8 lg:p-10">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
-              <span className="eyebrow">Run archive</span>
-              <h1 className="section-title mt-6">Every session, captured and ready to revisit.</h1>
+              <span className="eyebrow">{dict.archive.eyebrow}</span>
+              <h1 className="section-title mt-6">{dict.archive.title}</h1>
               <p className="section-copy mt-4 max-w-xl">
-                Your full history of uploaded runs, grouped by ski season. Search, filter, and compare recaps without guessing which repeated filename is which.
+                {dict.archive.body}
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/upload" className="cta-primary">
-                  Analyze a new run
+                  {dict.archive.newRun}
                 </Link>
                 <Link href="/" className="cta-secondary">
-                  Back to coaching hub
+                  {dict.archive.backHub}
                 </Link>
               </div>
             </div>
@@ -116,25 +105,25 @@ export default async function ArchivePage({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="metric-tile">
                   <p className="metric-value">{runs.length}</p>
-                  <p className="metric-label">Total runs in archive</p>
+                  <p className="metric-label">{dict.archive.totalRuns}</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{completedRuns.length}</p>
-                  <p className="metric-label">Completed recaps</p>
+                  <p className="metric-label">{dict.archive.completed}</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{avgScore ?? '—'}</p>
-                  <p className="metric-label">Average score</p>
+                  <p className="metric-label">{dict.archive.averageScore}</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{seasonGroups.length}</p>
-                  <p className="metric-label">{seasonGroups.length === 1 ? 'Season' : 'Seasons'} tracked</p>
+                  <p className="metric-label">{seasonGroups.length === 1 ? dict.archive.seasonTrackedOne : dict.archive.seasonTrackedMany}</p>
                 </div>
               </div>
 
               {selectedRun && (
                 <div className="surface-card-muted p-5">
-                  <p className="section-label">Edit run details</p>
+                  <p className="section-label">{dict.archive.editTitle}</p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
                     {getJobDisplayName(selectedRun)}
                   </p>
@@ -169,9 +158,9 @@ export default async function ArchivePage({
                   <path d="M12 8v4M12 16h.01"/>
                 </svg>
               </div>
-              <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>No analyses yet</p>
+              <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>{dict.archive.emptyTitle}</p>
               <p className="text-sm mt-2" style={{ color: 'var(--ink-soft)' }}>
-                Upload a ski video to create your first recap card.
+                {dict.archive.emptyBody}
               </p>
             </div>
           </section>

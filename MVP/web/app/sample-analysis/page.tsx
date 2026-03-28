@@ -6,97 +6,13 @@ import {
   buildTechniqueDashboard,
   clipQualityLabel,
   scoreLabel,
-  scoreContext,
-  type TechniqueRunSummary,
-  type CoachingTip,
+  type AiCoachingPoint,
 } from '@/lib/analysis-summary'
 import { SiteFooter } from '@/components/site-footer'
-
-// ── Hardcoded analysis results from the sample video ─────────
-const SAMPLE_SUMMARY: TechniqueRunSummary = {
-  quality: {
-    overall_pose_confidence_mean: 0.939,
-    low_confidence_fraction: 0.0,
-    warnings: [],
-  },
-  turns: [
-    {
-      turn_idx: 0, side: 'right', duration_s: 1.068,
-      avg_knee_flexion_diff: 39.21, avg_stance_width_ratio: 1.53,
-      avg_upper_body_quietness: 0.0105, avg_lean_angle: 39.79,
-      avg_edge_angle: 58.63, avg_com_shift_3d: 0.381,
-      quality_score: 65.2, smoothness_score: 76.2,
-    },
-    {
-      turn_idx: 1, side: 'left', duration_s: 1.401,
-      avg_knee_flexion_diff: 9.15, avg_stance_width_ratio: 1.23,
-      avg_upper_body_quietness: 0.0074, avg_lean_angle: 30.85,
-      avg_edge_angle: 40.02, avg_com_shift_3d: 0.386,
-      quality_score: 79.5, smoothness_score: 80.3,
-    },
-    {
-      turn_idx: 2, side: 'right', duration_s: 1.468,
-      avg_knee_flexion_diff: 25.88, avg_stance_width_ratio: 1.21,
-      avg_upper_body_quietness: 0.0086, avg_lean_angle: 34.63,
-      avg_edge_angle: 47.47, avg_com_shift_3d: 0.353,
-      quality_score: 69.8, smoothness_score: 77.9,
-    },
-    {
-      turn_idx: 3, side: 'left', duration_s: 1.735,
-      avg_knee_flexion_diff: 12.28, avg_stance_width_ratio: 1.27,
-      avg_upper_body_quietness: 0.008, avg_lean_angle: 26.93,
-      avg_edge_angle: 37.28, avg_com_shift_3d: 0.38,
-      quality_score: 78.0, smoothness_score: 84.6,
-    },
-  ],
-  coaching_tips: [
-    {
-      title: 'Work on symmetric knee flexion',
-      explanation: 'Average left-right knee flexion asymmetry is 20.8\u00b0. Aim for <10\u00b0 symmetry to distribute load evenly and improve edge control.',
-      evidence: 'Asymmetry 21\u00b0 \u2014 target is under 10\u00b0',
-      severity: 'action',
-      time_ranges: [[0.0, 1.07], [2.47, 3.94]],
-    },
-    {
-      title: 'Significant technique improvements needed',
-      explanation: 'Average technique score is 40/100. Multiple mechanics need attention \u2014 focus on knee flexion, balance, and body alignment before adding speed.',
-      evidence: 'Technique score: 40/100',
-      severity: 'action',
-      time_ranges: [[2.47, 3.94], [0.0, 1.07]],
-    },
-    {
-      title: 'Quiet your upper body rotation',
-      explanation: 'Shoulder tilt varies by 14\u00b0 across the run. Excessive upper body rotation wastes energy; focus on separating hip and shoulder movement.',
-      evidence: 'Shoulder variation 14\u00b0 \u2014 aim for under 8\u00b0',
-      severity: 'warn',
-      time_ranges: [[0.0, 1.07], [2.47, 3.94]],
-    },
-    {
-      title: 'Drive your knees forward over your toes',
-      explanation: 'Hip-knee-ankle stack is off-center. Pressing knees forward improves edge engagement and fore-aft balance.',
-      evidence: 'Alignment offset: Needs work (0.36, ideal is 0)',
-      severity: 'warn',
-      time_ranges: [[2.47, 3.94], [0.0, 1.07]],
-    },
-    {
-      title: 'Reduce excessive body lean',
-      explanation: 'Average full-body lean is 33\u00b0 from vertical. Leaning beyond 20\u201325\u00b0 risks losing balance. Lead with your hips and keep your upper body more upright.',
-      evidence: 'Lean angle: 33\u00b0 \u2014 target under 25\u00b0',
-      severity: 'warn',
-      time_ranges: [[0.0, 1.07], [2.47, 3.94]],
-    },
-    {
-      title: 'Stabilise your upper body',
-      explanation: 'Notable head and torso movement detected across the run. Focus on keeping your core still while hips drive turns.',
-      evidence: 'Upper-body motion: Needs work',
-      severity: 'info',
-      time_ranges: [[0.0, 1.07], [2.47, 3.94]],
-    },
-  ],
-  segments: [
-    { idx: 0, start_s: 0.0, end_s: 5.74, n_confident_frames: 86, mean_confidence: 0.939, n_turns: 4, is_primary: true },
-  ],
-}
+import { useLanguage } from '@/components/language-provider'
+import { scoreContextForLang, translateKnownText } from '@/lib/i18n'
+import { getDrill, localizeDrill } from '@/lib/drills'
+import { getSampleCoaching, SAMPLE_OVERLAY_PATH, SAMPLE_SUMMARY } from '@/lib/sample-run'
 
 const dashboard = buildTechniqueDashboard(SAMPLE_SUMMARY)
 const score = dashboard.overview.overallScore
@@ -112,15 +28,6 @@ const CATEGORY_COLORS: Record<string, { accent: string; badge: string }> = {
 
 const CATEGORY_LABELS: Record<string, string> = {
   movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
-}
-
-function tipCategory(tip: CoachingTip): string {
-  const text = `${tip.title} ${tip.explanation}`.toLowerCase()
-  if (text.includes('rotat') || text.includes('upper body') || text.includes('quiet') || text.includes('counter')) return 'movement'
-  if (text.includes('edge') || text.includes('carv') || text.includes('angulat') || text.includes('tilt')) return 'edging'
-  if (text.includes('rhythm') || text.includes('tempo') || text.includes('timing') || text.includes('flow') || text.includes('pace')) return 'rhythm'
-  if (text.includes('stance') || text.includes('balance') || text.includes('center') || text.includes('weight') || text.includes('narrow') || text.includes('wide')) return 'balance'
-  return 'movement'
 }
 
 function levelBadgeClass(label: string) {
@@ -140,10 +47,12 @@ function metricDotColor(value: number, threshold: number): string {
 type Tab = 'recap' | 'metrics'
 
 export default function SampleAnalysisPage() {
+  const { lang, dict } = useLanguage()
   const [activeTab, setActiveTab] = useState<Tab>('recap')
   const [showAllTips, setShowAllTips] = useState(false)
+  const sampleCoaching = getSampleCoaching(lang)
 
-  const headline = dashboard.focusCards[0]?.explanation ?? ''
+  const headline = sampleCoaching.coaching_points[0]?.title ?? sampleCoaching.coach_summary
 
   return (
     <>
@@ -151,9 +60,9 @@ export default function SampleAnalysisPage() {
       <div className="space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 px-1 sm:px-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
-          <Link href="/" className="hover:underline">Home</Link>
+          <Link href="/" className="hover:underline">{dict.sample.home}</Link>
           <span>/</span>
-          <span style={{ color: 'var(--ink-strong)' }}>Sample Analysis</span>
+          <span style={{ color: 'var(--ink-strong)' }}>{dict.sample.page}</span>
         </div>
 
         {/* ── Hero: video + score column ──────────────── */}
@@ -162,9 +71,9 @@ export default function SampleAnalysisPage() {
             {/* Left: video + score */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="eyebrow">Run Recap</span>
+                <span className="eyebrow">{dict.sample.runRecap}</span>
                 <span className="eyebrow eyebrow--warm" style={{ fontSize: '0.62rem', padding: '0.3rem 0.6rem' }}>
-                  Sample Run
+                  {dict.sample.sampleRun}
                 </span>
               </div>
 
@@ -201,9 +110,9 @@ export default function SampleAnalysisPage() {
                     {headline}
                   </h1>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <span className={levelBadgeClass(level)}>{level}</span>
+                    <span className={levelBadgeClass(level)}>{translateKnownText(level, lang)}</span>
                     <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>
-                      {scoreContext(score)}
+                      {scoreContextForLang(score, lang)}
                     </span>
                   </div>
                 </div>
@@ -214,7 +123,7 @@ export default function SampleAnalysisPage() {
                 className="overflow-hidden"
                 style={{ borderRadius: 'var(--radius-xl)', background: '#0a0f1a', border: '1px solid rgba(255,255,255,0.15)' }}
               >
-                <video src="/sample/overlay.mp4" autoPlay loop muted playsInline controls className="w-full aspect-video bg-black" />
+                <video src={SAMPLE_OVERLAY_PATH} autoPlay loop muted playsInline controls className="w-full aspect-video bg-black" />
               </div>
             </div>
 
@@ -222,43 +131,40 @@ export default function SampleAnalysisPage() {
             <aside className="space-y-4">
               {/* Quick metrics */}
               <div className="surface-card-muted p-5">
-                <p className="section-label">Technique Summary</p>
+                <p className="section-label">{dict.sample.summary}</p>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className={dashboard.overview.overallScore > 60 ? 'metric-tile metric-tile--high' : 'metric-tile metric-tile--low'}>
                     <div className="metric-tile-dot" style={{ background: metricDotColor(dashboard.overview.overallScore, 60) }} />
                     <p className="metric-value" style={{ color: dashboard.overview.overallScore > 60 ? 'var(--accent)' : 'var(--gold)' }}>
                       {dashboard.overview.overallScore}
                     </p>
-                    <p className="metric-label">Technique score</p>
+                    <p className="metric-label">{dict.sample.techniqueScore}</p>
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard.overview.turnsDetected}</p>
-                    <p className="metric-label">Turns detected</p>
+                    <p className="metric-label">{dict.sample.turnsDetected}</p>
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard.overview.edgeAngle.toFixed(0)}&deg;</p>
-                    <p className="metric-label">Edge angle</p>
+                    <p className="metric-label">{dict.sample.edgeAngle}</p>
                   </div>
                   <div className="metric-tile metric-tile--high">
                     <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
                     <p className="metric-value" style={{ color: 'var(--accent)' }}>
-                      {clipQualityLabel(dashboard.reliability)}
+                      {translateKnownText(clipQualityLabel(dashboard.reliability), lang)}
                     </p>
-                    <p className="metric-label">Clip quality</p>
+                    <p className="metric-label">{dict.sample.clipQuality}</p>
                   </div>
                 </div>
               </div>
 
               {/* Run context (sample-specific) */}
               <div className="surface-card-muted p-5">
-                <p className="section-label">About This Sample</p>
+                <p className="section-label">{dict.sample.about}</p>
                 <div className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
-                  <p>
-                    This analysis was generated from a real ski run and turned into a full recap automatically.
-                    The scores, coaching tips, and overlays all come from the same review flow used on uploaded runs.
-                  </p>
+                  <p>{dict.sample.aboutBody1} {dict.sample.aboutBody2}</p>
                   <p style={{ color: 'var(--ink-muted)' }}>
-                    Upload your own run to get a personalised breakdown.
+                    {dict.sample.aboutBody3}
                   </p>
                 </div>
               </div>
@@ -268,7 +174,7 @@ export default function SampleAnalysisPage() {
 
         {/* ── Tab navigation ──────────────────────────── */}
         <section className="surface-card-strong p-3 flex flex-wrap gap-2" style={{ position: 'sticky', top: 'var(--sticky-tabs-offset)', zIndex: 30 }}>
-          {([{ id: 'recap' as Tab, label: 'Recap' }, { id: 'metrics' as Tab, label: 'Metrics' }]).map((tab) => (
+          {([{ id: 'recap' as Tab, label: dict.sample.recap }, { id: 'metrics' as Tab, label: dict.sample.metrics }]).map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -291,30 +197,30 @@ export default function SampleAnalysisPage() {
             <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
               {/* Run summary */}
               <section className="surface-card p-6">
-                <p className="section-label">Run Summary</p>
+                <p className="section-label">{dict.sample.runSummary}</p>
                 <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                  What stands out first
+                  {dict.sample.whatStandsOut}
                 </h2>
                 <p className="mt-4 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
-                  {headline}
+                  {sampleCoaching.coach_summary}
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard.overview.bestTurnScore}</p>
-                    <p className="metric-label">Best turn quality</p>
+                    <p className="metric-label">{dict.sample.bestTurn}</p>
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard.overview.turnsDetected}</p>
-                    <p className="metric-label">Turns in coaching pass</p>
+                    <p className="metric-label">{dict.sample.turnsInPass}</p>
                   </div>
-                      <div className="metric-tile">
-                        <p className="metric-value">{dashboard.focusCards.length}</p>
-                        <p className="metric-label">Top priorities</p>
-                      </div>
-                      <div className="metric-tile">
-                        <p className="metric-value">{dashboard.overview.smoothnessScore ?? '—'}</p>
-                        <p className="metric-label">Turn flow</p>
-                      </div>
+                  <div className="metric-tile">
+                    <p className="metric-value">{sampleCoaching.coaching_points.length}</p>
+                    <p className="metric-label">{dict.sample.priorities}</p>
+                  </div>
+                  <div className="metric-tile">
+                    <p className="metric-value">{dashboard.overview.smoothnessScore ?? '—'}</p>
+                    <p className="metric-label">{dict.sample.turnFlow}</p>
+                  </div>
                 </div>
               </section>
 
@@ -322,27 +228,26 @@ export default function SampleAnalysisPage() {
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="section-label" style={{ color: 'var(--amber)' }}>Coaching Insights</p>
+                    <p className="section-label" style={{ color: 'var(--amber)' }}>{dict.sample.coachingInsights}</p>
                     <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      Top priorities
+                      {dict.sample.priorities}
                     </h2>
                   </div>
                 </div>
 
                 <div className="mt-5 space-y-3">
                   {(() => {
-                    const allTips = dashboard.allTips
+                    const allTips = sampleCoaching.coaching_points
                     const visibleTips = showAllTips ? allTips : allTips.slice(0, 2)
                     return (
                       <>
-                        {visibleTips.map((tip, idx) => {
-                          const category = tipCategory(tip)
+                        {visibleTips.map((tip: AiCoachingPoint, idx) => {
+                          const category = tip.category ?? 'general'
                           const catColors = CATEGORY_COLORS[category] ?? CATEGORY_COLORS.general
-                          const timeLabel = tip.time_ranges?.length
-                            ? `Most visible around ${tip.time_ranges.map(([s]) => `${s.toFixed(1)}s`).join(' and ')}`
-                            : null
+                          const drill = tip.recommended_drill_id ? getDrill(tip.recommended_drill_id) : null
+                          const localizedDrill = drill ? localizeDrill(drill, lang) : null
                           return (
-                            <div key={`${tip.title}-${tip.evidence}`} className={`coaching-card ${catColors.accent}`}>
+                            <div key={`${tip.title}-${idx}`} className={`coaching-card ${catColors.accent}`}>
                               <div className="flex items-center gap-3 pl-3">
                                 <span className="preflight-number" style={{ width: '1.5rem', height: '1.5rem', fontSize: '0.62rem' }}>
                                   {String(idx + 1).padStart(2, '0')}
@@ -351,19 +256,28 @@ export default function SampleAnalysisPage() {
                                   <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{tip.title}</p>
                                 </div>
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
-                                  {CATEGORY_LABELS[category]}
+                                  {translateKnownText(CATEGORY_LABELS[category], lang)}
                                 </span>
                               </div>
                               <p className="mt-2 text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)' }}>
-                                {tip.explanation}
+                                {tip.feedback}
                               </p>
-                              <p className="mt-2 text-xs pl-3" style={{ color: 'var(--ink-muted)' }}>
-                                {tip.evidence}
-                              </p>
-                              {timeLabel && (
-                                <p className="mt-1 text-xs font-medium pl-3" style={{ color: 'var(--accent)' }}>
-                                  {timeLabel}
-                                </p>
+                              {localizedDrill && (
+                                <div className="mt-3 pl-3">
+                                  <div className="drill-card inline-flex items-center gap-3 px-4 py-3">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--ink-muted)' }}>
+                                        {dict.job.recommendedDrill}
+                                      </p>
+                                      <p className="mt-1 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>
+                                        {localizedDrill.title}
+                                      </p>
+                                      <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>
+                                        {localizedDrill.description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
                               )}
                             </div>
                           )
@@ -375,7 +289,7 @@ export default function SampleAnalysisPage() {
                             className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
                             style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}
                           >
-                            Show all {allTips.length} areas
+                            {dict.sample.showAll.replace('{count}', String(allTips.length))}
                           </button>
                         )}
                         {showAllTips && allTips.length > 2 && (
@@ -385,13 +299,30 @@ export default function SampleAnalysisPage() {
                             className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
                             style={{ color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)' }}
                           >
-                            Show top 2 only
+                            {dict.sample.showTopTwo}
                           </button>
                         )}
                       </>
                     )
                   })()}
                 </div>
+
+                {sampleCoaching.additional_observations?.length > 0 && (
+                  <div className="mt-6">
+                    <p className="section-label">{dict.job.additional}</p>
+                    <ul className="mt-3 space-y-2">
+                      {sampleCoaching.additional_observations.map((observation, idx) => (
+                        <li
+                          key={`${observation}-${idx}`}
+                          className="text-sm leading-6 pl-3"
+                          style={{ color: 'var(--ink-base)', borderLeft: '2px solid rgba(0,0,0,0.08)', paddingLeft: '0.75rem' }}
+                        >
+                          {observation}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </section>
             </div>
           </div>
@@ -405,9 +336,9 @@ export default function SampleAnalysisPage() {
                 <article key={category.id} className="surface-card p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="section-label">{category.title}</p>
+                      <p className="section-label">{translateKnownText(category.title, lang)}</p>
                       <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                        These checks roll up the strongest movement patterns from the run.
+                        {dict.sample.checksBody}
                       </p>
                     </div>
                     <div className="text-center">
@@ -418,7 +349,7 @@ export default function SampleAnalysisPage() {
                         {category.score}
                       </div>
                       <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-muted)' }}>
-                        {category.status}
+                        {translateKnownText(category.status, lang)}
                       </p>
                     </div>
                   </div>
@@ -427,18 +358,18 @@ export default function SampleAnalysisPage() {
                     {category.metrics.map((metric) => (
                       <div key={`${category.id}-${metric.label}`}>
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{metric.label}</p>
-                          <p className="font-mono text-xs" style={{ color: 'var(--accent)' }}>{metric.value}</p>
+                          <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{translateKnownText(metric.label, lang)}</p>
+                          <p className="font-mono text-xs" style={{ color: 'var(--accent)' }}>{translateKnownText(metric.value, lang)}</p>
                         </div>
-                        <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>{metric.helper}</p>
+                        <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>{translateKnownText(metric.helper, lang)}</p>
                         <div className="mt-3 metric-rail">
                           <span style={{ width: `${metric.fill}%` }}>
                             <span className="metric-rail-dot" />
                           </span>
                         </div>
                         <div className="mt-1 flex items-center justify-between text-xs" style={{ color: 'var(--ink-muted)' }}>
-                          <span>{metric.leftLabel}</span>
-                          <span>{metric.rightLabel}</span>
+                          <span>{translateKnownText(metric.leftLabel, lang)}</span>
+                          <span>{translateKnownText(metric.rightLabel, lang)}</span>
                         </div>
                       </div>
                     ))}
@@ -451,24 +382,24 @@ export default function SampleAnalysisPage() {
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="section-label">Turn Highlights</p>
+                    <p className="section-label">{dict.sample.turnHighlights}</p>
                     <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                      Best turns in this pass
+                      {dict.sample.bestTurns}
                     </h2>
                   </div>
                   <span className="status-pill" style={{ color: 'var(--success)', background: 'var(--success-dim)' }}>
-                    Technique scores
+                    {dict.sample.techniqueScores}
                   </span>
                 </div>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {dashboard.turnHighlights.map((turn) => (
                     <div key={turn.title} className="surface-card-muted p-4">
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{turn.title}</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{translateKnownText(turn.title, lang)}</p>
                       <p className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: 'var(--ink-strong)', fontVariantNumeric: 'tabular-nums' }}>
                         {turn.score}
                       </p>
-                      <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{turn.detail}</p>
+                      <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{translateKnownText(turn.detail, lang)}</p>
                     </div>
                   ))}
                 </div>
@@ -481,24 +412,24 @@ export default function SampleAnalysisPage() {
         <section className="surface-card-strong p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
-              Ready to analyze your own run?
+              {dict.sample.ctaTitle}
             </p>
             <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-              Upload a video and get the same detailed breakdown in minutes.
+              {dict.sample.ctaBody}
             </p>
           </div>
           <div className="flex gap-3">
             <Link href="/login" className="cta-secondary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
-              View Pricing
+              {dict.sample.viewPricing}
             </Link>
             <Link href="/login" className="cta-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
-              Sign Up Free
+              {dict.sample.signUp}
             </Link>
           </div>
         </section>
 
         {/* Footer */}
-        <SiteFooter />
+        <SiteFooter lang={lang} />
       </div>
     </>
   )

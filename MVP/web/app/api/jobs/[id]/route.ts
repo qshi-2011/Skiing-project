@@ -10,6 +10,7 @@ import {
   resolveJobPresentation,
 } from '@/lib/server-job-data'
 import { displayNameFromFilename } from '@/lib/job-ui'
+import { LANGUAGE_COOKIE, normalizeLang } from '@/lib/i18n'
 
 function artifactStorageProvider(artifact: { meta?: Record<string, unknown> }) {
   return artifact.meta?.storage_provider === 'r2' ? 'r2' : 'supabase'
@@ -269,6 +270,7 @@ export async function POST(
   }
 
   const nextConfig = clearProgressConfig((job.config ?? {}) as Record<string, unknown>, job.status)
+  nextConfig.preferred_language = normalizeLang(req.cookies.get(LANGUAGE_COOKIE)?.value)
 
   const { data: updatedJob, error: updateError } = await service
     .from('jobs')

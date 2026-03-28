@@ -88,12 +88,37 @@ AVAILABLE DRILLS:
 """
 
 
-def _build_messages(summary: dict) -> list[dict]:
+def _normalize_language(language: str | None) -> str:
+    value = (language or "en").strip().lower()
+    if value.startswith("zh"):
+        return "zh"
+    return "en"
+
+
+def _language_instruction(language: str) -> str:
+    if language == "zh":
+        return """
+
+LANGUAGE REQUIREMENT:
+- Write every natural-language value in Simplified Chinese.
+- Keep the JSON keys in English exactly as specified.
+- Keep enum values for category, severity, and recommended_drill_id exactly in English.
+"""
+
+    return """
+
+LANGUAGE REQUIREMENT:
+- Write every natural-language value in English.
+- Keep the JSON keys, enum values, and recommended_drill_id exactly as specified.
+"""
+
+
+def _build_messages(summary: dict, language: str = "en") -> list[dict]:
     drill_list = "\n".join(
         f'- id: "{d["id"]}" | title: "{d["title"]}" | category: {d["category"]}'
         for d in DRILLS
     )
-    system = SYSTEM_PROMPT + drill_list
+    system = SYSTEM_PROMPT + drill_list + _language_instruction(_normalize_language(language))
     user_msg = json.dumps(summary, indent=2, default=str)
     return [
         {"role": "system", "content": system},
@@ -275,13 +300,14 @@ def generate_coaching(
     base_url: str | None = None,
     model: str | None = None,
     api_key: str | None = None,
+    language: str = "en",
     timeout: int = 120,
 ) -> dict:
     """Call LM Studio to generate coaching feedback for a run summary."""
     normalized_base_url = _normalize_base_url(base_url)
     headers = _headers(api_key)
     resolved_model = _resolve_model(normalized_base_url, headers, model)
-    messages = _build_messages(summary)
+    messages = _build_messages(summary, language=language)
 
     response = requests.post(
         f"{normalized_base_url}/chat/completions",

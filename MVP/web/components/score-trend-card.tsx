@@ -1,4 +1,6 @@
 import type { Job } from '@/lib/types'
+import type { Lang } from '@/lib/i18n'
+import { getDictionary } from '@/lib/i18n'
 
 function average(values: number[]) {
   if (!values.length) return null
@@ -27,11 +29,14 @@ export function ScoreTrendCard({
   runs,
   title = 'Progress over time',
   subtitle = 'Your last 10 scored runs.',
+  lang = 'en',
 }: {
   runs: Array<Pick<Job, 'score' | 'created_at'>>
   title?: string
   subtitle?: string
+  lang?: Lang
 }) {
+  const dict = getDictionary(lang)
   const trendRuns = runs
     .filter((run): run is Pick<Job, 'score' | 'created_at'> & { score: number } => run.score != null)
     .slice(0, 10)
@@ -42,10 +47,10 @@ export function ScoreTrendCard({
       <section className="surface-card p-6">
         <p className="section-label">{title}</p>
         <h2 className="mt-2" style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-          Build your trend line
+          {dict.trend.buildTitle}
         </h2>
         <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
-          Complete at least two scored runs to see your progress over time.
+          {dict.trend.buildBody}
         </p>
       </section>
     )
@@ -64,7 +69,7 @@ export function ScoreTrendCard({
         <div>
           <p className="section-label">{title}</p>
           <h2 className="mt-2" style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-            {latest != null ? `Latest score ${latest}` : 'Your trend line'}
+            {latest != null ? `${dict.trend.latestScore} ${latest}` : dict.trend.yourTrend}
           </h2>
           <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
             {subtitle}
@@ -78,7 +83,7 @@ export function ScoreTrendCard({
               background: delta >= 0 ? 'var(--success-dim)' : 'var(--danger-dim)',
             }}
           >
-            {delta >= 0 ? '+' : ''}{delta} vs previous 5
+            {delta >= 0 ? '+' : ''}{delta} {dict.trend.delta}
           </span>
         )}
       </div>
@@ -116,15 +121,15 @@ export function ScoreTrendCard({
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="metric-tile">
           <p className="metric-value" style={{ fontSize: '1.7rem' }}>{best}</p>
-          <p className="metric-label">Best in this window</p>
+          <p className="metric-label">{dict.trend.bestWindow}</p>
         </div>
         <div className="metric-tile">
           <p className="metric-value" style={{ fontSize: '1.7rem' }}>{recentAverage ?? '—'}</p>
-          <p className="metric-label">Average of last 5</p>
+          <p className="metric-label">{dict.trend.averageLastFive}</p>
         </div>
         <div className="metric-tile">
           <p className="metric-value" style={{ fontSize: '1.7rem' }}>{trendRuns.length}</p>
-          <p className="metric-label">Scored runs shown</p>
+          <p className="metric-label">{dict.trend.runsShown}</p>
         </div>
       </div>
     </section>

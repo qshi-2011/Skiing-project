@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/components/language-provider'
 
 type Step = 'idle' | 'creating' | 'uploading' | 'finalizing' | 'done' | 'error'
 type UploadedPart = { ETag: string; PartNumber: number }
@@ -27,38 +28,9 @@ const PROGRESS: Record<Step, number> = {
   error: 0,
 }
 
-const LABEL: Record<Step, string> = {
-  idle: '',
-  creating: 'Starting your analysis…',
-  uploading: 'Uploading your video…',
-  finalizing: 'Opening your recap…',
-  done: 'Upload complete. Opening your run…',
-  error: '',
-}
-
-const ETA_COPY = 'Most runs finish in 1-2 minutes after the upload lands.'
-
-const CAMERA_OPTIONS = [
-  { value: '', label: 'Select perspective…' },
-  { value: 'side', label: 'Side view' },
-  { value: 'behind', label: 'Behind / follow cam' },
-  { value: 'front', label: 'Front facing' },
-  { value: 'above', label: 'Overhead / drone' },
-  { value: 'other', label: 'Other' },
-]
-
-const SESSION_OPTIONS = [
-  { value: '', label: 'Select session type…' },
-  { value: 'free_skiing', label: 'Free skiing' },
-  { value: 'slalom', label: 'Slalom' },
-  { value: 'giant_slalom', label: 'Giant slalom' },
-  { value: 'super_g', label: 'Super-G' },
-  { value: 'training_drill', label: 'Training drill' },
-  { value: 'other', label: 'Other' },
-]
-
 export default function UploadPage() {
   const router = useRouter()
+  const { lang, dict } = useLanguage()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [file, setFile] = useState<File | null>(null)
@@ -263,6 +235,31 @@ export default function UploadPage() {
   }
 
   const busy = step !== 'idle' && step !== 'done' && step !== 'error'
+  const labels: Record<Step, string> = {
+    idle: '',
+    creating: dict.upload.creating,
+    uploading: dict.upload.uploading,
+    finalizing: dict.upload.finalizing,
+    done: dict.upload.done,
+    error: '',
+  }
+  const cameraOptions = [
+    { value: '', label: dict.upload.startPerspective },
+    { value: 'side', label: dict.upload.sideView },
+    { value: 'behind', label: dict.upload.behindView },
+    { value: 'front', label: dict.upload.frontView },
+    { value: 'above', label: dict.upload.overheadView },
+    { value: 'other', label: dict.upload.other },
+  ]
+  const sessionOptions = [
+    { value: '', label: dict.upload.selectSession },
+    { value: 'free_skiing', label: dict.upload.freeSkiing },
+    { value: 'slalom', label: dict.upload.slalom },
+    { value: 'giant_slalom', label: dict.upload.giantSlalom },
+    { value: 'super_g', label: dict.upload.superG },
+    { value: 'training_drill', label: dict.upload.trainingDrill },
+    { value: 'other', label: dict.upload.other },
+  ]
 
   const progressWidth = step === 'uploading'
     ? Math.max(PROGRESS.creating, Math.min(85, 15 + uploadProgressPct * 0.7))
@@ -271,41 +268,41 @@ export default function UploadPage() {
     ? `${(uploadedBytes / 1024 / 1024).toFixed(1)} / ${(file.size / 1024 / 1024).toFixed(1)} MB`
     : null
   const progressLabel = step === 'uploading'
-    ? `${LABEL.uploading} ${uploadProgressPct}%${uploadSizeLabel ? ` · ${uploadSizeLabel}` : ''}`
-    : LABEL[step]
+    ? `${labels.uploading} ${uploadProgressPct}%${uploadSizeLabel ? ` · ${uploadSizeLabel}` : ''}`
+    : labels[step]
 
   return (
     <>
       <div className="space-y-6">
         {/* ── Preflight checklist (top) ──────────────── */}
         <section className="surface-card-strong p-6 lg:p-8">
-          <p className="section-label">Preflight Checklist</p>
+          <p className="section-label">{dict.upload.preflightTitle}</p>
           <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
-            Check these before uploading for the best analysis quality.
+            {dict.upload.preflightBody}
           </p>
           <p className="mt-2 text-sm" style={{ color: 'var(--ink-base)' }}>
-            {ETA_COPY}
+            {dict.upload.eta}
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             <div className="preflight-item">
               <span className="preflight-number">01</span>
               <div>
-                <h4>One skier in frame</h4>
-                <p>Keep the shot centered on one skier for the clearest recap.</p>
+                <h4>{dict.upload.oneSkierTitle}</h4>
+                <p>{dict.upload.oneSkierBody}</p>
               </div>
             </div>
             <div className="preflight-item">
               <span className="preflight-number">02</span>
               <div>
-                <h4>One continuous run</h4>
-                <p>Avoid cuts or montage edits so we can review one clean run from start to finish.</p>
+                <h4>{dict.upload.oneRunTitle}</h4>
+                <p>{dict.upload.oneRunBody}</p>
               </div>
             </div>
             <div className="preflight-item">
               <span className="preflight-number">03</span>
               <div>
-                <h4>Side or behind angle</h4>
-                <p>Side or behind angles give the clearest coaching read.</p>
+                <h4>{dict.upload.angleTitle}</h4>
+                <p>{dict.upload.angleBody}</p>
               </div>
             </div>
           </div>
@@ -317,13 +314,13 @@ export default function UploadPage() {
           <section className="surface-card-strong p-6 lg:p-8">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="eyebrow">Upload analysis</span>
+                <span className="eyebrow">{dict.upload.uploadEyebrow}</span>
                 <h1 className="mt-3" style={{ fontSize: 'clamp(1.4rem, 2.4vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--ink-strong)' }}>
-                  Drop your next video
+                  {dict.upload.uploadTitle}
                 </h1>
               </div>
               <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
-                Upload ready
+                {dict.upload.uploadReady}
               </span>
             </div>
 
@@ -336,7 +333,7 @@ export default function UploadPage() {
                   <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
                   {busy && (
                     <p className="text-sm" style={{ color: 'var(--ink-base)' }}>
-                      {ETA_COPY}
+                      {dict.upload.eta}
                     </p>
                   )}
                 </div>
@@ -380,14 +377,14 @@ export default function UploadPage() {
                     </div>
                     <p className="text-base font-semibold px-4 break-all" style={{ color: 'var(--ink-strong)' }}>{file.name}</p>
                     <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      {(file.size / 1024 / 1024).toFixed(1)} MB selected
+                      {(file.size / 1024 / 1024).toFixed(1)} {dict.upload.selectedSuffix}
                     </p>
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); setFile(null); setStep('idle'); if (fileRef.current) fileRef.current.value = '' }}
                       className="cta-secondary mt-2"
                     >
-                      Change file
+                      {dict.upload.changeFile}
                     </button>
                   </div>
                 ) : (
@@ -411,9 +408,9 @@ export default function UploadPage() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>Drop your video here</p>
+                      <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>{dict.upload.dropTitle}</p>
                       <p className="text-sm mt-1" style={{ color: 'var(--ink-soft)' }}>
-                        MP4, MOV, or AVI — best with one skier and one continuous run
+                        {dict.upload.dropBody}
                       </p>
                     </div>
                   </div>
@@ -431,27 +428,27 @@ export default function UploadPage() {
               {/* Camera perspective & session type */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="field-label">Camera perspective</label>
+                  <label className="field-label">{dict.upload.camera}</label>
                   <select
                     value={cameraPerspective}
                     onChange={e => setCameraPerspective(e.target.value)}
                     className="select-input"
                     disabled={busy}
                   >
-                    {CAMERA_OPTIONS.map(opt => (
+                    {cameraOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="field-label">Session type</label>
+                  <label className="field-label">{dict.upload.session}</label>
                   <select
                     value={sessionType}
                     onChange={e => setSessionType(e.target.value)}
                     className="select-input"
                     disabled={busy}
                   >
-                    {SESSION_OPTIONS.map(opt => (
+                    {sessionOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
@@ -472,7 +469,7 @@ export default function UploadPage() {
                 disabled={!file || busy || step === 'done'}
                 className="cta-primary w-full"
               >
-                {busy ? LABEL[step] : 'Upload and analyze run'}
+                {busy ? labels[step] : dict.upload.submit}
               </button>
             </form>
           </section>
@@ -481,13 +478,13 @@ export default function UploadPage() {
           <section className="surface-card p-6 lg:p-8 self-start space-y-6">
             <div>
               <h2 className="section-title" style={{ fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)' }}>
-                Turn a raw clip into a sharper practice session.
+                {dict.upload.infoTitle}
               </h2>
               <p className="section-copy mt-3">
-                One upload opens a run review page with your overlay video, key moments, and coaching results as they finish processing.
+                {dict.upload.infoBody}
               </p>
               <p className="mt-3 text-sm" style={{ color: 'var(--ink-base)', lineHeight: 1.65 }}>
-                {ETA_COPY}
+                {dict.upload.eta}
               </p>
             </div>
 
@@ -496,19 +493,19 @@ export default function UploadPage() {
               <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
                 <span className="step-number">01</span>
                 <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                  Upload a clean clip from one continuous run.
+                  {dict.upload.step1}
                 </p>
               </div>
               <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
                 <span className="step-number">02</span>
                 <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                  We analyze the run, build the overlay, and prepare your recap.
+                  {dict.upload.step2}
                 </p>
               </div>
               <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
                 <span className="step-number">03</span>
                 <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                  Open the run recap to review feedback and next priorities.
+                  {dict.upload.step3}
                 </p>
               </div>
             </div>
@@ -520,7 +517,7 @@ export default function UploadPage() {
                 onClick={() => setShowQualityInfo(!showQualityInfo)}
                 className="clip-quality-toggle"
               >
-                What happens with a low-quality clip?
+                {showQualityInfo ? dict.upload.qualityClose : dict.upload.qualityOpen}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
@@ -531,12 +528,10 @@ export default function UploadPage() {
                   className="mt-3 rounded-[var(--radius-lg)] px-4 py-4 text-sm leading-6"
                   style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--ink-base)' }}
                 >
-                  <p>
-                    <strong>Low-quality clips</strong> (shaky footage, multiple skiers, scene cuts, bad angles) will still produce results, but the analysis will be marked as <em>limited review</em>.
-                  </p>
-                  <p className="mt-2">
-                    The score may be hidden and the coaching will be framed as directional instead of definitive. For the best results, follow the checklist above and keep the clip simple and steady.
-                  </p>
+                  <p>{dict.upload.qualityPoint1}</p>
+                  <p className="mt-2">{dict.upload.qualityPoint2}</p>
+                  <p className="mt-2">{dict.upload.qualityPoint3}</p>
+                  <p className="mt-2">{dict.upload.qualityPoint4}</p>
                 </div>
               )}
             </div>
@@ -544,15 +539,15 @@ export default function UploadPage() {
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="metric-tile">
                 <p className="metric-value">1</p>
-                <p className="metric-label">Continuous clip</p>
+                <p className="metric-label">{lang === 'zh' ? '连续视频' : 'Continuous clip'}</p>
               </div>
               <div className="metric-tile">
                 <p className="metric-value">Fast</p>
-                <p className="metric-label">Secure upload</p>
+                <p className="metric-label">{lang === 'zh' ? '安全上传' : 'Secure upload'}</p>
               </div>
               <div className="metric-tile">
                 <p className="metric-value">3</p>
-                <p className="metric-label">Review steps</p>
+                <p className="metric-label">{lang === 'zh' ? '复盘阶段' : 'Review steps'}</p>
               </div>
             </div>
           </section>

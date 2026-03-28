@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useLanguage } from '@/components/language-provider'
 
 export default function LoginPage() {
+  const { dict } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState<{ text: string; kind: 'error' | 'info' } | null>(null)
@@ -21,7 +23,7 @@ export default function LoginPage() {
       window.location.href = '/'
     } catch (err: unknown) {
       setMessage({
-        text: err instanceof Error ? err.message : 'An error occurred',
+        text: err instanceof Error ? err.message : dict.auth.genericError,
         kind: 'error',
       })
     } finally {
@@ -38,24 +40,24 @@ export default function LoginPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold" style={{ color: 'var(--ink-soft)' }}>
-                Welcome back
+                {dict.auth.loginEyebrow}
               </p>
               <h1 className="mt-1 text-2xl font-extrabold tracking-tight" style={{ color: 'var(--ink-strong)' }}>
-                Sign in to your account.
+                {dict.auth.loginTitle}
               </h1>
             </div>
             <span className="status-pill" style={{ color: 'var(--amber)', background: 'var(--amber-dim)' }}>
-              Return
+              {dict.auth.loginBadge}
             </span>
           </div>
 
           <p className="mt-3 text-sm" style={{ color: 'var(--ink-soft)' }}>
-            Open your coaching hub, latest recap, and saved runs.
+            {dict.auth.loginBody}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-7 space-y-4">
             <div>
-              <label className="field-label">Email</label>
+              <label className="field-label">{dict.auth.email}</label>
               <input
                 type="email"
                 required
@@ -68,7 +70,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="field-label">Password</label>
+              <label className="field-label">{dict.auth.password}</label>
               <input
                 type="password"
                 required
@@ -95,14 +97,14 @@ export default function LoginPage() {
             )}
 
             <button type="submit" disabled={loading} className="cta-primary w-full">
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? dict.auth.signingIn : dict.auth.signIn}
             </button>
           </form>
 
           <p className="mt-5 text-sm" style={{ color: 'var(--ink-soft)' }}>
-            No account yet?{' '}
+            {dict.auth.noAccount}{' '}
             <Link href="/signup" className="font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
-              Get started
+              {dict.auth.getStarted}
             </Link>
           </p>
         </section>

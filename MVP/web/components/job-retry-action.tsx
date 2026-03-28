@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/components/language-provider'
+import { translateKnownText } from '@/lib/i18n'
 
 export function JobRetryAction({
   jobId,
@@ -18,6 +20,7 @@ export function JobRetryAction({
   compact?: boolean
 }) {
   const router = useRouter()
+  const { lang, dict } = useLanguage()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -30,7 +33,7 @@ export function JobRetryAction({
         className={compact ? 'cta-secondary' : 'cta-secondary'}
         style={compact ? { padding: '0.5rem 0.85rem', fontSize: '0.78rem' } : { padding: '0.65rem 1rem', fontSize: '0.82rem' }}
       >
-        {actionLabel}
+        {translateKnownText(actionLabel, lang)}
       </Link>
     )
   }
@@ -52,7 +55,7 @@ export function JobRetryAction({
 
             if (!response.ok) {
               const payload = await response.json().catch(() => ({}))
-              setError(typeof payload?.error === 'string' ? payload.error : 'We could not retry this run.')
+              setError(typeof payload?.error === 'string' ? payload.error : dict.retry.retryError)
               return
             }
 
@@ -61,7 +64,7 @@ export function JobRetryAction({
         }}
         style={compact ? { padding: '0.5rem 0.85rem', fontSize: '0.78rem' } : { padding: '0.65rem 1rem', fontSize: '0.82rem' }}
       >
-        {isPending ? 'Retrying…' : actionLabel}
+        {isPending ? dict.retry.retrying : translateKnownText(actionLabel, lang)}
       </button>
       {error && (
         <p className="text-xs max-w-[15rem] text-right" style={{ color: 'var(--danger)' }}>

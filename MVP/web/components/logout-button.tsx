@@ -1,9 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/components/language-provider'
 
 export function LogoutButton() {
   const router = useRouter()
+  const { dict } = useLanguage()
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -17,7 +19,7 @@ export function LogoutButton() {
       className="topnav-link"
       style={{ cursor: 'pointer', background: 'none', border: 'none' }}
     >
-      Log out
+      {dict.nav.logout}
     </button>
   )
 }

@@ -6,6 +6,8 @@ import { groupBySeason } from '@/lib/seasons'
 import { scoreLabel } from '@/lib/analysis-summary'
 import type { JobStatus } from '@/lib/types'
 import { JobRetryAction } from './job-retry-action'
+import { useLanguage } from '@/components/language-provider'
+import { translateKnownText } from '@/lib/i18n'
 
 export interface ArchiveRunItem {
   id: string
@@ -81,6 +83,7 @@ export function ArchiveRunsClient({
 }
 
 function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunItem[]; initialEditJobId?: string | null }) {
+  const { lang, dict } = useLanguage()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | JobStatus>('all')
   const [sessionFilter, setSessionFilter] = useState('all')
@@ -137,27 +140,27 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search runs, notes, or status"
+            placeholder={dict.archive.search}
             className="select-input"
           />
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | JobStatus)} className="select-input">
-            <option value="all">All statuses</option>
-            <option value="done">Completed</option>
-            <option value="running">Running</option>
-            <option value="queued">Queued</option>
-            <option value="uploaded">Uploaded</option>
-            <option value="created">Created</option>
-            <option value="error">Error</option>
+            <option value="all">{dict.archive.allStatuses}</option>
+            <option value="done">{lang === 'zh' ? '已完成' : 'Completed'}</option>
+            <option value="running">{lang === 'zh' ? '分析中' : 'Running'}</option>
+            <option value="queued">{lang === 'zh' ? '排队中' : 'Queued'}</option>
+            <option value="uploaded">{lang === 'zh' ? '已上传' : 'Uploaded'}</option>
+            <option value="created">{lang === 'zh' ? '已创建' : 'Created'}</option>
+            <option value="error">{lang === 'zh' ? '错误' : 'Error'}</option>
           </select>
           <select value={sessionFilter} onChange={(event) => setSessionFilter(event.target.value)} className="select-input">
-            <option value="all">All session types</option>
+            <option value="all">{dict.archive.allSessionTypes}</option>
             {sessionOptions.map((sessionType) => (
               <option key={sessionType} value={sessionType}>{sessionType}</option>
             ))}
           </select>
           <select value={sortBy} onChange={(event) => setSortBy(event.target.value as 'newest' | 'best')} className="select-input">
-            <option value="newest">Newest first</option>
-            <option value="best">Best score</option>
+            <option value="newest">{dict.archive.newest}</option>
+            <option value="best">{dict.archive.best}</option>
           </select>
         </div>
       </section>
@@ -165,9 +168,9 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
       {!filteredRuns.length ? (
         <section className="surface-card p-6">
           <div className="surface-card-muted p-10 text-center">
-            <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>No runs match these filters</p>
+            <p className="text-base font-bold" style={{ color: 'var(--ink-strong)' }}>{dict.archive.noMatchTitle}</p>
             <p className="text-sm mt-2" style={{ color: 'var(--ink-soft)' }}>
-              Try a broader search or clear one of the filters above.
+              {dict.archive.noMatchBody}
             </p>
           </div>
         </section>
@@ -186,7 +189,7 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
                 <div className="flex items-center gap-3">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>
-                      {groupRuns.length} {groupRuns.length === 1 ? 'run' : 'runs'}
+                      {groupRuns.length} {groupRuns.length === 1 ? dict.archive.run : dict.archive.runs}
                     </p>
                     <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
                       {group.label}
@@ -194,19 +197,19 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
                   </div>
                   {groupAvg != null && (
                     <span className={levelBadgeClass(scoreLabel(groupAvg))} style={{ marginLeft: '0.5rem' }}>
-                      {scoreLabel(groupAvg)}
+                      {translateKnownText(scoreLabel(groupAvg), lang)}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-4">
                   {groupAvg != null && (
                     <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      Avg <span className="font-bold" style={{ color: 'var(--accent)' }}>{groupAvg}</span>
+                      {dict.archive.avg} <span className="font-bold" style={{ color: 'var(--accent)' }}>{groupAvg}</span>
                     </span>
                   )}
                   {groupBest != null && (
                     <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      Best <span className="font-bold" style={{ color: 'var(--success)' }}>{groupBest}</span>
+                      {dict.archive.bestLabel} <span className="font-bold" style={{ color: 'var(--success)' }}>{groupBest}</span>
                     </span>
                   )}
                 </div>
@@ -215,7 +218,7 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
               <ul className="space-y-3 mt-5">
                 {groupRuns.map((run) => {
                   const statusStyle = toneStyles(run.statusTone)
-                  const displayName = run.displayName ?? run.title ?? 'Untitled run'
+                  const displayName = run.displayName ?? run.title ?? dict.archive.untitled
                   return (
                     <li key={run.id}>
                       <div
@@ -258,7 +261,7 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
                               {run.subtitle}
                             </p>
                             <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-base)' }}>
-                              {run.statusHelper}
+                              {translateKnownText(run.statusHelper, lang)}
                             </p>
                           </div>
                         </Link>
@@ -270,7 +273,7 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
                                 {run.score}
                               </p>
                               <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
-                                {scoreLabel(run.score)}
+                                {translateKnownText(scoreLabel(run.score), lang)}
                               </p>
                             </div>
                           )}
@@ -279,7 +282,7 @@ function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunIte
                             className="shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold"
                             style={{ background: statusStyle.background, color: statusStyle.color, borderColor: statusStyle.borderColor }}
                           >
-                            {run.statusLabel}
+                            {translateKnownText(run.statusLabel, lang)}
                           </span>
 
                           <JobRetryAction

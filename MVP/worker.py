@@ -689,6 +689,9 @@ def process_job(job: dict) -> None:
     job_id: str = job["id"]
     video_path_in_storage: str | None = job.get("video_object_path")
     config: dict = dict(job.get("config") or {})
+    preferred_language = str(config.get("preferred_language") or "en").lower()
+    if preferred_language not in {"en", "zh"}:
+        preferred_language = "en"
     provider = _video_storage_provider(config)
     expected_size_bytes = _expected_video_size_bytes(config)
 
@@ -740,6 +743,7 @@ def process_job(job: dict) -> None:
                 base_url=LMSTUDIO_BASE_URL,
                 api_key=LMSTUDIO_API_KEY,
                 model=LMSTUDIO_MODEL,
+                language=preferred_language,
             )
             coaching_path = run_dir / "summary" / "ai_coaching.json"
             coaching_path.parent.mkdir(parents=True, exist_ok=True)

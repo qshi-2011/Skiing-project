@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/components/language-provider'
 
 export function RunMetadataEditor({
   jobId,
@@ -15,6 +16,7 @@ export function RunMetadataEditor({
   defaultEditing?: boolean
 }) {
   const router = useRouter()
+  const { dict } = useLanguage()
   const [editing, setEditing] = useState(defaultEditing)
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const [userNote, setUserNote] = useState(initialUserNote ?? '')
@@ -34,7 +36,7 @@ export function RunMetadataEditor({
         }}
         style={{ padding: '0.6rem 0.95rem', fontSize: '0.82rem' }}
       >
-        Edit run details
+        {dict.editor.edit}
       </button>
     )
   }
@@ -42,22 +44,22 @@ export function RunMetadataEditor({
   return (
     <div className="surface-card-muted p-4 space-y-3">
       <div>
-        <label className="field-label">Run title</label>
+        <label className="field-label">{dict.editor.title}</label>
         <input
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           className="text-input"
           maxLength={80}
-          placeholder="Name this run"
+          placeholder={dict.editor.titlePlaceholder}
         />
       </div>
       <div>
-        <label className="field-label">Note</label>
+        <label className="field-label">{dict.editor.note}</label>
         <textarea
           value={userNote}
           onChange={(event) => setUserNote(event.target.value)}
           maxLength={240}
-          placeholder="Conditions, intent, or what to compare next time"
+          placeholder={dict.editor.notePlaceholder}
           className="text-input"
           rows={3}
           style={{ resize: 'vertical', minHeight: '5.5rem' }}
@@ -83,7 +85,7 @@ export function RunMetadataEditor({
 
               if (!response.ok) {
                 const payload = await response.json().catch(() => ({}))
-                setError(typeof payload?.error === 'string' ? payload.error : 'We could not save those changes.')
+                setError(typeof payload?.error === 'string' ? payload.error : dict.editor.saveError)
                 return
               }
 
@@ -94,7 +96,7 @@ export function RunMetadataEditor({
           }}
           style={{ padding: '0.65rem 1rem', fontSize: '0.82rem' }}
         >
-          {isPending ? 'Saving…' : 'Save details'}
+          {isPending ? dict.editor.saving : dict.editor.save}
         </button>
         <button
           type="button"
@@ -109,11 +111,11 @@ export function RunMetadataEditor({
           }}
           style={{ padding: '0.65rem 1rem', fontSize: '0.82rem' }}
         >
-          Cancel
+          {dict.editor.cancel}
         </button>
         {saved && (
           <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>
-            Saved
+            {dict.editor.saved}
           </span>
         )}
       </div>

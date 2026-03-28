@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { displayNameFromFilename } from '@/lib/job-ui'
 import { createMultipartVideoUpload, VIDEO_STORAGE_PROVIDER } from '@/lib/r2'
+import { LANGUAGE_COOKIE, normalizeLang } from '@/lib/i18n'
 
 const MIN_MULTIPART_PART_SIZE_BYTES = 5 * 1024 * 1024
 const DEFAULT_MULTIPART_PART_SIZE_BYTES = 24 * 1024 * 1024
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}))
-  const { filename, contentType, fileSize, cameraPerspective, sessionType } = body
+  const { filename, contentType, fileSize, cameraPerspective, sessionType, preferredLanguage } = body
   if (!filename || typeof filename !== 'string') {
     return NextResponse.json({ error: '`filename` is required' }, { status: 400 })
   }
@@ -75,6 +76,9 @@ export async function POST(req: NextRequest) {
     video_storage_provider: VIDEO_STORAGE_PROVIDER,
     video_content_type: normalizedContentType,
     video_file_size_bytes: normalizedFileSize,
+    preferred_language: normalizeLang(
+      typeof preferredLanguage === 'string' ? preferredLanguage : req.cookies.get(LANGUAGE_COOKIE)?.value,
+    ),
   }
   if (typeof cameraPerspective === 'string' && cameraPerspective) {
     config.camera_perspective = cameraPerspective

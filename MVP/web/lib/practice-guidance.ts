@@ -18,6 +18,49 @@ export interface PracticeDrill {
   priority: number
 }
 
+const PRACTICE_LOCALIZATION_ZH: Record<string, { title: string; description: string }> = {
+  'single-leg-balance': {
+    title: '单腿平衡停留',
+    description: '下次滑之前，左右腿各单腿站立 30 秒。注意保持髋部水平，膝盖对准脚尖。',
+  },
+  'railroad-tracks': {
+    title: '铁轨练习',
+    description: '在缓坡上保持双板与髋同宽滑行，像两条平行铁轨，感受双脚均匀受力。',
+  },
+  'javelin-turns': {
+    title: '标枪式转弯',
+    description: '把雪杖水平握在胸前，做中弯时始终让“标枪”朝向坡下，训练上下身分离。',
+  },
+  'edge-lock-traverses': {
+    title: '锁刃横滑',
+    description: '先用上坡侧刃横向穿越，再换另一侧。感受雪板咬雪并保持干净线路，不要侧滑。',
+  },
+  'thousand-steps': {
+    title: '千步练习',
+    description: '转弯过程中做快速小步换脚，夸张地强化重心转移和对外脚的承重。',
+  },
+  'metronome-turns': {
+    title: '节拍器转弯',
+    description: '一边数“一二、一二”，一边在节拍点启动每个转弯。先从缓坡开始，再逐渐增加坡度。',
+  },
+  'garland-turns': {
+    title: '花环转弯',
+    description: '在落线两侧做一连串半弯，重点感受圆滑弧线，而不是快速甩转。',
+  },
+  'pole-on-shoulders': {
+    title: '雪杖架肩练习',
+    description: '把雪杖横放在肩后，转弯时尽量让雪杖始终朝向坡下。如果它跟着转，说明上半身转动过多。',
+  },
+  'active-pole-touch': {
+    title: '主动点杖',
+    description: '每个弯开始时做轻而明确的点杖，让它成为节奏提示而不是发力动作，同时保持双手向前且可见。',
+  },
+  'camera-setup': {
+    title: '优化拍摄设置',
+    description: '把相机固定在雪道侧方，尽量保证整趟滑行完整入镜并有充足光线。视频越清晰，反馈越可靠。',
+  },
+}
+
 interface Rule {
   /** Keywords to match against tip title + explanation (case-insensitive) */
   keywords: string[]
@@ -225,4 +268,17 @@ export function buildNextSessionCard(
   }
 
   return { headline, drills: drills.slice(0, 4) }
+}
+
+export function localizePracticeDrill(drill: PracticeDrill, lang: 'en' | 'zh'): PracticeDrill {
+  if (lang !== 'zh') return drill
+
+  const localized = PRACTICE_LOCALIZATION_ZH[drill.id]
+  if (!localized) return drill
+
+  return {
+    ...drill,
+    title: localized.title,
+    description: localized.description,
+  }
 }
