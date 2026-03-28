@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { buildTechniqueDashboard, scoreLabel, scoreContext, computeReliability, generateLimitations, type CoachingTip, type TechniqueRunSummary, type RecapReliability, type GeminiCoaching, type GeminiCoachingPoint } from '@/lib/analysis-summary'
-import { DRILLS, getDrill } from '@/lib/drills'
+import { buildTechniqueDashboard, scoreLabel, scoreContext, computeReliability, buildReliabilityMessage, generateLimitations, type TechniqueRunSummary, type RecapReliability, type AiCoaching, type AiCoachingPoint } from '@/lib/analysis-summary'
+import { getDrill } from '@/lib/drills'
 import type { ArtifactWithUrl, Job, JobStatus } from '@/lib/types'
 
 interface JobResponse {
@@ -12,7 +12,7 @@ interface JobResponse {
   artifacts: ArtifactWithUrl[]
   summary: TechniqueRunSummary | null
   previousScore: number | null
-  geminiCoaching: GeminiCoaching | null
+  aiCoaching: AiCoaching | null
 }
 
 type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
@@ -20,11 +20,11 @@ type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
 const ACTIVE: Set<JobStatus> = new Set(['created', 'uploaded', 'queued', 'running'])
 
 const STATUS_META: Record<JobStatus, { label: string; color: string; background: string; helper: string }> = {
-  created: { label: 'Job created', color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)', helper: 'Your upload slot is ready.' },
-  uploaded: { label: 'Video uploaded', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'The worker can pick up the clip now.' },
-  queued: { label: 'Waiting in queue', color: 'var(--gold)', background: 'var(--gold-dim)', helper: 'The recap deck is staged next.' },
-  running: { label: 'Analysing run', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'Overlay video and summary artifacts are being prepared.' },
-  done: { label: 'Analysis complete', color: 'var(--success)', background: 'var(--success-dim)', helper: 'Your recap deck is ready to review.' },
+  created: { label: 'Preparing upload', color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)', helper: 'We are setting up your run.' },
+  uploaded: { label: 'Upload complete', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'Your video is ready. Analysis will begin shortly.' },
+  queued: { label: 'Starting soon', color: 'var(--gold)', background: 'var(--gold-dim)', helper: 'We are getting your analysis started.' },
+  running: { label: 'Analyzing run', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'We are reviewing your technique and preparing your recap.' },
+  done: { label: 'Recap ready', color: 'var(--success)', background: 'var(--success-dim)', helper: 'Your feedback is ready to review.' },
   error: { label: 'Analysis failed', color: 'var(--danger)', background: 'var(--danger-dim)', helper: 'Retry with a cleaner single-run clip.' },
 }
 
@@ -43,20 +43,9 @@ const CATEGORY_COLORS: Record<string, { accent: string; badge: string }> = {
   general: { accent: 'coaching-accent-general', badge: 'category-badge-general' },
 }
 
-function tipCategory(tip: CoachingTip): string {
-  const text = `${tip.title} ${tip.explanation}`.toLowerCase()
-  if (text.includes('rotat') || text.includes('upper body') || text.includes('quiet') || text.includes('counter')) return 'movement'
-  if (text.includes('edge') || text.includes('carv') || text.includes('angulat') || text.includes('tilt')) return 'edging'
-  if (text.includes('rhythm') || text.includes('tempo') || text.includes('timing') || text.includes('flow') || text.includes('pace')) return 'rhythm'
-  if (text.includes('stance') || text.includes('balance') || text.includes('center') || text.includes('weight') || text.includes('narrow') || text.includes('wide')) return 'balance'
-  return 'movement'
-}
-
 function signedDownloads(artifacts: ArtifactWithUrl[]) {
   return [
-    { label: 'Overlay video', artifact: artifacts.find((a) => a.kind === 'video_overlay') },
-    { label: 'Summary JSON', artifact: artifacts.find((a) => a.kind === 'summary_json') },
-    { label: 'Metrics CSV', artifact: artifacts.find((a) => a.kind === 'metrics_csv') },
+    { label: 'Annotated recap video', artifact: artifacts.find((a) => a.kind === 'video_overlay') },
   ].filter((e): e is { label: string; artifact: ArtifactWithUrl } => Boolean(e.artifact?.url))
 }
 
@@ -70,27 +59,63 @@ function levelBadgeClass(label: string) {
   }
 }
 
-function coachingHeadline(job: Job, summary: TechniqueRunSummary | null, reliability: RecapReliability) {
-  if (reliability === 'insufficient' && summary?.coaching_tips?.length) {
-    return 'Analysis quality is limited for this clip. The suggestions below are directional — a cleaner recording will unlock a full score and detailed coaching.'
+function coachingHeadline(job: Job, aiCoaching: AiCoaching | null, reliability: RecapReliability) {
+  if (reliability === 'insufficient') {
+    return 'Analysis quality is limited for this clip.'
   }
-  if (summary?.coaching_tips?.length) return summary.coaching_tips[0].explanation
-  if (job.status === 'done') return 'Great work getting out there. Review the overlay, key frames, and summary artifacts below.'
+  if (aiCoaching?.coaching_points?.[0]?.title) return aiCoaching.coaching_points[0].title
+  if (aiCoaching?.coach_summary) return aiCoaching.coach_summary
+  if (job.status === 'done') return 'Your run recap is ready.'
   if (job.status === 'error') return 'This run did not complete. A cleaner single-athlete clip usually gets the recap back on track.'
-  return 'Your run is progressing through the queue. The recap will refresh automatically.'
+  return 'We are finishing the coach feedback for this run.'
 }
 
 function metricDotColor(value: number, threshold: number): string {
   return value >= threshold ? 'var(--accent)' : 'var(--gold)'
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function progressWindow(job: Job) {
+  const step = typeof job.config?.progress_step === 'number' ? job.config.progress_step : null
+  const total = typeof job.config?.progress_total === 'number' ? job.config.progress_total : null
+
+  if (job.status === 'done') return { floor: 100, cap: 100 }
+  if (job.status === 'error') return { floor: 100, cap: 100 }
+
+  if (step != null && total && total > 0) {
+    const safeStep = clamp(step, 1, total)
+    const floor = clamp(Math.round(((safeStep - 1) / total) * 100) + 6, 6, 94)
+    const cap = safeStep === total
+      ? 96
+      : clamp(Math.round((safeStep / total) * 100) + 10, floor + 8, 96)
+    return { floor, cap }
+  }
+
+  switch (job.status) {
+    case 'created':
+      return { floor: 8, cap: 18 }
+    case 'uploaded':
+      return { floor: 16, cap: 30 }
+    case 'queued':
+      return { floor: 24, cap: 42 }
+    case 'running':
+      return { floor: 40, cap: 92 }
+    default:
+      return { floor: 8, cap: 16 }
+  }
+}
+
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
 
   const [data, setData] = useState<JobResponse | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('recap')
-  const [showAllTips, setShowAllTips] = useState(false)
+  const [displayProgress, setDisplayProgress] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -99,7 +124,9 @@ export default function JobDetailPage() {
     async function loadJob() {
       try {
         const response = await fetch(`/api/jobs/${id}`)
-        if (!response.ok) throw new Error(`${response.status}`)
+        if (!response.ok) {
+          throw new Error(response.status === 404 ? 'This run could not be found.' : 'We could not load this run right now.')
+        }
         const json: JobResponse = await response.json()
         if (!cancelled) {
           setData(json)
@@ -107,7 +134,7 @@ export default function JobDetailPage() {
         }
         return json.job.status
       } catch (error) {
-        if (!cancelled) setFetchError(error instanceof Error ? error.message : 'Failed to load run')
+        if (!cancelled) setFetchError(error instanceof Error ? error.message : 'We could not load this run right now.')
         return null
       }
     }
@@ -122,6 +149,37 @@ export default function JobDetailPage() {
     poll()
     return () => { cancelled = true; if (timer) clearTimeout(timer) }
   }, [id])
+
+  useEffect(() => {
+    if (!data) {
+      setDisplayProgress(0)
+      return
+    }
+
+    const job = data.job
+    const isActive = ACTIVE.has(job.status)
+    if (!isActive) {
+      setDisplayProgress(job.status === 'done' ? 100 : 0)
+      return
+    }
+
+    const { floor, cap } = progressWindow(job)
+    setDisplayProgress((prev) => {
+      const seeded = prev > 0 ? prev : floor
+      return clamp(Math.max(seeded, floor), floor, cap)
+    })
+
+    const timer = setInterval(() => {
+      setDisplayProgress((prev) => {
+        const current = clamp(Math.max(prev, floor), floor, cap)
+        if (current >= cap) return current
+        const next = current + Math.max(0.8, (cap - current) * 0.12)
+        return clamp(Math.round(next * 10) / 10, floor, cap)
+      })
+    }, 900)
+
+    return () => clearInterval(timer)
+  }, [data])
 
   if (fetchError && !data) {
     return (
@@ -149,22 +207,22 @@ export default function JobDetailPage() {
     )
   }
 
-  const { job, artifacts, summary, previousScore, geminiCoaching } = data
+  const { job, artifacts, summary, previousScore, aiCoaching } = data
   const statusMeta = STATUS_META[job.status]
   const dashboard = summary ? buildTechniqueDashboard(summary) : null
   const reliability: RecapReliability = dashboard?.reliability ?? (summary ? computeReliability(summary) : 'reliable')
+  const reliabilityMessage = summary ? buildReliabilityMessage(summary) : null
   const isActive = ACTIVE.has(job.status)
+  const fromUpload = searchParams.get('fromUpload') === '1'
   const progressNote = typeof job.config?.progress_note === 'string' ? job.config.progress_note : null
-  const overlayArtifact = artifacts.find((a) => a.kind === 'video_overlay')
-  const coolMomentPhotos = artifacts.filter((a) => a.kind === 'cool_moment_photo')
-  const peakFrames = artifacts.filter((a) => a.kind === 'peak_pressure_frame' || a.kind === 'peak_pressure_frame_enhanced')
+  const overlayArtifact = artifacts.find((artifact) => artifact.kind === 'video_overlay')
+  const coolMomentPhotos = artifacts.filter((artifact) => artifact.kind === 'cool_moment_photo')
+  const peakFrames = artifacts.filter((artifact) => artifact.kind === 'peak_pressure_frame' || artifact.kind === 'peak_pressure_frame_enhanced')
   const downloads = signedDownloads(artifacts)
-  const headline = coachingHeadline(job, summary, reliability)
-
+  const headline = coachingHeadline(job, aiCoaching, reliability)
   const score = job.score ?? dashboard?.overview.overallScore ?? null
   const level = score != null ? scoreLabel(score) : null
   const scoreDelta = score != null && previousScore != null ? score - previousScore : null
-
   const breadcrumbName =
     String(job.config?.original_filename ?? '') ||
     job.video_object_path?.split('/').pop() ||
@@ -175,11 +233,22 @@ export default function JobDetailPage() {
       <div className="route-bg route-bg--detail" />
       <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
+        <div className="flex items-center gap-2 px-1 sm:px-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
           <Link href="/jobs" className="hover:underline">Archive</Link>
           <span>/</span>
           <span className="font-mono" style={{ color: 'var(--ink-strong)' }}>{breadcrumbName}</span>
         </div>
+
+        {fromUpload && isActive && (
+          <section className="surface-card p-4" style={{ background: 'rgba(0,132,212,0.06)', border: '1px solid rgba(0,132,212,0.15)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
+              Upload complete. We&apos;re analyzing your run now.
+            </p>
+            <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>
+              Stay on this page to watch the recap fill in automatically.
+            </p>
+          </section>
+        )}
 
         {/* ── Run Recap hero ──────────────────────────── */}
         <section className="surface-card p-6 lg:p-7">
@@ -242,17 +311,22 @@ export default function JobDetailPage() {
                     style={{ width: '6.5rem', height: '6.5rem', background: 'rgba(0,0,0,0.04)', border: '2px dashed rgba(0,0,0,0.12)' }}
                   >
                     <div className="text-center px-2">
-                      <p className="text-xs font-bold" style={{ color: 'var(--ink-soft)' }}>Limited</p>
-                      <p style={{ fontSize: '0.62rem', color: 'var(--ink-muted)' }}>Score hidden</p>
+                      <p className="text-xs font-bold" style={{ color: 'var(--ink-soft)' }}>No score</p>
+                      <p style={{ fontSize: '0.62rem', color: 'var(--ink-muted)' }}>for this clip</p>
                     </div>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <h1 style={{ fontSize: 'clamp(1.3rem, 2.4vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2, color: 'var(--ink-strong)' }}>
                     {reliability === 'insufficient'
-                      ? 'Limited review — consider re-recording.'
-                      : score != null ? headline.slice(0, 80) : 'Review how this run moved.'}
+                      ? (reliabilityMessage?.title ?? 'Score unavailable for this clip')
+                      : score != null ? headline : 'Review how this run moved.'}
                   </h1>
+                  {reliability === 'insufficient' && reliabilityMessage && (
+                    <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
+                      {reliabilityMessage.hideScoreReason}
+                    </p>
+                  )}
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
                     {level && reliability !== 'insufficient' && (
                       <span className={levelBadgeClass(level)}>
@@ -292,7 +366,7 @@ export default function JobDetailPage() {
                   className="aspect-video flex items-center justify-center text-center p-8"
                   style={{ borderRadius: 'var(--radius-xl)', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--ink-soft)' }}
                 >
-                  Overlay video will appear here once the run is fully processed.
+                  The recap video will appear after the coach feedback finishes and the full recap is published.
                 </div>
               )}
             </div>
@@ -312,18 +386,18 @@ export default function JobDetailPage() {
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard ? dashboard.overview.turnsDetected : artifacts.length}</p>
-                    <p className="metric-label">{dashboard ? 'Turns detected' : 'Artifacts ready'}</p>
+                    <p className="metric-label">{dashboard ? 'Turns detected' : 'Files ready'}</p>
                   </div>
                   <div className="metric-tile">
                     <p className="metric-value">{dashboard ? `${dashboard.overview.edgeAngle.toFixed(0)}°` : '—'}</p>
                     <p className="metric-label">Edge angle</p>
                   </div>
-                  <div className={dashboard && dashboard.overview.poseConfidence > 70 ? 'metric-tile metric-tile--high' : dashboard ? 'metric-tile metric-tile--low' : 'metric-tile'}>
-                    <div className="metric-tile-dot" style={{ background: dashboard ? metricDotColor(dashboard.overview.poseConfidence, 70) : 'var(--ink-muted)' }} />
-                    <p className="metric-value" style={{ color: dashboard && dashboard.overview.poseConfidence > 70 ? 'var(--accent)' : 'var(--gold)' }}>
-                      {dashboard ? `${dashboard.overview.poseConfidence.toFixed(0)}%` : '—'}
+                  <div className={dashboard && reliability === 'reliable' ? 'metric-tile metric-tile--high' : dashboard ? 'metric-tile metric-tile--low' : 'metric-tile'}>
+                    <div className="metric-tile-dot" style={{ background: dashboard && reliability === 'reliable' ? 'var(--accent)' : 'var(--gold)' }} />
+                    <p className="metric-value" style={{ color: dashboard && reliability === 'reliable' ? 'var(--accent)' : 'var(--gold)' }}>
+                      {dashboard ? dashboard.overview.clipQualityLabel : '—'}
                     </p>
-                    <p className="metric-label">Pose confidence</p>
+                    <p className="metric-label">Clip quality</p>
                   </div>
                 </div>
               </div>
@@ -341,7 +415,7 @@ export default function JobDetailPage() {
                     {new Date(job.updated_at).toLocaleString()}
                   </p>
                   <p>
-                    <span style={{ color: 'var(--ink-muted)' }}>Worker note:</span>{' '}
+                    <span style={{ color: 'var(--ink-muted)' }}>Status:</span>{' '}
                     {progressNote ?? statusMeta.helper}
                   </p>
                 </div>
@@ -349,14 +423,9 @@ export default function JobDetailPage() {
 
               {/* Processing progress */}
               {isActive && (() => {
-                const step = typeof job.config?.progress_step === 'number' ? job.config.progress_step : null
-                const total = typeof job.config?.progress_total === 'number' ? job.config.progress_total : null
                 const stage = typeof job.config?.progress_stage === 'string' ? job.config.progress_stage : null
-                const pct = step != null && total
-                  ? Math.min(Math.round((step / total) * 100), 95)
-                  : job.status === 'created' ? 10 : job.status === 'uploaded' ? 20 : job.status === 'queued' ? 30 : 55
                 const label = stage
-                  ? `Step ${step} of ${total}: ${stage}`
+                  ? stage
                   : progressNote ?? statusMeta.helper
                 return (
                   <div className="surface-card-muted p-5">
@@ -365,7 +434,7 @@ export default function JobDetailPage() {
                       <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>Auto refresh</span>
                     </div>
                     <div className="mt-3 progress-track">
-                      <div className="progress-fill transition-all duration-700" style={{ width: `${pct}%` }} />
+                      <div className="progress-fill transition-all duration-700" style={{ width: `${displayProgress}%` }} />
                     </div>
                     <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{label}</p>
                   </div>
@@ -382,7 +451,7 @@ export default function JobDetailPage() {
         </section>
 
         {/* ── Tab navigation ──────────────────────────── */}
-        <section className="surface-card-strong p-3 flex flex-wrap gap-2">
+        <section className="surface-card-strong p-3 flex flex-wrap gap-2" style={{ position: 'sticky', top: 'var(--sticky-tabs-offset)', zIndex: 30 }}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -404,31 +473,26 @@ export default function JobDetailPage() {
         {activeTab === 'recap' && (
           <div className="space-y-6">
             {/* Reliability banners */}
-            {reliability === 'insufficient' && (
-              <div className="surface-card p-5 flex items-start gap-3" style={{ background: 'var(--gold-dim)', border: '1px solid rgba(199,154,68,0.25)' }}>
-                <span style={{ fontSize: '1.25rem' }}>&#9888;</span>
+            {reliability !== 'reliable' && reliabilityMessage && (
+              <div className="surface-card p-5 flex items-start gap-3" style={{
+                background: reliability === 'insufficient' ? 'var(--gold-dim)' : 'rgba(0,132,212,0.06)',
+                border: reliability === 'insufficient' ? '1px solid rgba(199,154,68,0.25)' : '1px solid rgba(0,132,212,0.15)',
+              }}>
+                <span style={{ fontSize: '1.25rem' }}>{reliability === 'insufficient' ? '\u26A0' : '\u2139'}</span>
                 <div>
-                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Limited analysis quality</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{reliabilityMessage.title}</p>
                   <p className="mt-1 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                    This clip contains multiple tracking segments, scene cuts, or very low pose confidence.
-                    Treat the suggestions below as tentative. For a reliable score, try trimming to a single
-                    uninterrupted run and re-uploading.
+                    {reliabilityMessage.explanation}
+                  </p>
+                  <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
+                    {reliabilityMessage.nextStep}
                   </p>
                 </div>
               </div>
             )}
-            {reliability === 'limited' && (
-              <div className="surface-card p-4 flex items-start gap-3" style={{ background: 'rgba(0,132,212,0.06)', border: '1px solid rgba(0,132,212,0.15)' }}>
-                <span style={{ fontSize: '1rem' }}>&#8505;</span>
-                <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                  Some capture warnings were detected. The score is marked <strong>tentative</strong> — treat
-                  these coaching suggestions as directional rather than definitive.
-                </p>
-              </div>
-            )}
 
-            {/* ── Coach's Analysis (Gemini) ─────────────── */}
-            {geminiCoaching ? (
+            {/* ── Coach's Analysis ─────────────────────── */}
+            {aiCoaching ? (
               <section className="surface-card p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
@@ -443,13 +507,13 @@ export default function JobDetailPage() {
                 {/* Coach summary */}
                 <div className="mt-5 coach-summary">
                   <p className="text-base leading-7" style={{ color: 'var(--ink-base)' }}>
-                    {geminiCoaching.coach_summary}
+                    {aiCoaching.coach_summary}
                   </p>
                 </div>
 
                 {/* Coaching points */}
                 <div className="mt-5 space-y-3">
-                  {geminiCoaching.coaching_points.map((point: GeminiCoachingPoint, idx: number) => {
+                  {aiCoaching.coaching_points.map((point: AiCoachingPoint, idx: number) => {
                     const catColors = CATEGORY_COLORS[point.category] ?? CATEGORY_COLORS.general
                     const CATEGORY_LABELS: Record<string, string> = {
                       movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
@@ -479,7 +543,7 @@ export default function JobDetailPage() {
                                 <p className="mt-1 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{drill.title}</p>
                                 <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>{drill.description}</p>
                               </div>
-                              {drill.videoUrl ? (
+                              {drill.videoUrl && (
                                 <a
                                   href={drill.videoUrl}
                                   target="_blank"
@@ -489,10 +553,6 @@ export default function JobDetailPage() {
                                 >
                                   Watch Drill
                                 </a>
-                              ) : (
-                                <span className="text-xs shrink-0 px-3 py-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--ink-muted)' }}>
-                                  Video coming soon
-                                </span>
                               )}
                             </div>
                           </div>
@@ -503,11 +563,11 @@ export default function JobDetailPage() {
                 </div>
 
                 {/* Additional observations */}
-                {geminiCoaching.additional_observations?.length > 0 && (
+                {aiCoaching.additional_observations?.length > 0 && (
                   <div className="mt-5">
                     <p className="section-label">Additional Observations</p>
                     <ul className="mt-3 space-y-2">
-                      {geminiCoaching.additional_observations.map((obs: string, idx: number) => (
+                      {aiCoaching.additional_observations.map((obs: string, idx: number) => (
                         <li key={idx} className="text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)', borderLeft: '2px solid rgba(0,0,0,0.08)', paddingLeft: '0.75rem' }}>
                           {obs}
                         </li>
@@ -517,130 +577,28 @@ export default function JobDetailPage() {
                 )}
               </section>
             ) : (
-              /* Fallback: legacy coaching insights when no Gemini data */
-              <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
-                <section className="surface-card p-6">
-                  <p className="section-label">Run Summary</p>
-                  <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    What stands out first
-                  </h2>
-                  <p className="mt-4 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
-                    {headline}
-                  </p>
-                  {dashboard ? (
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                      <div className="metric-tile">
-                        <p className="metric-value">{dashboard.overview.bestTurnScore}</p>
-                        <p className="metric-label">Best turn quality</p>
-                      </div>
-                      <div className="metric-tile">
-                        <p className="metric-value">{dashboard.overview.turnsDetected}</p>
-                        <p className="metric-label">Turns in coaching pass</p>
-                      </div>
-                      <div className="metric-tile">
-                        <p className="metric-value">{downloads.length}</p>
-                        <p className="metric-label">Artifacts ready</p>
-                      </div>
-                      <div className="metric-tile">
-                        <p className="metric-value">{coolMomentPhotos.length + peakFrames.length}</p>
-                        <p className="metric-label">Key images</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-6 surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                      Summary metrics will appear here once the summary artifact is available.
-                    </div>
-                  )}
-                  {!!dashboard?.warnings.length && (
-                    <div className="mt-6 surface-card-muted p-4">
-                      <p className="section-label">Capture Warnings</p>
-                      <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
-                        {dashboard.warnings.map((w) => <li key={w}>{w}</li>)}
-                      </ul>
-                    </div>
-                  )}
-                </section>
-
-                <section className="surface-card p-6">
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                      <p className="section-label" style={{ color: 'var(--amber)' }}>Coaching Insights</p>
-                      <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                        {reliability === 'insufficient' ? 'Directional suggestions' : 'Top priorities'}
-                      </h2>
-                    </div>
+              <section className="surface-card p-6">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="section-label" style={{ color: 'var(--accent)' }}>Coach&apos;s Analysis</p>
+                    <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+                      {isActive ? 'Your coach is still writing this recap' : 'Coach feedback is not ready yet'}
+                    </h2>
                   </div>
-                  <div className="mt-5 space-y-3">
-                    {(() => {
-                      const allTips = dashboard?.allTips ?? dashboard?.focusCards ?? summary?.coaching_tips ?? []
-                      const visibleTips = showAllTips ? allTips : allTips.slice(0, 2)
-                      const CATEGORY_LABELS: Record<string, string> = {
-                        movement: 'Movement', edging: 'Edging', rhythm: 'Rhythm', balance: 'Balance', general: 'General',
-                      }
-                      return (
-                        <>
-                          {visibleTips.map((tip, idx) => {
-                            const category = tipCategory(tip)
-                            const catColors = CATEGORY_COLORS[category] ?? CATEGORY_COLORS.general
-                            return (
-                              <div key={`${tip.title}-${tip.evidence}`} className={`coaching-card ${catColors.accent}`}>
-                                <div className="flex items-center gap-3 pl-3">
-                                  <span className="preflight-number" style={{ width: '1.5rem', height: '1.5rem', fontSize: '0.62rem' }}>
-                                    {String(idx + 1).padStart(2, '0')}
-                                  </span>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{tip.title}</p>
-                                  </div>
-                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${catColors.badge}`}>
-                                    {CATEGORY_LABELS[category]}
-                                  </span>
-                                </div>
-                                <p className="mt-2 text-sm leading-6 pl-3" style={{ color: 'var(--ink-base)' }}>
-                                  {tip.explanation}
-                                </p>
-                                <p className="mt-2 text-xs pl-3" style={{ color: 'var(--ink-muted)' }}>
-                                  {tip.evidence}
-                                </p>
-                              </div>
-                            )
-                          })}
-                          {allTips.length > 2 && !showAllTips && (
-                            <button
-                              type="button"
-                              onClick={() => setShowAllTips(true)}
-                              className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
-                              style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}
-                            >
-                              Show all {allTips.length} areas
-                            </button>
-                          )}
-                          {showAllTips && allTips.length > 2 && (
-                            <button
-                              type="button"
-                              onClick={() => setShowAllTips(false)}
-                              className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors"
-                              style={{ color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)' }}
-                            >
-                              Show top 2 only
-                            </button>
-                          )}
-                        </>
-                      )
-                    })()}
-                    {!summary?.coaching_tips?.length && (
-                      <div className="surface-card-muted p-4 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                        Coaching insights appear when the summary JSON includes coaching guidance.
-                      </div>
-                    )}
-                  </div>
-                </section>
-              </div>
+                  <span className="eyebrow">AI Coach</span>
+                </div>
+                <p className="mt-5 text-base leading-7" style={{ color: 'var(--ink-base)' }}>
+                  {isActive
+                    ? 'We only publish the coaching section once the local LLM finishes writing it. The page will refresh automatically as soon as that feedback is ready.'
+                    : 'This run does not have LLM coach feedback attached yet. Re-run the analysis if you want a complete coach-written recap.'}
+                </p>
+              </section>
             )}
 
             {/* ── Recommended Practice (drill summary) ─── */}
-            {geminiCoaching && (() => {
-              const recommendedDrills = geminiCoaching.coaching_points
-                .map((p: GeminiCoachingPoint) => p.recommended_drill_id)
+            {aiCoaching && (() => {
+              const recommendedDrills = aiCoaching.coaching_points
+                .map((p: AiCoachingPoint) => p.recommended_drill_id)
                 .filter((id): id is string => id != null)
                 .map((id) => getDrill(id))
                 .filter((d): d is NonNullable<typeof d> => d != null)
@@ -662,7 +620,7 @@ export default function JobDetailPage() {
                         </span>
                         <h3 className="mt-3 text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{drill.title}</h3>
                         <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-soft)' }}>{drill.description}</p>
-                        {drill.videoUrl ? (
+                              {drill.videoUrl && (
                           <a
                             href={drill.videoUrl}
                             target="_blank"
@@ -672,10 +630,6 @@ export default function JobDetailPage() {
                           >
                             Watch Drill
                           </a>
-                        ) : (
-                          <span className="mt-3 block text-center text-xs py-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--ink-muted)' }}>
-                            Video coming soon
-                          </span>
                         )}
                       </div>
                     ))}
@@ -684,50 +638,15 @@ export default function JobDetailPage() {
               )
             })()}
 
-            {/* ── Evidence (metric rails) ──────────────── */}
-            {dashboard && (
-              <section className="surface-card p-6">
-                <p className="section-label">Evidence</p>
-                <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                  Metric breakdown behind the coaching
-                </h2>
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  {dashboard.categories.map((category) => (
-                    <div key={category.id} className="surface-card-muted p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{category.title}</p>
-                        <span className="text-sm font-extrabold" style={{ color: 'var(--accent)' }}>{category.score}</span>
-                      </div>
-                      <div className="mt-3 space-y-3">
-                        {category.metrics.map((metric) => (
-                          <div key={`${category.id}-${metric.label}`}>
-                            <div className="flex items-center justify-between text-xs">
-                              <span style={{ color: 'var(--ink-soft)' }}>{metric.label}</span>
-                              <span className="font-mono" style={{ color: 'var(--accent)' }}>{metric.value}</span>
-                            </div>
-                            <div className="mt-1 metric-rail">
-                              <span style={{ width: `${metric.fill}%` }}>
-                                <span className="metric-rail-dot" />
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
             {/* ── Model Limitations ────────────────────── */}
             {summary && (() => {
               const limitations = generateLimitations(summary)
               if (!limitations.length) return null
               return (
                 <section className="surface-card p-6">
-                  <p className="section-label" style={{ color: 'var(--gold)' }}>What the model may get wrong</p>
+                  <p className="section-label" style={{ color: 'var(--gold)' }}>Keep in mind</p>
                   <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                    Model limitations for this run
+                    Limits of this review
                   </h2>
                   <div className="mt-5 space-y-3">
                     {limitations.map((lim, idx) => (
@@ -753,7 +672,7 @@ export default function JobDetailPage() {
                     <div>
                       <p className="section-label">{category.title}</p>
                       <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                        Current pipeline metrics mapped into a coaching-friendly bucket.
+                        These checks roll up the strongest movement patterns from your run.
                       </p>
                     </div>
                     <div className="text-center">
@@ -792,7 +711,7 @@ export default function JobDetailPage() {
                 </article>
               )) ?? (
                 <article className="surface-card p-6 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                  Technique markers will appear here once a summary artifact is attached.
+                  Detailed metrics will appear here once your recap is ready.
                 </article>
               )}
             </section>
@@ -910,7 +829,7 @@ export default function JobDetailPage() {
             <section className="surface-card p-6">
               <p className="section-label">Exports</p>
               <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                Raw files from this run
+                Files you can keep
               </h2>
 
               <div className="mt-5 space-y-3">
@@ -925,7 +844,7 @@ export default function JobDetailPage() {
                     <div>
                       <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{label}</p>
                       <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>
-                        Open the signed artifact in a new tab.
+                        Open this file in a new tab.
                       </p>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--ink-soft)' }}>
@@ -941,35 +860,35 @@ export default function JobDetailPage() {
             </section>
 
             <section className="surface-card p-6">
-              <p className="section-label">Artifacts Summary</p>
+              <p className="section-label">Run Assets</p>
               <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                What this run produced
+                What is included
               </h2>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="metric-tile">
-                  <p className="metric-value">{artifacts.length}</p>
-                  <p className="metric-label">Total artifacts</p>
+                  <p className="metric-value">{overlayArtifact ? 1 : 0}</p>
+                  <p className="metric-label">Video recap</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{downloads.length}</p>
-                  <p className="metric-label">Downloadable exports</p>
+                  <p className="metric-label">Downloads ready</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{coolMomentPhotos.length}</p>
-                  <p className="metric-label">Moment photos</p>
+                  <p className="metric-label">Highlight photos</p>
                 </div>
                 <div className="metric-tile">
                   <p className="metric-value">{peakFrames.length}</p>
-                  <p className="metric-label">Pressure frames</p>
+                  <p className="metric-label">Action stills</p>
                 </div>
               </div>
 
-              {summary?.coaching_tips?.length ? (
+              {aiCoaching?.coach_summary ? (
                 <div className="mt-6 surface-card-muted p-4">
-                  <p className="section-label">Summary Note</p>
+                  <p className="section-label">Coach Note</p>
                   <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                    {summary.coaching_tips[0].explanation}
+                    {aiCoaching.coach_summary}
                   </p>
                 </div>
               ) : null}

@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.tsbuildinfo
+*.pt
+
+# Generated analysis outputs can include local filesystem paths and derived media.
+technique-analysis/artifacts/
+
+# Local experiment output
+MVP/coaching_comparison_results.json

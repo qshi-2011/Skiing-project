@@ -4,11 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import {
   buildTechniqueDashboard,
+  clipQualityLabel,
   scoreLabel,
   scoreContext,
   type TechniqueRunSummary,
   type CoachingTip,
 } from '@/lib/analysis-summary'
+import { SiteFooter } from '@/components/site-footer'
 
 // ── Hardcoded analysis results from the sample video ─────────
 const SAMPLE_SUMMARY: TechniqueRunSummary = {
@@ -148,7 +150,7 @@ export default function SampleAnalysisPage() {
       <div className="route-bg route-bg--detail" />
       <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
+        <div className="flex items-center gap-2 px-1 sm:px-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
           <Link href="/" className="hover:underline">Home</Link>
           <span>/</span>
           <span style={{ color: 'var(--ink-strong)' }}>Sample Analysis</span>
@@ -196,7 +198,7 @@ export default function SampleAnalysisPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 style={{ fontSize: 'clamp(1.3rem, 2.4vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2, color: 'var(--ink-strong)' }}>
-                    {headline.slice(0, 80)}
+                    {headline}
                   </h1>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
                     <span className={levelBadgeClass(level)}>{level}</span>
@@ -237,12 +239,12 @@ export default function SampleAnalysisPage() {
                     <p className="metric-value">{dashboard.overview.edgeAngle.toFixed(0)}&deg;</p>
                     <p className="metric-label">Edge angle</p>
                   </div>
-                  <div className={dashboard.overview.poseConfidence > 70 ? 'metric-tile metric-tile--high' : 'metric-tile metric-tile--low'}>
-                    <div className="metric-tile-dot" style={{ background: metricDotColor(dashboard.overview.poseConfidence, 70) }} />
-                    <p className="metric-value" style={{ color: dashboard.overview.poseConfidence > 70 ? 'var(--accent)' : 'var(--gold)' }}>
-                      {dashboard.overview.poseConfidence.toFixed(0)}%
+                  <div className="metric-tile metric-tile--high">
+                    <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
+                    <p className="metric-value" style={{ color: 'var(--accent)' }}>
+                      {clipQualityLabel(dashboard.reliability)}
                     </p>
-                    <p className="metric-label">Pose confidence</p>
+                    <p className="metric-label">Clip quality</p>
                   </div>
                 </div>
               </div>
@@ -252,8 +254,8 @@ export default function SampleAnalysisPage() {
                 <p className="section-label">About This Sample</p>
                 <div className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
                   <p>
-                    This analysis was generated from a real ski run using our motion-tracking pipeline.
-                    Every metric, coaching tip, and overlay frame you see here is computed automatically.
+                    This analysis was generated from a real ski run and turned into a full recap automatically.
+                    The scores, coaching tips, and overlays all come from the same review flow used on uploaded runs.
                   </p>
                   <p style={{ color: 'var(--ink-muted)' }}>
                     Upload your own run to get a personalised breakdown.
@@ -265,7 +267,7 @@ export default function SampleAnalysisPage() {
         </section>
 
         {/* ── Tab navigation ──────────────────────────── */}
-        <section className="surface-card-strong p-3 flex flex-wrap gap-2">
+        <section className="surface-card-strong p-3 flex flex-wrap gap-2" style={{ position: 'sticky', top: 'var(--sticky-tabs-offset)', zIndex: 30 }}>
           {([{ id: 'recap' as Tab, label: 'Recap' }, { id: 'metrics' as Tab, label: 'Metrics' }]).map((tab) => (
             <button
               key={tab.id}
@@ -305,14 +307,14 @@ export default function SampleAnalysisPage() {
                     <p className="metric-value">{dashboard.overview.turnsDetected}</p>
                     <p className="metric-label">Turns in coaching pass</p>
                   </div>
-                  <div className="metric-tile">
-                    <p className="metric-value">3</p>
-                    <p className="metric-label">Artifacts ready</p>
-                  </div>
-                  <div className="metric-tile">
-                    <p className="metric-value">{dashboard.overview.smoothnessScore ?? '—'}</p>
-                    <p className="metric-label">Smoothness score</p>
-                  </div>
+                      <div className="metric-tile">
+                        <p className="metric-value">{dashboard.focusCards.length}</p>
+                        <p className="metric-label">Top priorities</p>
+                      </div>
+                      <div className="metric-tile">
+                        <p className="metric-value">{dashboard.overview.smoothnessScore ?? '—'}</p>
+                        <p className="metric-label">Turn flow</p>
+                      </div>
                 </div>
               </section>
 
@@ -405,7 +407,7 @@ export default function SampleAnalysisPage() {
                     <div>
                       <p className="section-label">{category.title}</p>
                       <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                        Current pipeline metrics mapped into a coaching-friendly bucket.
+                        These checks roll up the strongest movement patterns from the run.
                       </p>
                     </div>
                     <div className="text-center">
@@ -496,14 +498,7 @@ export default function SampleAnalysisPage() {
         </section>
 
         {/* Footer */}
-        <footer className="site-footer">
-          <div className="site-footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Technical Docs</a>
-          </div>
-          <p className="site-footer-copy">&copy; 2024 SkiCoach AI. All rights reserved.</p>
-        </footer>
+        <SiteFooter />
       </div>
     </>
   )

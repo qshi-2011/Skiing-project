@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Job, JobStatus } from '@/lib/types'
 import { buildTechniqueDashboard, scoreLabel, type TechniqueRunSummary, type CoachingTip } from '@/lib/analysis-summary'
 import { buildNextSessionCard } from '@/lib/practice-guidance'
+import { SiteFooter } from '@/components/site-footer'
+import { backfillMissingScores } from '@/lib/server-job-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -96,7 +98,7 @@ function LandingPage() {
               See what your coach<br />can&apos;t tell you.
             </h1>
             <p className="mt-5" style={{ fontSize: '1.1rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)', maxWidth: '32rem', margin: '1.25rem auto 0' }}>
-              Upload a single run. Get biomechanical analysis, personalised coaching, and targeted practice drills — all from your phone camera.
+              Upload a single run. Get a clear technique breakdown, personalised coaching, and targeted practice drills — all from your phone camera.
             </p>
             <div className="mt-8 flex flex-wrap gap-3 justify-center">
               <Link href="/signup" className="cta-primary" style={{ padding: '1rem 2rem', fontSize: '1rem' }}>
@@ -117,21 +119,21 @@ function LandingPage() {
         <section className="landing-section">
           <div className="text-center mb-8">
             <p className="section-label">What you get</p>
-            <h2 className="section-title mt-3">Three outputs from every upload.</h2>
+            <h2 className="section-title mt-3">Three takeaways from every upload.</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             <div className="surface-card p-7 text-center">
               <div className="step-number mx-auto" style={{ width: '3rem', height: '3rem', fontSize: '1rem' }}>1</div>
               <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--ink-strong)' }}>AI Coach Feedback</h3>
               <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-                Personalised coaching written by AI from your biomechanical data. Specific, actionable, and linked to practice drills.
+                Personalised coaching written from how you move on snow. Specific, actionable, and linked to practice drills.
               </p>
             </div>
             <div className="surface-card p-7 text-center">
               <div className="step-number mx-auto" style={{ width: '3rem', height: '3rem', fontSize: '1rem' }}>2</div>
               <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--ink-strong)' }}>Technique Metrics</h3>
               <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-                17+ biomechanical markers across balance, edging, rhythm, and movement — scored and visualised per turn.
+                Clear feedback across balance, edging, rhythm, and movement so you can see where the run was strongest and where it broke down.
               </p>
             </div>
             <div className="surface-card p-7 text-center">
@@ -160,7 +162,7 @@ function LandingPage() {
               <div className="how-step">
                 <span className="how-step-number">02</span>
                 <h3>Upload &amp; analyse.</h3>
-                <p>Our pipeline tracks 34 body markers, segments every turn, and scores your biomechanics automatically.</p>
+                <p>We break the run into key turns, review the movement patterns, and turn that into a clean recap automatically.</p>
               </div>
               <div className="how-step">
                 <span className="how-step-number">03</span>
@@ -207,8 +209,8 @@ function LandingPage() {
               </div>
               <div className="metric-tile metric-tile--high">
                 <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
-                <p className="metric-value" style={{ color: 'var(--accent)', fontSize: '1.6rem' }}>94%</p>
-                <p className="metric-label">Pose confidence</p>
+                <p className="metric-value" style={{ color: 'var(--accent)', fontSize: '1.6rem' }}>Clear</p>
+                <p className="metric-label">Clip quality</p>
               </div>
             </div>
             <div className="mt-4 text-center">
@@ -237,15 +239,7 @@ function LandingPage() {
           </div>
         </section>
 
-        {/* ── Footer ─────────────────────────────────────── */}
-        <footer className="site-footer">
-          <div className="site-footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Technical Docs</a>
-          </div>
-          <p className="site-footer-copy">&copy; 2025 SkiCoach AI. All rights reserved.</p>
-        </footer>
+        <SiteFooter />
       </div>
     </>
   )
@@ -268,6 +262,7 @@ async function Dashboard() {
 
   const runs = (jobs ?? []) as Job[]
   const completedRuns = runs.filter((j) => j.status === 'done')
+  await backfillMissingScores(service, completedRuns)
   const latestCompleted = completedRuns[0] ?? null
 
   const scoredRuns = completedRuns.filter((j) => j.score != null) as (Job & { score: number })[]
@@ -361,21 +356,21 @@ async function Dashboard() {
                 <span className="preflight-number">01</span>
                 <div>
                   <h4>One skier in frame</h4>
-                  <p>AI tracking requires a clear focus on a single subject.</p>
+                  <p>Keep the shot centered on one skier for the clearest recap.</p>
                 </div>
               </div>
               <div className="preflight-item">
                 <span className="preflight-number">02</span>
                 <div>
                   <h4>One continuous run</h4>
-                  <p>Avoid cuts or montage editing for accurate telemetry.</p>
+                  <p>Avoid cuts or montage edits so we can review one clean run from start to finish.</p>
                 </div>
               </div>
               <div className="preflight-item">
                 <span className="preflight-number">03</span>
                 <div>
                   <h4>Side or behind angle</h4>
-                  <p>Optimal for detecting hip placement and edge angles.</p>
+                  <p>Side or behind angles give the clearest coaching read.</p>
                 </div>
               </div>
             </div>

@@ -44,13 +44,54 @@ export interface TechniqueRunSummary {
 // ── Recap reliability ───────────────────────────────────────
 export type RecapReliability = 'reliable' | 'limited' | 'insufficient'
 
+export interface ReliabilityMessage {
+  title: string
+  explanation: string
+  nextStep: string
+  hideScoreReason: string
+}
+
+export function clipQualityLabel(reliability: RecapReliability): string {
+  switch (reliability) {
+    case 'reliable':
+      return 'Clear'
+    case 'limited':
+      return 'Usable'
+    case 'insufficient':
+      return 'Retry'
+    default:
+      return 'Clear'
+  }
+}
+
 // Thresholds — gathered in one place for easy tuning
 const RELIABILITY_THRESHOLDS = {
-  insufficientConfidence: 0.55,
-  insufficientLowFraction: 0.35,
-  limitedConfidence: 0.70,
-  limitedLowFraction: 0.20,
+  insufficientConfidence: 0.42,
+  insufficientLowFraction: 0.5,
+  limitedConfidence: 0.58,
+  limitedLowFraction: 0.28,
+  insufficientPrimarySegmentShare: 0.55,
+  insufficientPrimaryTurnShare: 0.6,
 } as const
+
+function segmentCoverage(segments: TrackingSegment[]) {
+  if (!segments.length) {
+    return { hasMultipleSegments: false, primaryFrameShare: 1, primaryTurnShare: 1 }
+  }
+
+  const primary = segments.find((segment) => segment.is_primary)
+    ?? [...segments].sort((left, right) => right.n_confident_frames - left.n_confident_frames)[0]
+  const totalFrames = segments.reduce((sum, segment) => sum + Math.max(segment.n_confident_frames, 0), 0)
+  const totalTurns = segments.reduce((sum, segment) => sum + Math.max(segment.n_turns, 0), 0)
+  const primaryFrameShare = totalFrames > 0 ? primary.n_confident_frames / totalFrames : 1
+  const primaryTurnShare = totalTurns > 0 ? primary.n_turns / totalTurns : 1
+
+  return {
+    hasMultipleSegments: segments.length > 1,
+    primaryFrameShare,
+    primaryTurnShare,
+  }
+}
 
 export function computeReliability(summary: TechniqueRunSummary): RecapReliability {
   const warnings = toArray<string>(summary.quality?.warnings)
@@ -59,21 +100,27 @@ export function computeReliability(summary: TechniqueRunSummary): RecapReliabili
   const lowFrac = summary.quality?.low_confidence_fraction ?? 0
 
   const hasSceneCut = warnings.some((w) => /scene.?cut/i.test(w))
-  const multiSegment = segments.length > 1
+  const { hasMultipleSegments, primaryFrameShare, primaryTurnShare } = segmentCoverage(segments)
+  const fragmentedTracking = hasMultipleSegments && (
+    primaryFrameShare < RELIABILITY_THRESHOLDS.insufficientPrimarySegmentShare ||
+    primaryTurnShare < RELIABILITY_THRESHOLDS.insufficientPrimaryTurnShare ||
+    segments.length > 2
+  )
 
-  // Insufficient: multiple segments, scene cuts, very low confidence
+  // Insufficient: genuinely unreliable tracking or very fragmented clips.
   if (
-    multiSegment ||
-    hasSceneCut ||
+    fragmentedTracking ||
     confidence < RELIABILITY_THRESHOLDS.insufficientConfidence ||
-    lowFrac > RELIABILITY_THRESHOLDS.insufficientLowFraction
+    lowFrac > RELIABILITY_THRESHOLDS.insufficientLowFraction ||
+    (hasSceneCut && confidence < RELIABILITY_THRESHOLDS.limitedConfidence && lowFrac > RELIABILITY_THRESHOLDS.limitedLowFraction)
   ) {
     return 'insufficient'
   }
 
-  // Limited: any warning present, or moderately low confidence
+  // Limited: warning flags or slightly weaker capture, but still usable.
   if (
     warnings.length > 0 ||
+    hasMultipleSegments ||
     confidence < RELIABILITY_THRESHOLDS.limitedConfidence ||
     lowFrac > RELIABILITY_THRESHOLDS.limitedLowFraction
   ) {
@@ -81,6 +128,59 @@ export function computeReliability(summary: TechniqueRunSummary): RecapReliabili
   }
 
   return 'reliable'
+}
+
+export function buildReliabilityMessage(summary: TechniqueRunSummary): ReliabilityMessage {
+  const reliability = computeReliability(summary)
+  const warnings = toArray<string>(summary.quality?.warnings)
+  const segments = toArray<TrackingSegment>(summary.segments)
+  const confidence = summary.quality?.overall_pose_confidence_mean ?? 1
+  const lowFrac = summary.quality?.low_confidence_fraction ?? 0
+  const { hasMultipleSegments, primaryFrameShare, primaryTurnShare } = segmentCoverage(segments)
+
+  const issues: string[] = []
+  if (hasMultipleSegments) issues.push('parts of the clip were split into separate tracked sections')
+  if (warnings.some((warning) => /scene.?cut/i.test(warning))) issues.push('we detected cuts or angle changes')
+  if (warnings.some((warning) => /occlu/i.test(warning))) issues.push('parts of the skier moved out of view')
+  if (warnings.some((warning) => /camera|angle|perspective/i.test(warning))) issues.push('the camera angle reduced measurement accuracy')
+  if (confidence < RELIABILITY_THRESHOLDS.limitedConfidence || lowFrac > RELIABILITY_THRESHOLDS.limitedLowFraction) {
+    issues.push('the skier was hard to follow cleanly for parts of the clip')
+  }
+  if (
+    hasMultipleSegments &&
+    (primaryFrameShare < RELIABILITY_THRESHOLDS.insufficientPrimarySegmentShare || primaryTurnShare < RELIABILITY_THRESHOLDS.insufficientPrimaryTurnShare)
+  ) {
+    issues.push('too much of the run fell outside the main tracked section')
+  }
+
+  const explanation = issues.length
+    ? `This review is limited because ${issues.slice(0, 2).join(' and ')}.`
+    : 'This review is limited because the capture quality made the measurements less reliable.'
+
+  if (reliability === 'insufficient') {
+    return {
+      title: 'Score unavailable for this clip',
+      explanation,
+      nextStep: 'Try one continuous run with a steady side or behind angle and keep one skier clearly in frame the whole time.',
+      hideScoreReason: 'We hid the score because this clip would produce a misleading number.',
+    }
+  }
+
+  if (reliability === 'limited') {
+    return {
+      title: 'Review with caution',
+      explanation,
+      nextStep: 'Use this feedback as directional guidance, then re-record a cleaner single-run clip for a stronger read.',
+      hideScoreReason: 'The score is still visible, but the capture quality makes it less certain than usual.',
+    }
+  }
+
+  return {
+    title: 'Reliable review',
+    explanation: 'Tracking was stable enough for full scoring and detailed coaching.',
+    nextStep: 'Use the recap and metrics below to decide what to work on next.',
+    hideScoreReason: 'The score is safe to show for this run.',
+  }
 }
 
 // ── Human-readable metric labels ────────────────────────────
@@ -128,8 +228,8 @@ export function deduplicateTips(tips: CoachingTip[]): CoachingTip[] {
   return Array.from(seen.values())
 }
 
-// ── Gemini coaching types ─────────────────────────────────
-export interface GeminiCoachingPoint {
+// ── AI coaching types ─────────────────────────────────────
+export interface AiCoachingPoint {
   title: string
   feedback: string
   category: 'balance' | 'edging' | 'rhythm' | 'movement'
@@ -137,9 +237,9 @@ export interface GeminiCoachingPoint {
   recommended_drill_id: string | null
 }
 
-export interface GeminiCoaching {
+export interface AiCoaching {
   coach_summary: string
-  coaching_points: GeminiCoachingPoint[]
+  coaching_points: AiCoachingPoint[]
   additional_observations: string[]
 }
 
@@ -158,50 +258,50 @@ export function generateLimitations(summary: TechniqueRunSummary): ModelLimitati
 
   if (confidence < 0.70) {
     limitations.push({
-      title: 'Low pose confidence',
-      explanation: `Average pose confidence is ${(confidence * 100).toFixed(0)}%. Joint positions may be inaccurate — edge angles and body alignment readings could be off.`,
+      title: 'Tracking was unstable',
+      explanation: 'Some body positions were hard to follow consistently, so a few movement readings may be less precise than usual.',
     })
   }
 
   if (lowFrac > 0.20) {
     limitations.push({
-      title: 'Many low-confidence frames',
-      explanation: `${(lowFrac * 100).toFixed(0)}% of frames had low tracking confidence. Metrics from those sections are less reliable.`,
+      title: 'Parts of the run were hard to read',
+      explanation: 'The skier was only partially visible for parts of the clip, so those sections carry less weight in the recap.',
     })
   }
 
   if (segments.length > 1) {
     limitations.push({
-      title: 'Multiple tracking segments',
-      explanation: 'The video was split into separate tracking segments (possible scene cuts or occlusion). Cross-segment comparisons may not be meaningful.',
+      title: 'The clip included multiple sections',
+      explanation: 'This upload looks like more than one continuous run or camera segment, so comparisons across the whole clip are less useful.',
     })
   }
 
   if (warnings.some((w) => /occlu/i.test(w))) {
     limitations.push({
-      title: 'Occlusion detected',
-      explanation: 'Parts of the body were hidden from the camera at times. Metrics during those moments are estimated, not measured.',
+      title: 'The skier moved out of view',
+      explanation: 'When parts of the body disappear from frame, the recap becomes more directional than exact.',
     })
   }
 
   if (warnings.some((w) => /camera|angle|perspective/i.test(w))) {
     limitations.push({
-      title: 'Camera angle limitations',
-      explanation: 'The camera angle may have reduced accuracy for some measurements. Side or behind views give the best results.',
+      title: 'Camera angle limited the read',
+      explanation: 'Side or behind angles give the cleanest feedback. This angle reduced how much we could confidently judge.',
     })
   }
 
   if (warnings.some((w) => /scene.?cut/i.test(w))) {
     limitations.push({
-      title: 'Scene cuts detected',
-      explanation: 'The video contains cuts or transitions. Metrics may mix data from different runs or angles.',
+      title: 'Cuts interrupted the run',
+      explanation: 'A single uninterrupted clip works best. Edits or transitions make the recap less consistent.',
     })
   }
 
   // Always show this baseline caveat
   limitations.push({
-    title: 'Model sees numbers, not video',
-    explanation: 'Coaching feedback is generated from biomechanical metrics, not by watching your skiing. Some nuances (snow conditions, terrain, intent) are invisible to the model.',
+    title: 'What this review cannot judge',
+    explanation: 'This recap focuses on movement patterns. It cannot fully judge snow conditions, terrain, intent, or tactics from the clip alone.',
   })
 
   return limitations
@@ -229,7 +329,7 @@ export interface TechniqueDashboard {
     overallScore: number
     smoothnessScore: number | null
     edgeAngle: number
-    poseConfidence: number
+    clipQualityLabel: string
     turnsDetected: number
     bestTurnScore: number
   }
@@ -447,12 +547,12 @@ export function buildTechniqueDashboard(summary: TechniqueRunSummary): Technique
           fill: railPercent(smallerIsBetter(quietnessMean, 0.002, 0.02)),
         },
         {
-          label: 'Pose confidence',
-          value: `${poseConfidence.toFixed(0)}%`,
-          helper: 'A cleaner capture gives more reliable coaching feedback.',
-          leftLabel: 'Patchy',
-          rightLabel: 'Reliable',
-          fill: railPercent(positiveScore(poseConfidence, 55, 92)),
+          label: 'Best turn quality',
+          value: `${bestTurnScore}/100`,
+          helper: 'Your strongest turn shows the movement pattern that is already repeatable.',
+          leftLabel: 'Inconsistent',
+          rightLabel: 'Repeatable',
+          fill: railPercent(bestTurnScore),
         },
       ],
     },
@@ -479,7 +579,7 @@ export function buildTechniqueDashboard(summary: TechniqueRunSummary): Technique
       overallScore,
       smoothnessScore,
       edgeAngle,
-      poseConfidence,
+      clipQualityLabel: clipQualityLabel(reliability),
       turnsDetected: turns.length,
       bestTurnScore,
     },

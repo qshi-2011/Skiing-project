@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildTechniqueDashboard, type TechniqueRunSummary, type GeminiCoaching } from '@/lib/analysis-summary'
+import { type TechniqueRunSummary, type AiCoaching } from '@/lib/analysis-summary'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { createArtifactDownloadUrl, getDefaultR2ArtifactsBucket } from '@/lib/r2'
+import { computeSummaryScore, loadSummaryFromObjectPath } from '@/lib/server-job-data'
 
 function artifactStorageProvider(artifact: { meta?: Record<string, unknown> }) {
   return artifact.meta?.storage_provider === 'r2' ? 'r2' : 'supabase'
@@ -69,39 +70,30 @@ export async function GET(
   const summaryArtifact = (artifacts ?? []).find((artifact) => artifact.kind === 'summary_json')
 
   if (summaryArtifact) {
-    const { data: summaryFile } = await service.storage
-      .from('artifacts')
-      .download(summaryArtifact.object_path)
-
-    if (summaryFile) {
-      try {
-        summary = JSON.parse(await summaryFile.text()) as TechniqueRunSummary
-      } catch (error) {
-        console.error('summary parse error:', error)
-      }
-    }
+    summary = await loadSummaryFromObjectPath(service, summaryArtifact.object_path)
   }
 
-  // Fetch Gemini coaching JSON if available
-  let geminiCoaching: GeminiCoaching | null = null
-  const coachingArtifact = (artifacts ?? []).find((artifact) => artifact.kind === 'gemini_coaching')
+  // Fetch current AI coaching JSON if available, with legacy fallback.
+  let aiCoaching: AiCoaching | null = null
+  const coachingArtifact = (artifacts ?? []).find((artifact) => artifact.kind === 'ai_coaching')
+    ?? (artifacts ?? []).find((artifact) => artifact.kind === 'claude_coaching')
+    ?? (artifacts ?? []).find((artifact) => artifact.kind === 'gemini_coaching')
   if (coachingArtifact) {
     const { data: coachingFile } = await service.storage
       .from('artifacts')
       .download(coachingArtifact.object_path)
     if (coachingFile) {
       try {
-        geminiCoaching = JSON.parse(await coachingFile.text()) as GeminiCoaching
+        aiCoaching = JSON.parse(await coachingFile.text()) as AiCoaching
       } catch (error) {
-        console.error('gemini coaching parse error:', error)
+        console.error('ai coaching parse error:', error)
       }
     }
   }
 
   // Persist score if summary exists and job.score is not yet set
   if (summary && job.score == null && job.status === 'done') {
-    const dashboard = buildTechniqueDashboard(summary)
-    const computedScore = dashboard.overview.overallScore
+    const computedScore = computeSummaryScore(summary)
     if (Number.isFinite(computedScore)) {
       await service
         .from('jobs')
@@ -129,5 +121,5 @@ export async function GET(
     }
   }
 
-  return NextResponse.json({ job, artifacts: artifactsWithUrls, summary, previousScore, geminiCoaching })
+  return NextResponse.json({ job, artifacts: artifactsWithUrls, summary, previousScore, aiCoaching })
 }

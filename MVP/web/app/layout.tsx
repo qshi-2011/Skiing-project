@@ -31,14 +31,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <header className="site-topbar">
             <Link href="/" className="brand-lockup">
               <span className="brand-mark">S</span>
-              <span className="brand-wordmark">
-                <strong>SkiCoach AI</strong>
-              </span>
+              <span className="brand-wordmark">SkiCoach AI</span>
             </Link>
-            <span className="brand-sep" />
-            <span style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: 'var(--ink-muted)' }}>
-              Alpine Coach
-            </span>
 
             <NavLinks isAuthenticated={isAuthenticated} />
           </header>

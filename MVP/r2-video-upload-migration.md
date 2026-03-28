@@ -35,6 +35,9 @@ Example policy:
   {
     "AllowedOrigins": [
       "http://localhost:3000",
+      "http://localhost:3001",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:3001",
       "https://your-production-domain.com"
     ],
     "AllowedMethods": ["PUT", "GET", "HEAD"],
@@ -46,6 +49,12 @@ Example policy:
 ```
 
 Update the production origin before going live.
+
+If local uploads fail with a browser-side "Failed to fetch" error while the
+`/api/jobs/create` and `/api/jobs/upload-multipart` routes succeed, the bucket
+CORS policy is the first thing to check. The browser uploads directly to the
+presigned R2 URL, so the bucket must allow the exact origin you opened in the
+browser, including `localhost` vs `127.0.0.1` and the correct port.
 
 ## 4. Fill in environment variables
 

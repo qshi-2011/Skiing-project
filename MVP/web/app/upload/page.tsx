@@ -29,10 +29,10 @@ const PROGRESS: Record<Step, number> = {
 
 const LABEL: Record<Step, string> = {
   idle: '',
-  creating: 'Creating job…',
-  uploading: 'Uploading video…',
-  finalizing: 'Queuing analysis…',
-  done: 'Queued! Opening run…',
+  creating: 'Starting your analysis…',
+  uploading: 'Uploading your video…',
+  finalizing: 'Opening your recap…',
+  done: 'Upload complete. Opening your run…',
   error: '',
 }
 
@@ -66,6 +66,7 @@ export default function UploadPage() {
   const [cameraPerspective, setCameraPerspective] = useState('')
   const [sessionType, setSessionType] = useState('')
   const [uploadProgressPct, setUploadProgressPct] = useState(0)
+  const [uploadedBytes, setUploadedBytes] = useState(0)
   const [showQualityInfo, setShowQualityInfo] = useState(false)
 
   async function wait(ms: number) {
@@ -102,21 +103,27 @@ export default function UploadPage() {
     })
 
     if (!uploadUrl) {
-      throw new Error('Missing signed upload URL for multipart part')
+      throw new Error('Upload setup did not finish correctly. Please try again.')
     }
 
-    const res = await fetch(uploadUrl, {
-      method: 'PUT',
-      body: chunk,
-    })
+    let res: Response
+    try {
+      res = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: chunk,
+      })
+    } catch (error) {
+      void error
+      throw new Error('We lost the connection while uploading your video. Please try again. If this keeps happening, contact support.')
+    }
 
     if (!res.ok) {
-      throw new Error(`Part ${partNumber} upload failed with status ${res.status}`)
+      throw new Error('Part of the upload failed. Please try again.')
     }
 
     const eTag = res.headers.get('etag')
     if (!eTag) {
-      throw new Error(`Part ${partNumber} upload succeeded but no ETag was returned`)
+      throw new Error('The upload finished with missing confirmation data. Please try again.')
     }
 
     return eTag
@@ -143,7 +150,7 @@ export default function UploadPage() {
 
     throw lastError instanceof Error
       ? lastError
-      : new Error(`Part ${partNumber} upload failed after ${PART_UPLOAD_RETRIES} attempts`)
+      : new Error('The upload did not finish after several attempts. Please try again.')
   }
 
   async function uploadMultipartFile(file: File, upload: CreateJobResponse) {
@@ -156,6 +163,7 @@ export default function UploadPage() {
 
     const markChunkComplete = (chunkSize: number) => {
       uploadedBytes += chunkSize
+      setUploadedBytes(uploadedBytes)
       setUploadProgressPct(Math.min(100, Math.round((uploadedBytes / file.size) * 100)))
     }
 
@@ -201,6 +209,7 @@ export default function UploadPage() {
     if (!file) return
     setError(null)
     setUploadProgressPct(0)
+    setUploadedBytes(0)
 
     try {
       setStep('creating')
@@ -217,8 +226,7 @@ export default function UploadPage() {
         }),
       })
       if (!createRes.ok) {
-        const { error: msg } = await createRes.json()
-        throw new Error(msg ?? 'Failed to create job')
+        throw new Error('We could not start this upload. Please try again.')
       }
       const upload = await createRes.json() as CreateJobResponse
 
@@ -232,12 +240,11 @@ export default function UploadPage() {
         body: JSON.stringify({ jobId: upload.jobId }),
       })
       if (!markRes.ok) {
-        const { error: msg } = await markRes.json()
-        throw new Error(msg ?? 'Failed to queue job')
+        throw new Error('Your video uploaded, but we could not start the recap. Please try again.')
       }
 
       setStep('done')
-      setTimeout(() => router.push(`/jobs/${upload.jobId}`), 800)
+      setTimeout(() => router.push(`/jobs/${upload.jobId}?fromUpload=1`), 800)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
       setStep('error')
@@ -250,6 +257,7 @@ export default function UploadPage() {
     setStep('idle')
     setError(null)
     setUploadProgressPct(0)
+    setUploadedBytes(0)
   }
 
   const busy = step !== 'idle' && step !== 'done' && step !== 'error'
@@ -257,8 +265,11 @@ export default function UploadPage() {
   const progressWidth = step === 'uploading'
     ? Math.max(PROGRESS.creating, Math.min(85, 15 + uploadProgressPct * 0.7))
     : PROGRESS[step]
+  const uploadSizeLabel = file
+    ? `${(uploadedBytes / 1024 / 1024).toFixed(1)} / ${(file.size / 1024 / 1024).toFixed(1)} MB`
+    : null
   const progressLabel = step === 'uploading'
-    ? `${LABEL.uploading} ${uploadProgressPct}%`
+    ? `${LABEL.uploading} ${uploadProgressPct}%${uploadSizeLabel ? ` · ${uploadSizeLabel}` : ''}`
     : LABEL[step]
 
   return (
@@ -276,21 +287,21 @@ export default function UploadPage() {
               <span className="preflight-number">01</span>
               <div>
                 <h4>One skier in frame</h4>
-                <p>AI tracking requires a clear focus on a single subject.</p>
+                <p>Keep the shot centered on one skier for the clearest recap.</p>
               </div>
             </div>
             <div className="preflight-item">
               <span className="preflight-number">02</span>
               <div>
                 <h4>One continuous run</h4>
-                <p>Avoid cuts or montage editing for accurate telemetry.</p>
+                <p>Avoid cuts or montage edits so we can review one clean run from start to finish.</p>
               </div>
             </div>
             <div className="preflight-item">
               <span className="preflight-number">03</span>
               <div>
                 <h4>Side or behind angle</h4>
-                <p>Optimal for detecting hip placement and edge angles.</p>
+                <p>Side or behind angles give the clearest coaching read.</p>
               </div>
             </div>
           </div>
@@ -308,11 +319,20 @@ export default function UploadPage() {
                 </h1>
               </div>
               <span className="status-pill" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
-                Worker queue
+                Upload ready
               </span>
             </div>
 
             <form onSubmit={handleUpload} className="mt-6 space-y-5">
+              {(busy || step === 'done') && (
+                <div className="space-y-2">
+                  <div className="progress-track">
+                    <div className="progress-fill transition-all duration-500" style={{ width: `${progressWidth}%` }} />
+                  </div>
+                  <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
+                </div>
+              )}
+
               <div
                 onClick={() => !busy && fileRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setDragOver(true) }}
@@ -429,15 +449,6 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              {(busy || step === 'done') && (
-                <div className="space-y-2">
-                  <div className="progress-track">
-                    <div className="progress-fill transition-all duration-500" style={{ width: `${progressWidth}%` }} />
-                  </div>
-                  <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
-                </div>
-              )}
-
               {error && (
                 <div
                   className="rounded-2xl px-4 py-3 text-sm"
@@ -452,7 +463,7 @@ export default function UploadPage() {
                 disabled={!file || busy || step === 'done'}
                 className="cta-primary w-full"
               >
-                {busy ? LABEL[step] : 'Start analysis'}
+                {busy ? LABEL[step] : 'Upload and analyze run'}
               </button>
             </form>
           </section>
@@ -464,7 +475,7 @@ export default function UploadPage() {
                 Turn a raw clip into a sharper practice session.
               </h2>
               <p className="section-copy mt-3">
-                One upload creates a job, queues the worker, and opens a run-detail page with overlay video, key moments, and recap-ready artifacts.
+                One upload opens a run review page with your overlay video, key moments, and coaching results as they finish processing.
               </p>
             </div>
 
@@ -479,7 +490,7 @@ export default function UploadPage() {
               <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
                 <span className="step-number">02</span>
                 <p className="text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
-                  We queue overlay render, peak moments, and summary artifacts.
+                  We analyze the run, build the overlay, and prepare your recap.
                 </p>
               </div>
               <div className="surface-card-muted px-4 py-3 flex items-start gap-4">
@@ -512,7 +523,7 @@ export default function UploadPage() {
                     <strong>Low-quality clips</strong> (shaky footage, multiple skiers, scene cuts, bad angles) will still produce results, but the analysis will be marked as <em>limited review</em>.
                   </p>
                   <p className="mt-2">
-                    The score may be hidden and coaching tips will be flagged as directional rather than definitive. For the best results, follow the preflight checklist above.
+                    The score may be hidden and the coaching will be framed as directional instead of definitive. For the best results, follow the checklist above and keep the clip simple and steady.
                   </p>
                 </div>
               )}
@@ -524,12 +535,12 @@ export default function UploadPage() {
                 <p className="metric-label">Continuous clip</p>
               </div>
               <div className="metric-tile">
-                <p className="metric-value">R2</p>
-                <p className="metric-label">Direct cloud upload</p>
+                <p className="metric-value">Fast</p>
+                <p className="metric-label">Secure upload</p>
               </div>
               <div className="metric-tile">
                 <p className="metric-value">3</p>
-                <p className="metric-label">Output artifacts</p>
+                <p className="metric-label">Review steps</p>
               </div>
             </div>
           </section>

@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type { Job, JobStatus } from '@/lib/types'
 import { scoreLabel } from '@/lib/analysis-summary'
+import { backfillMissingScores } from '@/lib/server-job-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,7 @@ export default async function ProfilePage() {
 
   const runs = (jobs ?? []) as Job[]
   const completedRuns = runs.filter((j) => j.status === 'done')
+  await backfillMissingScores(createServiceClient(), completedRuns)
   const scoredRuns = completedRuns.filter((j) => j.score != null) as (Job & { score: number })[]
   const avgScore = scoredRuns.length
     ? Math.round(scoredRuns.reduce((s, j) => s + j.score, 0) / scoredRuns.length)

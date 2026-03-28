@@ -1,9 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createArtifactDownloadUrl, getDefaultR2ArtifactsBucket } from '@/lib/r2'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Job, JobStatus } from '@/lib/types'
 import { groupBySeason } from '@/lib/seasons'
-import { scoreLabel } from '@/lib/analysis-summary'
+import { backfillMissingScores } from '@/lib/server-job-data'
+import { ArchiveRunsClient, type ArchiveRunItem } from '@/components/archive-runs-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,19 +13,48 @@ const STATUS_CONFIG: Record<JobStatus, { label: string; dot: string; pill: strin
   created:  { label: 'Created',   dot: 'var(--ink-muted)',  pill: 'rgba(0,0,0,0.04)' },
   uploaded: { label: 'Uploaded',  dot: 'var(--accent)',     pill: 'var(--accent-dim)' },
   queued:   { label: 'Queued',    dot: 'var(--gold)',       pill: 'var(--gold-dim)' },
-  running:  { label: 'Analysing', dot: 'var(--accent)',     pill: 'var(--accent-dim)' },
+  running:  { label: 'Analyzing', dot: 'var(--accent)',     pill: 'var(--accent-dim)' },
   done:     { label: 'Done',      dot: 'var(--success)',    pill: 'var(--success-dim)' },
   error:    { label: 'Error',     dot: 'var(--danger)',     pill: 'var(--danger-dim)' },
 }
 
-function levelBadgeClass(label: string) {
-  switch (label) {
-    case 'Focus': return 'level-badge level-badge--focus'
-    case 'Building': return 'level-badge level-badge--building'
-    case 'Good': return 'level-badge level-badge--good'
-    case 'Dialed': return 'level-badge level-badge--dialed'
-    default: return 'level-badge level-badge--building'
+interface PreviewArtifact {
+  job_id: string
+  kind: string
+  object_path: string
+  meta?: Record<string, unknown>
+}
+
+function artifactStorageProvider(artifact: { meta?: Record<string, unknown> }) {
+  return artifact.meta?.storage_provider === 'r2' ? 'r2' : 'supabase'
+}
+
+function artifactStorageBucket(artifact: { meta?: Record<string, unknown> }) {
+  const metaBucket = artifact.meta?.storage_bucket
+  return typeof metaBucket === 'string' && metaBucket ? metaBucket : getDefaultR2ArtifactsBucket()
+}
+
+function sessionTypeLabel(value: unknown) {
+  if (typeof value !== 'string' || !value) return null
+
+  const labels: Record<string, string> = {
+    free_skiing: 'Free skiing',
+    slalom: 'Slalom',
+    giant_slalom: 'Giant slalom',
+    super_g: 'Super-G',
+    training_drill: 'Training drill',
+    other: 'Other',
   }
+
+  return labels[value] ?? value.replace(/_/g, ' ')
+}
+
+function runTitle(job: Job) {
+  return (
+    String(job.config?.original_filename ?? '') ||
+    job.video_object_path?.split('/').pop() ||
+    job.id.slice(0, 8)
+  )
 }
 
 export default async function ArchivePage() {
@@ -33,6 +64,8 @@ export default async function ArchivePage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const service = createServiceClient()
+
   const { data: jobs } = await supabase
     .from('jobs')
     .select('*')
@@ -40,13 +73,72 @@ export default async function ArchivePage() {
 
   const runs = (jobs ?? []) as Job[]
   const completedRuns = runs.filter((job) => job.status === 'done')
+  await backfillMissingScores(service, completedRuns)
 
   const seasonGroups = groupBySeason(runs)
-
-  const scoredRuns = completedRuns.filter((j) => j.score != null) as (Job & { score: number })[]
+  const scoredRuns = completedRuns.filter((job): job is Job & { score: number } => job.score != null)
   const avgScore = scoredRuns.length
-    ? Math.round(scoredRuns.reduce((sum, j) => sum + j.score, 0) / scoredRuns.length)
+    ? Math.round(scoredRuns.reduce((sum, job) => sum + job.score, 0) / scoredRuns.length)
     : null
+
+  const previewByJob = new Map<string, PreviewArtifact>()
+  if (runs.length) {
+    const { data: artifacts } = await service
+      .from('artifacts')
+      .select('job_id, kind, object_path, meta')
+      .in('job_id', runs.map((run) => run.id))
+      .in('kind', ['cool_moment_photo', 'peak_pressure_frame', 'peak_pressure_frame_enhanced'])
+      .order('created_at')
+
+    for (const artifact of (artifacts ?? []) as PreviewArtifact[]) {
+      const current = previewByJob.get(artifact.job_id)
+      if (!current) {
+        previewByJob.set(artifact.job_id, artifact)
+        continue
+      }
+      if (current.kind !== 'cool_moment_photo' && artifact.kind === 'cool_moment_photo') {
+        previewByJob.set(artifact.job_id, artifact)
+      }
+    }
+  }
+
+  const previewUrlByJob = new Map<string, string>()
+  await Promise.all(Array.from(previewByJob.values()).map(async (artifact) => {
+    if (artifactStorageProvider(artifact) === 'r2') {
+      previewUrlByJob.set(
+        artifact.job_id,
+        await createArtifactDownloadUrl(artifact.object_path, artifactStorageBucket(artifact)),
+      )
+      return
+    }
+
+    const { data } = await service.storage
+      .from('artifacts')
+      .createSignedUrl(artifact.object_path, 3600)
+
+    if (data?.signedUrl) {
+      previewUrlByJob.set(artifact.job_id, data.signedUrl)
+    }
+  }))
+
+  const archiveRuns: ArchiveRunItem[] = runs.map((job) => {
+    const date = new Date(job.created_at)
+    const sessionType = sessionTypeLabel(job.config?.session_type)
+
+    return {
+      id: job.id,
+      created_at: job.created_at,
+      status: job.status,
+      statusLabel: STATUS_CONFIG[job.status].label,
+      statusDot: STATUS_CONFIG[job.status].dot,
+      statusPill: STATUS_CONFIG[job.status].pill,
+      title: runTitle(job),
+      subtitle: `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${sessionType ? ` · ${sessionType}` : ''}`,
+      score: job.score,
+      previewUrl: previewUrlByJob.get(job.id) ?? null,
+      sessionType,
+    }
+  })
 
   return (
     <>
@@ -65,12 +157,12 @@ export default async function ArchivePage() {
               <span className="eyebrow">Run archive</span>
               <h1 className="section-title mt-6">Every session, captured and ready to revisit.</h1>
               <p className="section-copy mt-4 max-w-xl">
-                Your full history of uploaded runs, grouped by ski season. Tap into any recap to review technique scores, key moments, and coaching feedback.
+                Your full history of uploaded runs, grouped by ski season. Search, filter, and compare recaps without guessing which repeated filename is which.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/upload" className="cta-primary">
-                  Analyse a new run
+                  Analyze a new run
                 </Link>
                 <Link href="/" className="cta-secondary">
                   Back to coaching hub
@@ -118,116 +210,7 @@ export default async function ArchivePage() {
             </div>
           </section>
         ) : (
-          seasonGroups.map((group) => {
-            const groupScored = group.runs.filter(
-              (j): j is Job & { score: number } => (j as Job).status === 'done' && (j as Job).score != null,
-            )
-            const groupAvg = groupScored.length
-              ? Math.round(groupScored.reduce((s, j) => s + j.score, 0) / groupScored.length)
-              : null
-            const groupBest = groupScored.length ? Math.max(...groupScored.map((j) => j.score)) : null
-
-            return (
-              <section key={group.label} className="surface-card p-6">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>
-                        {group.runs.length} {group.runs.length === 1 ? 'run' : 'runs'}
-                      </p>
-                      <h2 className="mt-1" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                        {group.label}
-                      </h2>
-                    </div>
-                    {groupAvg != null && (
-                      <span className={levelBadgeClass(scoreLabel(groupAvg))} style={{ marginLeft: '0.5rem' }}>
-                        {scoreLabel(groupAvg)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {groupAvg != null && (
-                      <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                        Avg <span className="font-bold" style={{ color: 'var(--accent)' }}>{groupAvg}</span>
-                      </span>
-                    )}
-                    {groupBest != null && (
-                      <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                        Best <span className="font-bold" style={{ color: 'var(--success)' }}>{groupBest}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mt-5">
-                  {group.runs.map((run) => {
-                    const job = run as Job
-                    const cfg = STATUS_CONFIG[job.status as JobStatus]
-                    const filename =
-                      String(job.config?.original_filename ?? '') ||
-                      job.video_object_path?.split('/').pop() ||
-                      job.id.slice(0, 8)
-                    const isRunning = job.status === 'running' || job.status === 'queued'
-
-                    return (
-                      <li key={job.id}>
-                        <Link
-                          href={`/jobs/${job.id}`}
-                          className="surface-card-muted flex items-center gap-4 px-5 py-4 group hover:-translate-y-0.5"
-                          style={{ display: 'flex', transition: 'transform 150ms ease, background 0.15s ease, border-color 0.15s ease' }}
-                        >
-                          <div
-                            className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center"
-                            style={{ background: cfg.pill }}
-                          >
-                            {isRunning ? (
-                              <div
-                                className="w-2.5 h-2.5 rounded-full animate-pulse"
-                                style={{ background: cfg.dot }}
-                              />
-                            ) : (
-                              <div className="w-2.5 h-2.5 rounded-full" style={{ background: cfg.dot }} />
-                            )}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink-strong)' }}>{filename}</p>
-                            <p className="text-xs mt-1" style={{ color: 'var(--ink-soft)' }}>
-                              {new Date(job.created_at).toLocaleString()}
-                            </p>
-                          </div>
-
-                          {job.score != null && (
-                            <span className="text-sm font-bold shrink-0" style={{ color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>
-                              {job.score}
-                            </span>
-                          )}
-
-                          <span
-                            className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full"
-                            style={{ background: cfg.pill, color: cfg.dot }}
-                          >
-                            {cfg.label}
-                          </span>
-
-                          <svg
-                            width="14" height="14"
-                            viewBox="0 0 24 24" fill="none"
-                            stroke="var(--ink-muted)"
-                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                            className="shrink-0 group-hover:translate-x-0.5"
-                            style={{ transition: 'transform 150ms, stroke 150ms' }}
-                          >
-                            <path d="M9 18l6-6-6-6"/>
-                          </svg>
-                        </Link>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </section>
-            )
-          })
+          <ArchiveRunsClient runs={archiveRuns} />
         )}
       </div>
     </>
