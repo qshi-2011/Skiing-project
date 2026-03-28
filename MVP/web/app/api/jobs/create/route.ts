@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { displayNameFromFilename } from '@/lib/job-ui'
 import { createMultipartVideoUpload, VIDEO_STORAGE_PROVIDER } from '@/lib/r2'
 
 const MIN_MULTIPART_PART_SIZE_BYTES = 5 * 1024 * 1024
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
 
   const config: Record<string, unknown> = {
     original_filename: filename,
+    display_name: displayNameFromFilename(filename),
     video_storage_provider: VIDEO_STORAGE_PROVIDER,
     video_content_type: normalizedContentType,
     video_file_size_bytes: normalizedFileSize,

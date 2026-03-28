@@ -1,38 +1,14 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { createArtifactDownloadUrl, getDefaultR2ArtifactsBucket } from '@/lib/r2'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Job, JobStatus } from '@/lib/types'
+import { Job } from '@/lib/types'
 import { groupBySeason } from '@/lib/seasons'
-import { backfillMissingScores } from '@/lib/server-job-data'
+import { backfillMissingScores, loadPreviewUrlsForJobIds, resolveJobPresentation } from '@/lib/server-job-data'
+import { getJobDisplayName, getJobUserNote, getJobOriginalFilename, getJobSearchText } from '@/lib/job-ui'
+import { RunMetadataEditor } from '@/components/run-metadata-editor'
 import { ArchiveRunsClient, type ArchiveRunItem } from '@/components/archive-runs-client'
 
 export const dynamic = 'force-dynamic'
-
-const STATUS_CONFIG: Record<JobStatus, { label: string; dot: string; pill: string }> = {
-  created:  { label: 'Created',   dot: 'var(--ink-muted)',  pill: 'rgba(0,0,0,0.04)' },
-  uploaded: { label: 'Uploaded',  dot: 'var(--accent)',     pill: 'var(--accent-dim)' },
-  queued:   { label: 'Queued',    dot: 'var(--gold)',       pill: 'var(--gold-dim)' },
-  running:  { label: 'Analyzing', dot: 'var(--accent)',     pill: 'var(--accent-dim)' },
-  done:     { label: 'Done',      dot: 'var(--success)',    pill: 'var(--success-dim)' },
-  error:    { label: 'Error',     dot: 'var(--danger)',     pill: 'var(--danger-dim)' },
-}
-
-interface PreviewArtifact {
-  job_id: string
-  kind: string
-  object_path: string
-  meta?: Record<string, unknown>
-}
-
-function artifactStorageProvider(artifact: { meta?: Record<string, unknown> }) {
-  return artifact.meta?.storage_provider === 'r2' ? 'r2' : 'supabase'
-}
-
-function artifactStorageBucket(artifact: { meta?: Record<string, unknown> }) {
-  const metaBucket = artifact.meta?.storage_bucket
-  return typeof metaBucket === 'string' && metaBucket ? metaBucket : getDefaultR2ArtifactsBucket()
-}
 
 function sessionTypeLabel(value: unknown) {
   if (typeof value !== 'string' || !value) return null
@@ -49,15 +25,11 @@ function sessionTypeLabel(value: unknown) {
   return labels[value] ?? value.replace(/_/g, ' ')
 }
 
-function runTitle(job: Job) {
-  return (
-    String(job.config?.original_filename ?? '') ||
-    job.video_object_path?.split('/').pop() ||
-    job.id.slice(0, 8)
-  )
-}
-
-export default async function ArchivePage() {
+export default async function ArchivePage({
+  searchParams,
+}: {
+  searchParams?: { edit?: string | string[] }
+}) {
   const supabase = createClient()
   const {
     data: { user },
@@ -80,78 +52,48 @@ export default async function ArchivePage() {
   const avgScore = scoredRuns.length
     ? Math.round(scoredRuns.reduce((sum, job) => sum + job.score, 0) / scoredRuns.length)
     : null
-
-  const previewByJob = new Map<string, PreviewArtifact>()
-  if (runs.length) {
-    const { data: artifacts } = await service
-      .from('artifacts')
-      .select('job_id, kind, object_path, meta')
-      .in('job_id', runs.map((run) => run.id))
-      .in('kind', ['cool_moment_photo', 'peak_pressure_frame', 'peak_pressure_frame_enhanced'])
-      .order('created_at')
-
-    for (const artifact of (artifacts ?? []) as PreviewArtifact[]) {
-      const current = previewByJob.get(artifact.job_id)
-      if (!current) {
-        previewByJob.set(artifact.job_id, artifact)
-        continue
-      }
-      if (current.kind !== 'cool_moment_photo' && artifact.kind === 'cool_moment_photo') {
-        previewByJob.set(artifact.job_id, artifact)
-      }
-    }
-  }
-
-  const previewUrlByJob = new Map<string, string>()
-  await Promise.all(Array.from(previewByJob.values()).map(async (artifact) => {
-    if (artifactStorageProvider(artifact) === 'r2') {
-      previewUrlByJob.set(
-        artifact.job_id,
-        await createArtifactDownloadUrl(artifact.object_path, artifactStorageBucket(artifact)),
-      )
-      return
-    }
-
-    const { data } = await service.storage
-      .from('artifacts')
-      .createSignedUrl(artifact.object_path, 3600)
-
-    if (data?.signedUrl) {
-      previewUrlByJob.set(artifact.job_id, data.signedUrl)
-    }
-  }))
+  const previewUrlByJob = await loadPreviewUrlsForJobIds(service, runs.map((run) => run.id))
+  const initialEditJobId =
+    typeof searchParams?.edit === 'string'
+      ? searchParams.edit
+      : Array.isArray(searchParams?.edit)
+        ? searchParams.edit[0] ?? null
+        : null
+  const selectedRun = initialEditJobId
+    ? runs.find((run) => run.id === initialEditJobId) ?? runs[0] ?? null
+    : runs[0] ?? null
 
   const archiveRuns: ArchiveRunItem[] = runs.map((job) => {
     const date = new Date(job.created_at)
     const sessionType = sessionTypeLabel(job.config?.session_type)
+    const displayName = getJobDisplayName(job)
+    const presentation = resolveJobPresentation(job)
 
     return {
       id: job.id,
       created_at: job.created_at,
       status: job.status,
-      statusLabel: STATUS_CONFIG[job.status].label,
-      statusDot: STATUS_CONFIG[job.status].dot,
-      statusPill: STATUS_CONFIG[job.status].pill,
-      title: runTitle(job),
+      statusLabel: presentation.label,
+      statusHelper: presentation.helper,
+      statusTone: presentation.tone,
+      statusDot: presentation.dot,
+      statusPill: presentation.pill,
+      canRetry: presentation.retryable,
+      actionLabel: presentation.actionLabel,
+      displayName,
+      originalFilename: getJobOriginalFilename(job),
+      userNote: getJobUserNote(job),
       subtitle: `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${sessionType ? ` · ${sessionType}` : ''}`,
       score: job.score,
       previewUrl: previewUrlByJob.get(job.id) ?? null,
       sessionType,
+      searchText: getJobSearchText(job),
     }
   })
 
   return (
-    <>
-      <div className="route-bg route-bg--archive" />
-      <div className="space-y-6">
+    <div className="space-y-6">
         <section className="surface-card p-8 lg:p-10">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/alpine/hero-corduroy.jpg"
-            alt="Freshly groomed corduroy slope"
-            className="hero-photo mb-6"
-            style={{ height: '160px' }}
-          />
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <span className="eyebrow">Run archive</span>
@@ -170,23 +112,47 @@ export default async function ArchivePage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="metric-tile">
-                <p className="metric-value">{runs.length}</p>
-                <p className="metric-label">Total runs in archive</p>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="metric-tile">
+                  <p className="metric-value">{runs.length}</p>
+                  <p className="metric-label">Total runs in archive</p>
+                </div>
+                <div className="metric-tile">
+                  <p className="metric-value">{completedRuns.length}</p>
+                  <p className="metric-label">Completed recaps</p>
+                </div>
+                <div className="metric-tile">
+                  <p className="metric-value">{avgScore ?? '—'}</p>
+                  <p className="metric-label">Average score</p>
+                </div>
+                <div className="metric-tile">
+                  <p className="metric-value">{seasonGroups.length}</p>
+                  <p className="metric-label">{seasonGroups.length === 1 ? 'Season' : 'Seasons'} tracked</p>
+                </div>
               </div>
-              <div className="metric-tile">
-                <p className="metric-value">{completedRuns.length}</p>
-                <p className="metric-label">Completed recaps</p>
-              </div>
-              <div className="metric-tile">
-                <p className="metric-value">{avgScore ?? '—'}</p>
-                <p className="metric-label">Average score</p>
-              </div>
-              <div className="metric-tile">
-                <p className="metric-value">{seasonGroups.length}</p>
-                <p className="metric-label">{seasonGroups.length === 1 ? 'Season' : 'Seasons'} tracked</p>
-              </div>
+
+              {selectedRun && (
+                <div className="surface-card-muted p-5">
+                  <p className="section-label">Edit run details</p>
+                  <p className="mt-2 text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
+                    {getJobDisplayName(selectedRun)}
+                  </p>
+                  {getJobUserNote(selectedRun) && (
+                    <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>
+                      {getJobUserNote(selectedRun)}
+                    </p>
+                  )}
+                  <div className="mt-4">
+                    <RunMetadataEditor
+                      jobId={selectedRun.id}
+                      initialDisplayName={getJobDisplayName(selectedRun)}
+                      initialUserNote={getJobUserNote(selectedRun)}
+                      defaultEditing={Boolean(initialEditJobId)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -210,9 +176,8 @@ export default async function ArchivePage() {
             </div>
           </section>
         ) : (
-          <ArchiveRunsClient runs={archiveRuns} />
+          <ArchiveRunsClient runs={archiveRuns} initialEditJobId={initialEditJobId} />
         )}
-      </div>
-    </>
+    </div>
   )
 }

@@ -1,29 +1,15 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import type { Job, JobStatus } from '@/lib/types'
+import type { Job } from '@/lib/types'
 import { scoreLabel } from '@/lib/analysis-summary'
-import { backfillMissingScores } from '@/lib/server-job-data'
+import { backfillMissingScores, loadPreviewUrlsForJobIds, resolveJobPresentation } from '@/lib/server-job-data'
+import { getJobDisplayName, getJobUserNote, getJobOriginalFilename } from '@/lib/job-ui'
+import { ScoreTrendCard } from '@/components/score-trend-card'
+import { RunMetadataEditor } from '@/components/run-metadata-editor'
+import { JobRetryAction } from '@/components/job-retry-action'
 
 export const dynamic = 'force-dynamic'
-
-const STATUS_DOT: Record<JobStatus, string> = {
-  created: 'var(--ink-muted)',
-  uploaded: 'var(--accent)',
-  queued: 'var(--gold)',
-  running: 'var(--accent)',
-  done: 'var(--success)',
-  error: 'var(--danger)',
-}
-
-const STATUS_LABEL: Record<JobStatus, string> = {
-  created: 'Created',
-  uploaded: 'Uploaded',
-  queued: 'Queued',
-  running: 'Analysing',
-  done: 'Done',
-  error: 'Error',
-}
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -33,19 +19,24 @@ export default async function ProfilePage() {
 
   if (!user) redirect('/login')
 
+  const service = createServiceClient()
   const { data: jobs } = await supabase
     .from('jobs')
     .select('*')
     .order('created_at', { ascending: false })
 
   const runs = (jobs ?? []) as Job[]
-  const completedRuns = runs.filter((j) => j.status === 'done')
-  await backfillMissingScores(createServiceClient(), completedRuns)
-  const scoredRuns = completedRuns.filter((j) => j.score != null) as (Job & { score: number })[]
+  const completedRuns = runs.filter((job) => job.status === 'done')
+  await backfillMissingScores(service, completedRuns)
+  const scoredRuns = completedRuns.filter((job): job is Job & { score: number } => job.score != null)
   const avgScore = scoredRuns.length
-    ? Math.round(scoredRuns.reduce((s, j) => s + j.score, 0) / scoredRuns.length)
+    ? Math.round(scoredRuns.reduce((sum, job) => sum + job.score, 0) / scoredRuns.length)
     : null
-  const bestScore = scoredRuns.length ? Math.max(...scoredRuns.map((j) => j.score)) : null
+  const bestScore = scoredRuns.length ? Math.max(...scoredRuns.map((job) => job.score)) : null
+  const latestCompleted = completedRuns[0] ?? null
+  const bestRun = scoredRuns.length
+    ? scoredRuns.reduce((best, run) => (best == null || run.score > best.score ? run : best), null as (Job & { score: number }) | null)
+    : null
 
   const displayName = user.email?.split('@')[0] ?? 'Athlete'
   const initials = displayName.slice(0, 2).toUpperCase()
@@ -54,138 +45,209 @@ export default async function ProfilePage() {
     year: 'numeric',
   })
 
-  return (
-    <>
-      <div className="route-bg route-bg--dashboard" />
-      <div className="space-y-6">
+  const recentRuns = runs.slice(0, 8)
+  const previewUrlByJob = await loadPreviewUrlsForJobIds(service, recentRuns.map((job) => job.id))
 
-        {/* ── Profile header ───────────────────────────── */}
-        <section className="surface-card p-8 lg:p-10">
-          <div className="flex items-center gap-5">
-            {/* Avatar */}
-            <div
-              className="shrink-0 flex items-center justify-center rounded-full"
-              style={{
-                width: '5rem',
-                height: '5rem',
-                background: 'var(--accent)',
-                color: '#fff',
-                fontSize: '1.6rem',
-                fontWeight: 800,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {initials}
+  return (
+    <div className="space-y-6">
+      <section className="surface-card p-8 lg:p-10">
+        <div className="grid gap-6 lg:grid-cols-[auto_1fr_auto] lg:items-center">
+          <div
+            className="shrink-0 flex items-center justify-center rounded-full"
+            style={{
+              width: '5rem',
+              height: '5rem',
+              background: 'var(--accent)',
+              color: '#fff',
+              fontSize: '1.6rem',
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {initials}
+          </div>
+          <div>
+            <p className="section-label">Profile</p>
+            <h1 className="mt-2" style={{ fontSize: 'clamp(1.5rem, 2.4vw, 2.2rem)', fontWeight: 800, color: 'var(--ink-strong)', letterSpacing: '-0.03em' }}>
+              {displayName}
+            </h1>
+            <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
+              {user.email}
+            </p>
+            <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>
+              Member since {memberSince}
+            </p>
+          </div>
+          <Link href="/upload" className="cta-primary" style={{ padding: '0.75rem 1.1rem', fontSize: '0.85rem' }}>
+            Upload new run
+          </Link>
+        </div>
+      </section>
+
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="metric-tile">
+          <p className="metric-value">{runs.length}</p>
+          <p className="metric-label">Total runs</p>
+        </div>
+        <div className="metric-tile">
+          <p className="metric-value">{completedRuns.length}</p>
+          <p className="metric-label">Completed recaps</p>
+        </div>
+        <div className="metric-tile">
+          <p className="metric-value">{avgScore ?? '—'}</p>
+          <p className="metric-label">Average score</p>
+        </div>
+        <div className="metric-tile metric-tile--high">
+          <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
+          <p className="metric-value" style={{ color: 'var(--accent)' }}>{bestScore ?? '—'}</p>
+          <p className="metric-label">Best score</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <ScoreTrendCard
+          runs={scoredRuns}
+          title="Progress over time"
+          subtitle="Track your last 10 scored runs and look for steady gains, not just one standout day."
+        />
+
+        <section className="surface-card p-6">
+          <p className="section-label">Personal summary</p>
+          <div className="mt-4 space-y-4">
+            <div className="surface-card-muted p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-muted)' }}>
+                Latest completed run
+              </p>
+              <p className="mt-2 text-base font-semibold" style={{ color: 'var(--ink-strong)' }}>
+                {latestCompleted ? getJobDisplayName(latestCompleted) : 'No completed runs yet'}
+              </p>
+              {latestCompleted && (
+                <div className="mt-2 space-y-3">
+                  <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+                    {latestCompleted.score != null
+                      ? `Scored ${latestCompleted.score} and ready to compare against your next session.`
+                      : 'Ready to review in the run archive.'}
+                  </p>
+                  <RunMetadataEditor
+                    jobId={latestCompleted.id}
+                    initialDisplayName={getJobDisplayName(latestCompleted)}
+                    initialUserNote={getJobUserNote(latestCompleted)}
+                  />
+                </div>
+              )}
             </div>
-            <div>
-              <h1 style={{ fontSize: 'clamp(1.4rem, 2vw, 2rem)', fontWeight: 800, color: 'var(--ink-strong)', letterSpacing: '-0.03em' }}>
-                {displayName}
-              </h1>
-              <p className="mt-1 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                {user.email}
+            <div className="surface-card-muted p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-muted)' }}>
+                Best run so far
               </p>
-              <p className="mt-0.5 text-xs" style={{ color: 'var(--ink-muted)' }}>
-                Member since {memberSince}
+              <p className="mt-2 text-base font-semibold" style={{ color: 'var(--ink-strong)' }}>
+                {bestRun ? getJobDisplayName(bestRun) : 'No scored runs yet'}
               </p>
+              {bestRun && (
+                <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
+                  Peak score {bestRun.score} · {scoreLabel(bestRun.score)}
+                </p>
+              )}
             </div>
           </div>
         </section>
+      </div>
 
-        {/* ── Stats row ────────────────────────────────── */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <div className="metric-tile">
-            <p className="metric-value">{runs.length}</p>
-            <p className="metric-label">Total runs</p>
+      <section className="surface-card p-6 lg:p-8">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="section-label">Run history</p>
+            <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
+              Recent sessions
+            </h2>
           </div>
-          <div className="metric-tile">
-            <p className="metric-value">{completedRuns.length}</p>
-            <p className="metric-label">Completed</p>
-          </div>
-          <div className="metric-tile">
-            <p className="metric-value">{avgScore ?? '—'}</p>
-            <p className="metric-label">Average score</p>
-          </div>
-          <div className="metric-tile metric-tile--high">
-            <div className="metric-tile-dot" style={{ background: 'var(--accent)' }} />
-            <p className="metric-value" style={{ color: 'var(--accent)' }}>{bestScore ?? '—'}</p>
-            <p className="metric-label">Best score</p>
-          </div>
+          <Link href="/jobs" className="cta-secondary" style={{ padding: '0.6rem 1rem', fontSize: '0.82rem' }}>
+            Open archive
+          </Link>
         </div>
 
-        {/* ── Run history ──────────────────────────────── */}
-        <section className="surface-card p-6 lg:p-8">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <p className="section-label">Run History</p>
-              <h2 className="mt-2" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--ink-strong)' }}>
-                All your analysis runs
-              </h2>
-            </div>
-            <Link href="/upload" className="cta-primary" style={{ padding: '0.6rem 1rem', fontSize: '0.85rem' }}>
-              Upload New Run
-            </Link>
+        {!recentRuns.length ? (
+          <div className="mt-5 surface-card-muted p-8 text-center">
+            <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+              No runs yet. Upload your first ski video to get started.
+            </p>
           </div>
-
-          {!runs.length ? (
-            <div className="mt-5 surface-card-muted p-8 text-center">
-              <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                No runs yet. Upload your first ski video to get started.
-              </p>
-              <Link href="/upload" className="cta-primary mt-4 inline-flex" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
-                Upload Your First Run
-              </Link>
-            </div>
-          ) : (
-            <ul className="mt-5 space-y-2">
-              {runs.map((job: Job) => {
-                const filename =
-                  String(job.config?.original_filename ?? '') ||
-                  job.video_object_path?.split('/').pop() ||
-                  job.id.slice(0, 8)
-                const date = new Date(job.created_at)
-                return (
-                  <li key={job.id}>
-                    <Link
-                      href={`/jobs/${job.id}`}
-                      className="surface-card-muted flex items-center gap-3 px-4 py-3 group transition-transform hover:-translate-y-0.5"
-                      style={{ display: 'flex' }}
-                    >
-                      <div
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ background: STATUS_DOT[job.status as JobStatus] }}
-                      />
+        ) : (
+          <ul className="mt-5 space-y-3">
+            {recentRuns.map((job) => {
+              const presentation = resolveJobPresentation(job)
+              const previewUrl = previewUrlByJob.get(job.id) ?? null
+              const displayNameForRun = getJobDisplayName(job)
+              const originalFilename = getJobOriginalFilename(job)
+              const userNote = getJobUserNote(job)
+              return (
+                <li key={job.id}>
+                  <div className="surface-card-muted flex items-center gap-4 px-4 py-4">
+                    <Link href={`/jobs/${job.id}`} className="flex min-w-0 flex-1 items-center gap-4">
+                      {previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={previewUrl}
+                          alt={displayNameForRun}
+                          className="rounded-[var(--radius-lg)] shrink-0"
+                          style={{ width: '4.5rem', height: '4.5rem', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div
+                          className="rounded-[var(--radius-lg)] flex items-center justify-center shrink-0"
+                          style={{ width: '4.5rem', height: '4.5rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}
+                        >
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ background: presentation.dot }} />
+                        </div>
+                      )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--ink-strong)' }}>
-                          {filename}
-                        </p>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-                          {date.toLocaleDateString()} at {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                      {job.score != null && (
-                        <div className="text-right shrink-0">
-                          <span className="text-sm font-bold" style={{ color: 'var(--accent)' }}>
-                            {job.score}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink-strong)' }}>
+                            {displayNameForRun}
+                          </p>
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                            style={{ color: presentation.dot, background: presentation.pill }}
+                          >
+                            {presentation.label}
                           </span>
+                        </div>
+                        <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>
+                          {new Date(job.created_at).toLocaleDateString()} at {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {originalFilename && originalFilename !== displayNameForRun ? ` · ${originalFilename}` : ''}
+                        </p>
+                        {userNote && (
+                          <p className="mt-1 text-xs" style={{ color: 'var(--ink-soft)' }}>
+                            {userNote}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      {job.score != null && (
+                        <div className="text-right">
+                          <p className="text-base font-bold" style={{ color: 'var(--accent)' }}>
+                            {job.score}
+                          </p>
                           <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
                             {scoreLabel(job.score)}
                           </p>
                         </div>
                       )}
-                      <span className="text-xs shrink-0 px-2 py-0.5 rounded-full" style={{
-                        color: STATUS_DOT[job.status as JobStatus],
-                        background: 'rgba(0,0,0,0.04)',
-                      }}>
-                        {STATUS_LABEL[job.status as JobStatus]}
-                      </span>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </section>
-      </div>
-    </>
+                      <JobRetryAction
+                        jobId={job.id}
+                        canRetry={presentation.canRetry}
+                        actionLabel={presentation.actionLabel}
+                      />
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+    </div>
   )
 }

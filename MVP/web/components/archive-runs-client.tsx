@@ -5,19 +5,28 @@ import Link from 'next/link'
 import { groupBySeason } from '@/lib/seasons'
 import { scoreLabel } from '@/lib/analysis-summary'
 import type { JobStatus } from '@/lib/types'
+import { JobRetryAction } from './job-retry-action'
 
 export interface ArchiveRunItem {
   id: string
   created_at: string
   status: JobStatus
   statusLabel: string
+  statusHelper: string
+  statusTone: 'neutral' | 'accent' | 'warning' | 'success' | 'danger'
   statusDot: string
   statusPill: string
-  title: string
+  canRetry: boolean
+  actionLabel: string | null
+  title?: string
+  displayName?: string
+  originalFilename?: string | null
+  userNote?: string | null
   subtitle: string
   score: number | null
   previewUrl: string | null
   sessionType: string | null
+  searchText?: string
 }
 
 function levelBadgeClass(label: string) {
@@ -30,18 +39,48 @@ function levelBadgeClass(label: string) {
   }
 }
 
+function toneStyles(tone: ArchiveRunItem['statusTone']) {
+  switch (tone) {
+    case 'accent':
+      return { color: 'var(--accent)', background: 'var(--accent-dim)', borderColor: 'rgba(0,132,212,0.15)' }
+    case 'warning':
+      return { color: 'var(--gold)', background: 'var(--gold-dim)', borderColor: 'rgba(199,154,68,0.22)' }
+    case 'success':
+      return { color: 'var(--success)', background: 'var(--success-dim)', borderColor: 'rgba(46,139,87,0.18)' }
+    case 'danger':
+      return { color: 'var(--danger)', background: 'var(--danger-dim)', borderColor: 'rgba(209,67,67,0.18)' }
+    default:
+      return { color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)', borderColor: 'rgba(0,0,0,0.06)' }
+  }
+}
+
 function fallbackIcon(statusDot: string) {
   return (
     <div
-      className="w-16 h-16 rounded-[var(--radius-lg)] flex items-center justify-center shrink-0"
-      style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}
+      className="flex shrink-0 items-center justify-center rounded-[var(--radius-lg)]"
+      style={{
+        width: '4.75rem',
+        height: '4.75rem',
+        background: 'rgba(0,0,0,0.03)',
+        border: '1px solid rgba(0,0,0,0.06)',
+      }}
     >
-      <div className="w-3 h-3 rounded-full" style={{ background: statusDot }} />
+      <div className="h-3 w-3 rounded-full" style={{ background: statusDot }} />
     </div>
   )
 }
 
-export function ArchiveRunsClient({ runs }: { runs: ArchiveRunItem[] }) {
+export function ArchiveRunsClient({
+  runs,
+  initialEditJobId = null,
+}: {
+  runs: ArchiveRunItem[]
+  initialEditJobId?: string | null
+}) {
+  return <ArchiveRunsClientBody runs={runs} initialEditJobId={initialEditJobId} />
+}
+
+function ArchiveRunsClientBody({ runs, initialEditJobId }: { runs: ArchiveRunItem[]; initialEditJobId?: string | null }) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | JobStatus>('all')
   const [sessionFilter, setSessionFilter] = useState('all')
@@ -58,7 +97,23 @@ export function ArchiveRunsClient({ runs }: { runs: ArchiveRunItem[] }) {
       if (statusFilter !== 'all' && run.status !== statusFilter) return false
       if (sessionFilter !== 'all' && run.sessionType !== sessionFilter) return false
       if (!normalizedSearch) return true
-      return `${run.title} ${run.subtitle}`.toLowerCase().includes(normalizedSearch)
+
+      const searchHaystack = [
+        run.displayName,
+        run.title,
+        run.originalFilename,
+        run.userNote,
+        run.subtitle,
+        run.statusLabel,
+        run.statusHelper,
+        run.sessionType,
+        run.searchText,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .join(' ')
+        .toLowerCase()
+
+      return searchHaystack.includes(normalizedSearch)
     })
 
     nextRuns.sort((left, right) => {
@@ -82,7 +137,7 @@ export function ArchiveRunsClient({ runs }: { runs: ArchiveRunItem[] }) {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by filename"
+            placeholder="Search runs, notes, or status"
             className="select-input"
           />
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | JobStatus)} className="select-input">
@@ -158,59 +213,86 @@ export function ArchiveRunsClient({ runs }: { runs: ArchiveRunItem[] }) {
               </div>
 
               <ul className="space-y-3 mt-5">
-                {groupRuns.map((run) => (
-                  <li key={run.id}>
-                    <Link
-                      href={`/jobs/${run.id}`}
-                      className="surface-card-muted flex items-center gap-4 px-4 py-4 group hover:-translate-y-0.5"
-                      style={{ display: 'flex', transition: 'transform 150ms ease, background 0.15s ease, border-color 0.15s ease' }}
-                    >
-                      {run.previewUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={run.previewUrl}
-                          alt={run.title}
-                          className="w-16 h-16 rounded-[var(--radius-lg)] object-cover shrink-0"
-                        />
-                      ) : fallbackIcon(run.statusDot)}
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink-strong)' }}>{run.title}</p>
-                          {run.sessionType && (
-                            <span
-                              className="text-[0.68rem] font-semibold px-2 py-0.5 rounded-full"
-                              style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--ink-soft)' }}
-                            >
-                              {run.sessionType}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs mt-1" style={{ color: 'var(--ink-soft)' }}>
-                          {run.subtitle}
-                        </p>
-                      </div>
-
-                      {run.score != null && (
-                        <div className="text-right shrink-0">
-                          <p className="text-base font-bold" style={{ color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>
-                            {run.score}
-                          </p>
-                          <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
-                            {scoreLabel(run.score)}
-                          </p>
-                        </div>
-                      )}
-
-                      <span
-                        className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full"
-                        style={{ background: run.statusPill, color: run.statusDot }}
+                {groupRuns.map((run) => {
+                  const statusStyle = toneStyles(run.statusTone)
+                  const displayName = run.displayName ?? run.title ?? 'Untitled run'
+                  return (
+                    <li key={run.id}>
+                      <div
+                        className="surface-card-muted flex items-center gap-4 px-4 py-4 group hover:-translate-y-0.5"
+                        style={{
+                          display: 'flex',
+                          transition: 'transform 150ms ease, background 0.15s ease, border-color 0.15s ease',
+                          boxShadow: initialEditJobId === run.id ? '0 0 0 1px rgba(0,132,212,0.18) inset' : undefined,
+                        }}
                       >
-                        {run.statusLabel}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
+                        <Link href={`/jobs/${run.id}`} className="flex min-w-0 flex-1 items-center gap-4">
+                          {run.previewUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={run.previewUrl}
+                              alt={displayName}
+                              className="shrink-0 rounded-[var(--radius-lg)] object-cover"
+                              style={{ width: '4.75rem', height: '4.75rem' }}
+                            />
+                          ) : fallbackIcon(run.statusDot)}
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink-strong)' }}>{displayName}</p>
+                              {run.sessionType && (
+                                <span
+                                  className="text-[0.68rem] font-semibold px-2 py-0.5 rounded-full"
+                                  style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--ink-soft)' }}
+                                >
+                                  {run.sessionType}
+                                </span>
+                              )}
+                            </div>
+                            {run.originalFilename && run.originalFilename !== displayName && (
+                              <p className="mt-1 text-xs truncate" style={{ color: 'var(--ink-muted)' }}>
+                                {run.originalFilename}
+                              </p>
+                            )}
+                            <p className="text-xs mt-1" style={{ color: 'var(--ink-soft)' }}>
+                              {run.subtitle}
+                            </p>
+                            <p className="mt-1 text-xs leading-5" style={{ color: 'var(--ink-base)' }}>
+                              {run.statusHelper}
+                            </p>
+                          </div>
+                        </Link>
+
+                        <div className="flex shrink-0 flex-col items-end gap-2">
+                          {run.score != null && (
+                            <div className="text-right">
+                              <p className="text-base font-bold" style={{ color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>
+                                {run.score}
+                              </p>
+                              <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
+                                {scoreLabel(run.score)}
+                              </p>
+                            </div>
+                          )}
+
+                          <span
+                            className="shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold"
+                            style={{ background: statusStyle.background, color: statusStyle.color, borderColor: statusStyle.borderColor }}
+                          >
+                            {run.statusLabel}
+                          </span>
+
+                          <JobRetryAction
+                            jobId={run.id}
+                            canRetry={run.canRetry}
+                            actionLabel={run.actionLabel}
+                            compact
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           )

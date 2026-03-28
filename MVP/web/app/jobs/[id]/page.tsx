@@ -6,6 +6,18 @@ import Link from 'next/link'
 import { buildTechniqueDashboard, scoreLabel, scoreContext, computeReliability, buildReliabilityMessage, generateLimitations, type TechniqueRunSummary, type RecapReliability, type AiCoaching, type AiCoachingPoint } from '@/lib/analysis-summary'
 import { getDrill } from '@/lib/drills'
 import type { ArtifactWithUrl, Job, JobStatus } from '@/lib/types'
+import { getJobDisplayName, getJobUserNote } from '@/lib/job-ui'
+import { RunMetadataEditor } from '@/components/run-metadata-editor'
+import { JobRetryAction } from '@/components/job-retry-action'
+
+interface JobPresentationResponse {
+  label: string
+  helper: string
+  dot: string
+  pill: string
+  canRetry: boolean
+  actionLabel: string | null
+}
 
 interface JobResponse {
   job: Job
@@ -13,6 +25,7 @@ interface JobResponse {
   summary: TechniqueRunSummary | null
   previousScore: number | null
   aiCoaching: AiCoaching | null
+  presentation?: JobPresentationResponse
 }
 
 type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
@@ -20,10 +33,10 @@ type Tab = 'recap' | 'metrics' | 'moments' | 'downloads'
 const ACTIVE: Set<JobStatus> = new Set(['created', 'uploaded', 'queued', 'running'])
 
 const STATUS_META: Record<JobStatus, { label: string; color: string; background: string; helper: string }> = {
-  created: { label: 'Preparing upload', color: 'var(--ink-soft)', background: 'rgba(0,0,0,0.04)', helper: 'We are setting up your run.' },
-  uploaded: { label: 'Upload complete', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'Your video is ready. Analysis will begin shortly.' },
-  queued: { label: 'Starting soon', color: 'var(--gold)', background: 'var(--gold-dim)', helper: 'We are getting your analysis started.' },
-  running: { label: 'Analyzing run', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'We are reviewing your technique and preparing your recap.' },
+  created: { label: 'Preparing upload', color: 'var(--ink-soft)', background: 'rgba(17,17,17,0.04)', helper: 'We are setting up your run.' },
+  uploaded: { label: 'Upload complete', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'Your video is ready. Analysis usually starts within a minute.' },
+  queued: { label: 'Queued for analysis', color: 'var(--gold)', background: 'var(--gold-dim)', helper: 'We are waiting for a worker slot. Most runs finish in 1-2 minutes.' },
+  running: { label: 'Analyzing run', color: 'var(--accent)', background: 'var(--accent-dim)', helper: 'We are reviewing your technique and writing the recap. Most runs finish in 1-2 minutes.' },
   done: { label: 'Recap ready', color: 'var(--success)', background: 'var(--success-dim)', helper: 'Your feedback is ready to review.' },
   error: { label: 'Analysis failed', color: 'var(--danger)', background: 'var(--danger-dim)', helper: 'Retry with a cleaner single-run clip.' },
 }
@@ -56,6 +69,33 @@ function levelBadgeClass(label: string) {
     case 'Good': return 'level-badge level-badge--good'
     case 'Dialed': return 'level-badge level-badge--dialed'
     default: return 'level-badge level-badge--building'
+  }
+}
+
+function confidenceMeta(reliability: RecapReliability, reliabilityMessage: ReturnType<typeof buildReliabilityMessage> | null) {
+  if (reliability === 'insufficient') {
+    return {
+      label: 'Score unavailable',
+      color: 'var(--gold)',
+      background: 'var(--gold-dim)',
+      helper: reliabilityMessage?.hideScoreReason ?? 'This clip was not clear enough for a dependable score.',
+    }
+  }
+
+  if (reliability === 'limited') {
+    return {
+      label: 'Limited review',
+      color: 'var(--gold)',
+      background: 'var(--gold-dim)',
+      helper: reliabilityMessage?.explanation ?? 'Some parts of the run were harder to read, so this is directional.',
+    }
+  }
+
+  return {
+    label: 'Reliable review',
+    color: 'var(--success)',
+    background: 'var(--success-dim)',
+    helper: 'The clip was clear enough for a direct read of the run.',
   }
 }
 
@@ -184,7 +224,6 @@ export default function JobDetailPage() {
   if (fetchError && !data) {
     return (
       <>
-        <div className="route-bg route-bg--detail" />
         <div className="space-y-4">
           <div className="surface-card-strong p-6" style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}>
             {fetchError}
@@ -198,7 +237,6 @@ export default function JobDetailPage() {
   if (!data) {
     return (
       <>
-        <div className="route-bg route-bg--detail" />
         <div className="space-y-4 animate-pulse">
           <div className="h-6 w-36 rounded-full" style={{ background: 'rgba(0,0,0,0.08)' }} />
           <div className="surface-card h-[24rem]" />
@@ -212,6 +250,7 @@ export default function JobDetailPage() {
   const dashboard = summary ? buildTechniqueDashboard(summary) : null
   const reliability: RecapReliability = dashboard?.reliability ?? (summary ? computeReliability(summary) : 'reliable')
   const reliabilityMessage = summary ? buildReliabilityMessage(summary) : null
+  const confidence = confidenceMeta(reliability, reliabilityMessage)
   const isActive = ACTIVE.has(job.status)
   const fromUpload = searchParams.get('fromUpload') === '1'
   const progressNote = typeof job.config?.progress_note === 'string' ? job.config.progress_note : null
@@ -223,14 +262,13 @@ export default function JobDetailPage() {
   const score = job.score ?? dashboard?.overview.overallScore ?? null
   const level = score != null ? scoreLabel(score) : null
   const scoreDelta = score != null && previousScore != null ? score - previousScore : null
-  const breadcrumbName =
-    String(job.config?.original_filename ?? '') ||
-    job.video_object_path?.split('/').pop() ||
-    job.id.slice(0, 8)
+  const displayName = getJobDisplayName(job)
+  const userNote = getJobUserNote(job)
+  const breadcrumbName = displayName
+  const presentation = data.presentation
 
   return (
     <>
-      <div className="route-bg route-bg--detail" />
       <div className="space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 px-1 sm:px-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
@@ -251,45 +289,48 @@ export default function JobDetailPage() {
         )}
 
         {/* ── Run Recap hero ──────────────────────────── */}
-        <section className="surface-card p-6 lg:p-7">
-          <div className="grid gap-6 lg:grid-cols-[1.16fr_0.84fr]">
-            {/* Left: video + score */}
-            <div className="space-y-4">
+        <section className="surface-card p-6 lg:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1.06fr_0.94fr]">
+            {/* Left: score + headline */}
+            <div className="space-y-5">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="eyebrow">Run Recap</span>
+                  <span
+                    className="status-pill"
+                    style={{ color: confidence.color, background: confidence.background }}
+                  >
+                    {confidence.label}
+                  </span>
                   {reliability !== 'reliable' && (
                     <span
                       className="text-xs font-bold px-2.5 py-1 rounded-full"
-                      style={{
-                        color: reliability === 'insufficient' ? 'var(--gold)' : 'var(--accent)',
-                        background: reliability === 'insufficient' ? 'var(--gold-dim)' : 'var(--accent-dim)',
-                      }}
+                      style={{ color: 'var(--ink-soft)', background: 'rgba(17,17,17,0.04)', border: '1px solid rgba(17,17,17,0.08)' }}
                     >
-                      {reliability === 'insufficient' ? 'Limited Review' : 'Tentative'}
+                      Review confidence
                     </span>
                   )}
                 </div>
-                <span className="status-pill" style={{ color: statusMeta.color, background: statusMeta.background }}>
-                  {statusMeta.label}
+                <span className="status-pill" style={{ color: presentation?.dot ?? statusMeta.color, background: presentation?.pill ?? statusMeta.background }}>
+                  {presentation?.label ?? statusMeta.label}
                 </span>
               </div>
 
               {/* Score + headline row */}
               <div className="flex items-start gap-5">
                 {score != null && reliability !== 'insufficient' && (
-                  <div className="score-ring shrink-0" style={{ width: '6.5rem', height: '6.5rem' }}>
+                  <div className="score-ring shrink-0" style={{ width: '8.8rem', height: '8.8rem' }}>
                     <div className="score-ring-glow" />
-                    <svg width="104" height="104" viewBox="0 0 104 104">
-                      <circle cx="52" cy="52" r="44" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="6" />
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                      <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(17,17,17,0.08)" strokeWidth="7" />
                       <circle
-                        cx="52" cy="52" r="44"
+                        cx="70" cy="70" r="54"
                         fill="none"
                         stroke="url(#scoreGradDetail)"
-                        strokeWidth="6"
+                        strokeWidth="7"
                         strokeLinecap="round"
-                        strokeDasharray="276.46"
-                        strokeDashoffset={276.46 - (score / 100) * 276.46}
+                        strokeDasharray="339.29"
+                        strokeDashoffset={339.29 - (score / 100) * 339.29}
                       />
                       <defs>
                         <linearGradient id="scoreGradDetail" x1="0" y1="0" x2="1" y2="1">
@@ -299,7 +340,7 @@ export default function JobDetailPage() {
                       </defs>
                     </svg>
                     <div className="score-ring-label">
-                      <span className="font-extrabold tracking-tight" style={{ fontSize: '1.6rem', color: 'var(--ink-strong)' }}>
+                      <span className="font-extrabold tracking-tight" style={{ fontSize: '2.15rem', color: 'var(--ink-strong)' }}>
                         {score}
                       </span>
                     </div>
@@ -308,26 +349,27 @@ export default function JobDetailPage() {
                 {reliability === 'insufficient' && (
                   <div
                     className="flex items-center justify-center rounded-full shrink-0"
-                    style={{ width: '6.5rem', height: '6.5rem', background: 'rgba(0,0,0,0.04)', border: '2px dashed rgba(0,0,0,0.12)' }}
+                    style={{ width: '8.8rem', height: '8.8rem', background: 'rgba(255,255,255,0.9)', border: '2px dashed rgba(17,17,17,0.12)' }}
                   >
                     <div className="text-center px-2">
-                      <p className="text-xs font-bold" style={{ color: 'var(--ink-soft)' }}>No score</p>
-                      <p style={{ fontSize: '0.62rem', color: 'var(--ink-muted)' }}>for this clip</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-soft)' }}>No score</p>
+                      <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>for this clip</p>
                     </div>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <h1 style={{ fontSize: 'clamp(1.3rem, 2.4vw, 1.8rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2, color: 'var(--ink-strong)' }}>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--ink-muted)' }}>
+                    Current score
+                  </p>
+                  <h1 style={{ fontSize: 'clamp(1.9rem, 3.6vw, 3rem)', fontWeight: 800, letterSpacing: '-0.05em', lineHeight: 1.05, color: 'var(--ink-strong)' }}>
                     {reliability === 'insufficient'
                       ? (reliabilityMessage?.title ?? 'Score unavailable for this clip')
                       : score != null ? headline : 'Review how this run moved.'}
                   </h1>
-                  {reliability === 'insufficient' && reliabilityMessage && (
-                    <p className="mt-2 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
-                      {reliabilityMessage.hideScoreReason}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)', maxWidth: '40rem' }}>
+                    {confidence.helper}
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {level && reliability !== 'insufficient' && (
                       <span className={levelBadgeClass(level)}>
                         {reliability === 'limited' ? `${level} (tentative)` : level}
@@ -345,11 +387,21 @@ export default function JobDetailPage() {
                       </span>
                     )}
                     {score != null && reliability !== 'insufficient' && (
-                      <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+                      <span className="text-sm" style={{ color: 'var(--ink-soft)' }}>
                         {scoreContext(score)}
                       </span>
                     )}
                   </div>
+                  {reliability === 'insufficient' && reliabilityMessage && (
+                    <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
+                      {reliabilityMessage.hideScoreReason}
+                    </p>
+                  )}
+                  {userNote && (
+                    <p className="mt-3 text-sm leading-6" style={{ color: 'var(--ink-base)' }}>
+                      Note: {userNote}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -357,14 +409,14 @@ export default function JobDetailPage() {
               {overlayArtifact?.url ? (
                 <div
                   className="overflow-hidden"
-                  style={{ borderRadius: 'var(--radius-xl)', background: '#0a0f1a', border: '1px solid rgba(255,255,255,0.15)' }}
+                  style={{ borderRadius: 'var(--radius-xl)', background: '#0a0f1a', border: '1px solid rgba(17,17,17,0.08)' }}
                 >
                   <video src={overlayArtifact.url} controls playsInline className="w-full aspect-video bg-black" />
                 </div>
               ) : (
                 <div
                   className="aspect-video flex items-center justify-center text-center p-8"
-                  style={{ borderRadius: 'var(--radius-xl)', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--ink-soft)' }}
+                  style={{ borderRadius: 'var(--radius-xl)', background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(17,17,17,0.08)', color: 'var(--ink-soft)' }}
                 >
                   The recap video will appear after the coach feedback finishes and the full recap is published.
                 </div>
@@ -373,6 +425,26 @@ export default function JobDetailPage() {
 
             {/* Right sidebar: metrics + context */}
             <aside className="space-y-4">
+              {isActive && (() => {
+                const stage = typeof job.config?.progress_stage === 'string' ? job.config.progress_stage : null
+                const label = stage
+                  ? stage
+                  : progressNote ?? statusMeta.helper
+                return (
+                  <div className="surface-card-muted p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Processing</p>
+                      <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>Auto refresh</span>
+                    </div>
+                    <div className="mt-3 progress-track">
+                      <div className="progress-fill transition-all duration-700" style={{ width: `${displayProgress}%` }} />
+                    </div>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-base)' }}>{label}</p>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>Most runs finish in 1-2 minutes once the video is uploaded.</p>
+                  </div>
+                )
+              })()}
+
               {/* Quick metrics */}
               <div className="surface-card-muted p-5">
                 <p className="section-label">Technique Summary</p>
@@ -407,6 +479,10 @@ export default function JobDetailPage() {
                 <p className="section-label">Run Context</p>
                 <div className="mt-3 space-y-2 text-sm" style={{ color: 'var(--ink-base)' }}>
                   <p>
+                    <span style={{ color: 'var(--ink-muted)' }}>Run title:</span>{' '}
+                    {displayName}
+                  </p>
+                  <p>
                     <span style={{ color: 'var(--ink-muted)' }}>Uploaded:</span>{' '}
                     {new Date(job.created_at).toLocaleString()}
                   </p>
@@ -416,30 +492,33 @@ export default function JobDetailPage() {
                   </p>
                   <p>
                     <span style={{ color: 'var(--ink-muted)' }}>Status:</span>{' '}
-                    {progressNote ?? statusMeta.helper}
+                    {presentation?.helper ?? progressNote ?? statusMeta.helper}
                   </p>
                 </div>
               </div>
 
-              {/* Processing progress */}
-              {isActive && (() => {
-                const stage = typeof job.config?.progress_stage === 'string' ? job.config.progress_stage : null
-                const label = stage
-                  ? stage
-                  : progressNote ?? statusMeta.helper
-                return (
-                  <div className="surface-card-muted p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>Processing</p>
-                      <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>Auto refresh</span>
-                    </div>
-                    <div className="mt-3 progress-track">
-                      <div className="progress-fill transition-all duration-700" style={{ width: `${displayProgress}%` }} />
-                    </div>
-                    <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>{label}</p>
+              <div className="surface-card-muted p-5">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="section-label">Run details</p>
+                    <p className="mt-2 text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
+                      Rename this run or leave yourself context for later.
+                    </p>
                   </div>
-                )
-              })()}
+                  <JobRetryAction
+                    jobId={job.id}
+                    canRetry={presentation?.canRetry ?? false}
+                    actionLabel={presentation?.actionLabel ?? null}
+                  />
+                </div>
+                <div className="mt-4">
+                  <RunMetadataEditor
+                    jobId={job.id}
+                    initialDisplayName={displayName}
+                    initialUserNote={userNote}
+                  />
+                </div>
+              </div>
 
               {job.error && (
                 <div className="surface-card-muted p-5 text-sm" style={{ color: 'var(--danger)', background: 'var(--danger-dim)' }}>

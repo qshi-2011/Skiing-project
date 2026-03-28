@@ -1,31 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Job, JobStatus } from '@/lib/types'
+import { Job } from '@/lib/types'
 import { buildTechniqueDashboard, scoreLabel, type TechniqueRunSummary, type CoachingTip } from '@/lib/analysis-summary'
 import { buildNextSessionCard } from '@/lib/practice-guidance'
 import { SiteFooter } from '@/components/site-footer'
-import { backfillMissingScores } from '@/lib/server-job-data'
+import { ScoreTrendCard } from '@/components/score-trend-card'
+import { JobRetryAction } from '@/components/job-retry-action'
+import { backfillMissingScores, loadPreviewUrlsForJobIds, resolveJobPresentation } from '@/lib/server-job-data'
+import { getJobDisplayName, getJobUserNote, getJobOriginalFilename } from '@/lib/job-ui'
 
 export const dynamic = 'force-dynamic'
-
-/* ── Status display helpers ───────────────────────────── */
-const STATUS_DOT: Record<JobStatus, string> = {
-  created: 'var(--ink-muted)',
-  uploaded: 'var(--accent)',
-  queued: 'var(--gold)',
-  running: 'var(--accent)',
-  done: 'var(--success)',
-  error: 'var(--danger)',
-}
-
-const STATUS_LABEL: Record<JobStatus, string> = {
-  created: 'Created',
-  uploaded: 'Uploaded',
-  queued: 'Queued',
-  running: 'Analysing',
-  done: 'Done',
-  error: 'Error',
-}
 
 const CATEGORY_BADGE: Record<string, string> = {
   balance: 'category-badge-balance',
@@ -41,16 +25,6 @@ const CATEGORY_ICON: Record<string, string> = {
   rhythm: 'Rhythm',
   movement: 'Movement',
   general: 'General',
-}
-
-function levelBadgeClass(label: string) {
-  switch (label) {
-    case 'Focus': return 'level-badge level-badge--focus'
-    case 'Building': return 'level-badge level-badge--building'
-    case 'Good': return 'level-badge level-badge--good'
-    case 'Dialed': return 'level-badge level-badge--dialed'
-    default: return 'level-badge level-badge--building'
-  }
 }
 
 /* ── Data fetching ────────────────────────────────────── */
@@ -267,12 +241,9 @@ async function Dashboard() {
 
   const scoredRuns = completedRuns.filter((j) => j.score != null) as (Job & { score: number })[]
   const latestScore = scoredRuns[0]?.score ?? null
-  const previousScore = scoredRuns[1]?.score ?? null
-  const scoreDelta = latestScore != null && previousScore != null ? latestScore - previousScore : null
   const bestRecentScore = scoredRuns.length ? Math.max(...scoredRuns.slice(0, 10).map((j) => j.score)) : null
 
   let score = latestScore
-  let level: string | null = latestScore != null ? scoreLabel(latestScore) : null
   let primaryTip: CoachingTip | null = null
 
   const recentCompleted = completedRuns.slice(0, 3)
@@ -294,7 +265,6 @@ async function Dashboard() {
       if (score == null) {
         const dashboard = buildTechniqueDashboard(summary)
         score = dashboard.overview.overallScore
-        level = scoreLabel(score)
         if (dashboard.focusCards.length) {
           primaryTip = dashboard.focusCards[0]
         } else if (tips.length) {
@@ -316,11 +286,12 @@ async function Dashboard() {
 
   const nextSession = buildNextSessionCard(recentTipSets)
   const recentRuns = runs.slice(0, 5)
+  const recentPreviewUrlByJob = await loadPreviewUrlsForJobIds(service, recentRuns.map((run) => run.id))
   const displayName = user?.email?.split('@')[0] ?? 'there'
+  const trendRuns = scoredRuns.slice(0, 10)
 
   return (
     <>
-      <div className="route-bg route-bg--dashboard" />
       <div className="space-y-6">
 
         {/* ══ ROW 1: Welcome | Upload | Preflight ══════════ */}
@@ -377,6 +348,12 @@ async function Dashboard() {
           </section>
         </div>
 
+        <ScoreTrendCard
+          runs={trendRuns}
+          title="Your recent scoring trend"
+          subtitle="See how your last ten scored runs are moving and compare the latest average against the previous five."
+        />
+
         {/* ══ ROW 2: Metrics+Runs | Coaching Insight | Practice ══ */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Left: Metric tiles + Recent runs */}
@@ -415,38 +392,70 @@ async function Dashboard() {
               ) : (
                 <ul className="space-y-2 mt-4">
                   {recentRuns.map((job: Job) => {
-                    const filename =
-                      String(job.config?.original_filename ?? '') ||
-                      job.video_object_path?.split('/').pop() ||
-                      job.id.slice(0, 8)
+                    const displayName = getJobDisplayName(job)
+                    const originalFilename = getJobOriginalFilename(job)
+                    const userNote = getJobUserNote(job)
+                    const previewUrl = recentPreviewUrlByJob.get(job.id) ?? null
+                    const presentation = resolveJobPresentation(job)
                     return (
                       <li key={job.id}>
-                        <Link
-                          href={`/jobs/${job.id}`}
+                        <div
                           className="surface-card-muted flex items-center gap-3 px-4 py-3 group transition-transform hover:-translate-y-0.5"
                           style={{ display: 'flex' }}
                         >
-                          <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ background: STATUS_DOT[job.status as JobStatus] }}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium truncate" style={{ color: 'var(--ink-strong)' }}>
-                              {filename}
-                            </p>
-                          </div>
-                          {job.score != null && (
-                            <span className="text-xs font-bold shrink-0" style={{ color: 'var(--accent)' }}>
-                              {job.score}
+                          <Link href={`/jobs/${job.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                            {previewUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={previewUrl}
+                                alt={displayName}
+                                className="rounded-[var(--radius-lg)] shrink-0"
+                                style={{ width: '4.25rem', height: '4.25rem', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div
+                                className="rounded-[var(--radius-lg)] flex items-center justify-center shrink-0"
+                                style={{ width: '4.25rem', height: '4.25rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}
+                              >
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ background: presentation.dot }} />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink-strong)' }}>
+                                {displayName}
+                              </p>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--ink-muted)' }}>
+                                {originalFilename && originalFilename !== displayName && <span className="truncate">{originalFilename}</span>}
+                                <span>{new Date(job.created_at).toLocaleDateString()}</span>
+                              </div>
+                              {userNote && (
+                                <p className="mt-1 text-xs truncate" style={{ color: 'var(--ink-soft)' }}>
+                                  {userNote}
+                                </p>
+                              )}
+                            </div>
+                          </Link>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {job.score != null && (
+                              <span className="text-xs font-bold shrink-0" style={{ color: 'var(--accent)' }}>
+                                {job.score}
+                              </span>
+                            )}
+                            <span
+                              className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
+                              style={{ color: presentation.dot, background: presentation.pill }}
+                            >
+                              {presentation.label}
                             </span>
-                          )}
-                          <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
-                            {STATUS_LABEL[job.status as JobStatus]}
-                          </span>
-                          <span className="text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
-                            {new Date(job.created_at).toLocaleDateString()}
-                          </span>
-                        </Link>
+                            <JobRetryAction
+                              jobId={job.id}
+                              canRetry={presentation.retryable}
+                              actionLabel={presentation.actionLabel}
+                              compact
+                            />
+                          </div>
+                        </div>
                       </li>
                     )
                   })}

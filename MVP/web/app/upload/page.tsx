@@ -36,6 +36,8 @@ const LABEL: Record<Step, string> = {
   error: '',
 }
 
+const ETA_COPY = 'Most runs finish in 1-2 minutes after the upload lands.'
+
 const CAMERA_OPTIONS = [
   { value: '', label: 'Select perspective…' },
   { value: 'side', label: 'Side view' },
@@ -274,13 +276,15 @@ export default function UploadPage() {
 
   return (
     <>
-      <div className="route-bg route-bg--upload" />
       <div className="space-y-6">
         {/* ── Preflight checklist (top) ──────────────── */}
         <section className="surface-card-strong p-6 lg:p-8">
           <p className="section-label">Preflight Checklist</p>
           <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
             Check these before uploading for the best analysis quality.
+          </p>
+          <p className="mt-2 text-sm" style={{ color: 'var(--ink-base)' }}>
+            {ETA_COPY}
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             <div className="preflight-item">
@@ -330,6 +334,11 @@ export default function UploadPage() {
                     <div className="progress-fill transition-all duration-500" style={{ width: `${progressWidth}%` }} />
                   </div>
                   <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>{progressLabel}</p>
+                  {busy && (
+                    <p className="text-sm" style={{ color: 'var(--ink-base)' }}>
+                      {ETA_COPY}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -476,6 +485,9 @@ export default function UploadPage() {
               </h2>
               <p className="section-copy mt-3">
                 One upload opens a run review page with your overlay video, key moments, and coaching results as they finish processing.
+              </p>
+              <p className="mt-3 text-sm" style={{ color: 'var(--ink-base)', lineHeight: 1.65 }}>
+                {ETA_COPY}
               </p>
             </div>
 
