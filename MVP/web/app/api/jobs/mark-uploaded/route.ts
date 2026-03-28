@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { videoObjectExists } from '@/lib/r2'
+import { getVideoObjectMetadata } from '@/lib/r2'
+
+function normalizeExpectedSize(value: unknown) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return null
+  }
+
+  return Math.floor(value)
+}
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -44,13 +52,23 @@ export async function POST(req: NextRequest) {
   if (job.video_object_path) {
     const config = (job.config ?? {}) as Record<string, unknown>
     const provider = config.video_storage_provider === 'r2' ? 'r2' : 'supabase'
+    const expectedSizeBytes = normalizeExpectedSize(config.video_file_size_bytes)
 
     if (provider === 'r2') {
-      const exists = await videoObjectExists(job.video_object_path)
-      if (!exists) {
+      const metadata = await getVideoObjectMetadata(job.video_object_path)
+      if (!metadata.exists) {
         return NextResponse.json(
           { error: 'Video file not found in R2. Upload may have failed.' },
           { status: 400 }
+        )
+      }
+
+      if (expectedSizeBytes != null && metadata.sizeBytes !== expectedSizeBytes) {
+        return NextResponse.json(
+          {
+            error: `Uploaded video is incomplete in storage (${metadata.sizeBytes ?? 0} of ${expectedSizeBytes} bytes). Please upload it again.`,
+          },
+          { status: 409 }
         )
       }
     } else {

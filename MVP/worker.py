@@ -124,6 +124,17 @@ def _video_storage_provider(config: dict) -> str:
     return "r2" if config.get("video_storage_provider") == "r2" else "supabase"
 
 
+def _expected_video_size_bytes(config: dict) -> int | None:
+    value = config.get("video_file_size_bytes")
+    if isinstance(value, bool):  # bool is a subclass of int
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+    if isinstance(value, float):
+        return int(value) if value > 0 else None
+    return None
+
+
 def _get_r2_client():
     global _r2_client
 
@@ -161,21 +172,49 @@ def _get_r2_client():
     return _r2_client
 
 
-def _download_video_bytes(remote_path: str, provider: str, *, max_retries: int = 3) -> bytes:
+def _download_video_bytes(
+    remote_path: str,
+    provider: str,
+    *,
+    expected_size_bytes: int | None = None,
+    max_retries: int = 3,
+) -> bytes:
     if provider == "r2":
         for attempt in range(1, max_retries + 1):
             try:
                 response = _get_r2_client().get_object(Bucket=R2_VIDEOS_BUCKET, Key=remote_path)
+                remote_size = response.get("ContentLength")
+                if expected_size_bytes is not None and remote_size not in (None, expected_size_bytes):
+                    body = response["Body"]
+                    body.close()
+                    raise RuntimeError(
+                        f"Stored video size mismatch before download: expected {expected_size_bytes} bytes, got {remote_size} bytes"
+                    )
+
                 # Stream in 1 MB chunks instead of a single .read()
-                chunks: list[bytes] = []
+                chunks = bytearray()
                 body = response["Body"]
                 while True:
                     chunk = body.read(1_048_576)  # 1 MB
                     if not chunk:
                         break
-                    chunks.append(chunk)
+                    chunks.extend(chunk)
                 body.close()
-                return b"".join(chunks)
+                video_bytes = bytes(chunks)
+                actual_size = len(video_bytes)
+
+                if actual_size == 0:
+                    raise RuntimeError("Downloaded video is empty")
+                if isinstance(remote_size, int) and actual_size != remote_size:
+                    raise RuntimeError(
+                        f"Downloaded truncated video from R2: expected {remote_size} bytes, got {actual_size} bytes"
+                    )
+                if expected_size_bytes is not None and actual_size != expected_size_bytes:
+                    raise RuntimeError(
+                        f"Downloaded video size mismatch: expected {expected_size_bytes} bytes, got {actual_size} bytes"
+                    )
+
+                return video_bytes
             except Exception as exc:
                 if attempt < max_retries:
                     wait = 2 ** attempt
@@ -184,7 +223,15 @@ def _download_video_bytes(remote_path: str, provider: str, *, max_retries: int =
                 else:
                     raise
 
-    return supabase.storage.from_("videos").download(remote_path)
+    video_bytes = supabase.storage.from_("videos").download(remote_path)
+    actual_size = len(video_bytes)
+    if actual_size == 0:
+        raise RuntimeError("Downloaded video is empty")
+    if expected_size_bytes is not None and actual_size != expected_size_bytes:
+        raise RuntimeError(
+            f"Downloaded video size mismatch: expected {expected_size_bytes} bytes, got {actual_size} bytes"
+        )
+    return video_bytes
 
 
 def _upload_file_to_r2(
@@ -643,6 +690,7 @@ def process_job(job: dict) -> None:
     video_path_in_storage: str | None = job.get("video_object_path")
     config: dict = dict(job.get("config") or {})
     provider = _video_storage_provider(config)
+    expected_size_bytes = _expected_video_size_bytes(config)
 
     print(f"[{job_id[:8]}] Starting job (provider: {provider}, video: {video_path_in_storage})")
 
@@ -654,7 +702,11 @@ def process_job(job: dict) -> None:
         try:
             _set_progress(job_id, config, "Downloading your video...", step=1, total=5, stage="Preparing your video")
             print(f"[{job_id[:8]}] Downloading video from {provider}...")
-            video_bytes = _download_video_bytes(video_path_in_storage, provider)
+            video_bytes = _download_video_bytes(
+                video_path_in_storage,
+                provider,
+                expected_size_bytes=expected_size_bytes,
+            )
             suffix = Path(video_path_in_storage).suffix or ".mp4"
             local_video = Path(tmpdir) / f"video{suffix}"
             local_video.write_bytes(video_bytes)

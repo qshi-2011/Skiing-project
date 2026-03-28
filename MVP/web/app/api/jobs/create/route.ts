@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
     original_filename: filename,
     video_storage_provider: VIDEO_STORAGE_PROVIDER,
     video_content_type: normalizedContentType,
+    video_file_size_bytes: normalizedFileSize,
   }
   if (typeof cameraPerspective === 'string' && cameraPerspective) {
     config.camera_perspective = cameraPerspective

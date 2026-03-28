@@ -135,6 +135,17 @@ export async function videoObjectExists(key: string) {
   return objectExists(getR2VideosBucket(), key)
 }
 
+export type ObjectMetadata = {
+  exists: boolean
+  sizeBytes: number | null
+  contentType: string | null
+  eTag: string | null
+}
+
+export async function getVideoObjectMetadata(key: string): Promise<ObjectMetadata> {
+  return getObjectMetadata(getR2VideosBucket(), key)
+}
+
 export async function createArtifactDownloadUrl(key: string, bucket = getR2ArtifactsBucket()) {
   const r2 = createR2Client()
   const command = new GetObjectCommand({
@@ -150,23 +161,39 @@ export function getDefaultR2ArtifactsBucket() {
 }
 
 async function objectExists(bucket: string, key: string) {
+  const metadata = await getObjectMetadata(bucket, key)
+  return metadata.exists
+}
+
+async function getObjectMetadata(bucket: string, key: string): Promise<ObjectMetadata> {
   const r2 = createR2Client()
 
   try {
-    await r2.send(
+    const response = await r2.send(
       new HeadObjectCommand({
         Bucket: bucket,
         Key: key,
       })
     )
-    return true
+
+    return {
+      exists: true,
+      sizeBytes: typeof response.ContentLength === 'number' ? response.ContentLength : null,
+      contentType: response.ContentType ?? null,
+      eTag: response.ETag ?? null,
+    }
   } catch (error: unknown) {
     const statusCode = (
       error as { $metadata?: { httpStatusCode?: number } }
     ).$metadata?.httpStatusCode
 
     if (statusCode === 404) {
-      return false
+      return {
+        exists: false,
+        sizeBytes: null,
+        contentType: null,
+        eTag: null,
+      }
     }
 
     throw error
